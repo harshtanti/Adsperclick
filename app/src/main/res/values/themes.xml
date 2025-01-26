@@ -6,4 +6,11 @@
     </style>
 
     <style name="Theme.Adsperclick" parent="Base.Theme.Adsperclick" />
+
+    <style name="Theme.Adsperclick.StartingScreen" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/white</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/baseline_bedroom_baby_24</item>
+        <item name="windowSplashScreenAnimationDuration">300</item>
+        <item name="postSplashScreenTheme">@style/Base.Theme.Adsperclick</item>
+    </style>
 </resources>
