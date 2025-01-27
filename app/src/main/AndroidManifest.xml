@@ -17,7 +17,7 @@
             android:name=".views.homeActivity.HomeActivity"
             android:exported="false" />
         <activity
-            android:name=".views.loginAcitvity.MainActivity"
+            android:name=".views.loginActivity.MainActivity"
             android:theme="@style/Theme.Adsperclick.StartingScreen"
             android:exported="true">
             <intent-filter>
