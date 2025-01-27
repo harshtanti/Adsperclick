@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.example.adsperclick.R
 import com.example.adsperclick.databinding.ActivityHomeBinding
@@ -29,7 +30,8 @@ class HomeActivity : AppCompatActivity() {
         if (!isAdmin) {
             binding.bottomNavigation.menu.removeItem(R.id.navigation_user) // Hides "User"
         }
-        val navController = findNavController(R.id.nav_host_fragment_activity_home)
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_activity_home) as NavHostFragment
+        val navController = navHostFragment.navController
         binding.bottomNavigation.setupWithNavController(navController)
     }
 }

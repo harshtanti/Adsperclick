@@ -163,6 +163,7 @@
     <color name="Black_d">#dddddd</color>
     <color name="Black_e">#eeeeee</color>
     <color name="Black_f">#ffffff</color>
+    <color name="color_888888">#888888</color>
 
     <color name="textSecondaryColor">@color/Black_a</color>
 
