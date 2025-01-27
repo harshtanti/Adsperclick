@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".views.user.fragment.UserListFragment">
+    tools:context=".views.setting.fragment.SettingFragment">
 
     <TextView
         android:layout_width="match_parent"
@@ -13,6 +13,6 @@
         android:textSize="20sp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        android:text="Welcome to UserList Fragment!!!" />
+        android:text="Welcome to Setting Fragment!!!" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</FrameLayout>
