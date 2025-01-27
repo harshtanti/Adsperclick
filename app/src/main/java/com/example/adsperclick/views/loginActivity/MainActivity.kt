@@ -1,5 +1,6 @@
-package com.example.adsperclick.views.loginAcitvity
+package com.example.adsperclick.views.loginActivity
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -8,6 +9,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.adsperclick.R
 import com.example.adsperclick.databinding.ActivityMainBinding
+import com.example.adsperclick.views.homeActivity.HomeActivity
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -27,6 +29,12 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
+        listener()
+    }
 
+    private fun listener(){
+        binding.btnLogin.setOnClickListener{
+            startActivity(Intent(this, HomeActivity::class.java))
+        }
     }
 }

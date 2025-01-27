@@ -6,4 +6,6 @@
     <string name="password">Password</string>
     <string name="login">Log in</string>
     <string name="or">OR</string>
+    <string name="app_logo">App Logo</string>
+    <string name="don_t_have_an_account_contact_us">Don\'t have an account? Contact Us</string>
 </resources>

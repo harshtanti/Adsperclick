@@ -17,16 +17,17 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".views.loginAcitvity.MainActivity"
+    tools:context=".views.loginActivity.MainActivity"
     style="@style/bg_login_reg">
 
 
     <TextView
         android:id="@+id/tvLogin"
         style="@style/tv_title_login_reg"
-        android:text="App Logo"
+        android:text="@string/app_logo"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -46,18 +47,19 @@
         <EditText
             android:id="@+id/etEmail"
             style="@style/et_login"
-            android:drawableStart="@drawable/drawable_start_email"
             android:hint="@string/email"
+            android:drawableStart="@drawable/drawable_start_email"
             android:padding="10dp" />
 
 
         <EditText
             android:id="@+id/etPassword"
             style="@style/et_login"
-            android:drawableStart="@drawable/drawable_start_password"
             android:hint="@string/password"
+            android:drawableStart="@drawable/drawable_start_password"
             android:inputType="textPassword"
-            android:padding="10dp" />
+            android:padding="10dp"
+            tools:ignore="LabelFor" />
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnLogin"
@@ -71,7 +73,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:layout_marginTop="0dp"
+        android:layout_marginTop="40dp"
         app:layout_constraintTop_toBottomOf="@+id/linearLayout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -113,7 +115,7 @@
         android:gravity="center"
         app:layout_constraintTop_toBottomOf="@+id/linearLayout"
         app:layout_constraintBottom_toBottomOf="parent"
-        android:text="Don't have an account? Contact Us"
+        android:text="@string/don_t_have_an_account_contact_us"
         android:textColor="@color/Black_a"
         android:textSize="16sp" />
 
