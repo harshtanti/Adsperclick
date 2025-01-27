@@ -5,11 +5,10 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.fragment.app.Fragment
+import androidx.navigation.findNavController
+import androidx.navigation.ui.setupWithNavController
 import com.example.adsperclick.R
 import com.example.adsperclick.databinding.ActivityHomeBinding
-import com.example.adsperclick.views.homeActivity.Fragments.ChatFragment
-import com.example.adsperclick.views.homeActivity.Fragments.UserListFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -26,22 +25,7 @@ class HomeActivity : AppCompatActivity() {
             insets
         }
 
-        replaceFragment(ChatFragment())     // Because initially we want the "Chat Fragment" to be shown
-        binding.bottomNavigation.setOnItemSelectedListener {
-            when(it.itemId){
-                R.id.btn_chat_frag -> replaceFragment(ChatFragment())
-//                R.id.btn_setting_frag -> replaceFragment(MySettingFragment())
-                R.id.btn_users_frag -> replaceFragment(UserListFragment())
-                else -> {}
-            }
-            true
-        }
-    }
-
-    private fun replaceFragment(fragment: Fragment) {
-        val fragmentManager = supportFragmentManager
-        val fragmentTransaction = fragmentManager.beginTransaction()
-        fragmentTransaction.replace(R.id.my_frame_layout, fragment)
-        fragmentTransaction.commit()
+        val navController = findNavController(R.id.nav_host_fragment_activity_home)
+        binding.bottomNavigation.setupWithNavController(navController)
     }
 }

@@ -2,16 +2,16 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/btn_chat_frag"
+        android:id="@+id/navigation_chat"
         android:title="Chat"
         android:icon="@drawable/forum_24px"/>
 
     <item
-        android:id="@+id/btn_users_frag"
+        android:id="@+id/navigation_user"
         android:title="Users"
         android:icon="@drawable/person_24px"/>
     <item
-        android:id="@+id/btn_setting_frag"
+        android:id="@+id/navigation_setting"
         android:title="Setting"
         android:icon="@drawable/bottom_nav_settings_24px" />
 
