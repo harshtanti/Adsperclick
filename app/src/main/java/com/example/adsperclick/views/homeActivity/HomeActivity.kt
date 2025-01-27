@@ -14,6 +14,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class HomeActivity : AppCompatActivity() {
     private lateinit var binding: ActivityHomeBinding
+    private var isAdmin=false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityHomeBinding.inflate(layoutInflater)
@@ -24,7 +25,10 @@ class HomeActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-
+        isAdmin = intent.getBooleanExtra("isAdmin", false)
+        if (!isAdmin) {
+            binding.bottomNavigation.menu.removeItem(R.id.navigation_user) // Hides "User"
+        }
         val navController = findNavController(R.id.nav_host_fragment_activity_home)
         binding.bottomNavigation.setupWithNavController(navController)
     }
