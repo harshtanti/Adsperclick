@@ -19,5 +19,23 @@ class ChatFragment : Fragment() {
         binding = FragmentChatBinding.inflate(layoutInflater, container, false)
         return binding.root
     }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val companyList = listOf( Company("1", "All"),
+            Company("2", "Amazon"),
+            Company("3", "Meesho"),
+            Company("8", "companyNumber-8"),
+            Company("3", "Flipkart"),
+            Company("4", "Jumbo Tail"))
+        val compId = "3"
+        horizontalCompanyListAdapter = HorizontalCompanyListAdapter(companyList, compId){
+            // Handle item click here
+        }
+        binding.rvHorizontalForCompanyList.apply {
+            adapter = horizontalCompanyListAdapter
+        }
+    }
 }
 
