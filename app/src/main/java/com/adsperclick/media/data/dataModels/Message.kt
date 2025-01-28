@@ -1,6 +1,6 @@
-package com.example.adsperclick.data.dataModels
+package com.adsperclick.media.data.dataModels
 
-import com.example.adsperclick.utils.Constants
+
 import kotlinx.serialization.Serializable
 
 @Serializable

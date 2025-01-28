@@ -1,19 +1,17 @@
-package com.example.adsperclick.views.chat.adapters
+package com.adsperclick.media.views.chat.adapters
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.content.res.AppCompatResources
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
-import com.example.adsperclick.data.dataModels.Company
-import com.example.adsperclick.databinding.HorizontalCompanyListItemBinding
-import com.google.android.material.textview.MaterialTextView
+import com.adsperclick.media.data.dataModels.Company
+import com.adsperclick.media.databinding.HorizontalCompanyListItemBinding
+
 
 
 class HorizontalCompanyListAdapter(
-    private var items: List<Company>?,
-    private var companyId: String?,
+    private var items: List<Company>?=null,
+    private var companyId: String?=null,
     private val onItemClick: (data: Company?) -> Unit
 ) : RecyclerView.Adapter<HorizontalCompanyListAdapter.MyViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {

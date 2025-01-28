@@ -5,11 +5,14 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.adsperclick.media.data.dataModels.Company
 import com.adsperclick.media.databinding.FragmentChatBinding
+import com.adsperclick.media.views.chat.adapters.HorizontalCompanyListAdapter
 
 class ChatFragment : Fragment() {
 
     private lateinit var binding: FragmentChatBinding
+    private lateinit var adapter: HorizontalCompanyListAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -30,12 +33,10 @@ class ChatFragment : Fragment() {
             Company("3", "Flipkart"),
             Company("4", "Jumbo Tail"))
         val compId = "3"
-        horizontalCompanyListAdapter = HorizontalCompanyListAdapter(companyList, compId){
-            // Handle item click here
+        adapter = HorizontalCompanyListAdapter(companyList,null){
+
         }
-        binding.rvHorizontalForCompanyList.apply {
-            adapter = horizontalCompanyListAdapter
-        }
+        binding.rvHorizontalForCompanyList.adapter = adapter
     }
 }
 
