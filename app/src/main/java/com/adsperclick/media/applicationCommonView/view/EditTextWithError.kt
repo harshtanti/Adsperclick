@@ -1,4 +1,4 @@
-package com.example.adsperclick.applicationCommonView.view
+package com.adsperclick.media.applicationCommonView.view
 
 import android.content.Context
 import android.util.AttributeSet
@@ -6,7 +6,7 @@ import android.view.LayoutInflater
 import androidx.appcompat.widget.AppCompatEditText
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.widget.addTextChangedListener
-import com.example.adsperclick.databinding.EditTextWithErrorLayoutBinding
+import com.adsperclick.media.databinding.EditTextWithErrorLayoutBinding
 
 class EditeTextWithError : ConstraintLayout {
 

@@ -1,4 +1,4 @@
-package com.example.adsperclick.applicationCommonView.view
+package com.adsperclick.media.applicationCommonView.view
 
 import android.content.Context
 import android.util.AttributeSet
@@ -8,7 +8,7 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import androidx.constraintlayout.widget.ConstraintLayout
-import com.example.adsperclick.databinding.SpinnerWithErrorLayoutBinding
+import com.adsperclick.media.databinding.SpinnerWithErrorLayoutBinding
 
 class SpinnerWithError : ConstraintLayout {
 
