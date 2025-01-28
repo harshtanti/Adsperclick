@@ -1,5 +1,7 @@
 package com.example.adsperclick.views.user.fragment
 
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -62,7 +64,7 @@ class UserListFragment : Fragment() {
                     tabColorChange(tab.customView, R.color.white, true)
                 }
                 override fun onTabUnselected(tab: TabLayout.Tab) {
-                    tabColorChange(tab.customView, R.color.color_888888, false)
+                    tabColorChange(tab.customView, R.color.RoyalBlue, false)
                 }
                 override fun onTabReselected(tab: TabLayout.Tab) {}
             })
@@ -82,7 +84,7 @@ class UserListFragment : Fragment() {
             if (isSelected) {
                 tabLayoutToShip.setBackgroundResource(R.drawable.selected_tab)
             } else {
-                tabLayoutToShip.setBackgroundResource(R.drawable.unselected_tab)
+                tabLayoutToShip.background = null
             }
             tabTextToShip.setTextColor(
                 ContextCompat.getColor(
