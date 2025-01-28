@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/inputLayout"
+        android:layout_width="@dimen/DP0"
+        android:layout_height="60dp"
+        app:boxStrokeWidth="@dimen/DP0"
+        app:boxStrokeWidthFocused="@dimen/DP0"
+        android:layout_marginHorizontal="@dimen/DP0"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <AutoCompleteTextView
+            android:id="@+id/spinnerLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingTop="@dimen/DP0"
+            android:background="@color/white"
+            android:backgroundTint="@color/white"
+            android:drawableEnd="@drawable/baseline_arrow_drop_down_24"
+            android:inputType="none"
+            android:textColor="@color/black"
+            android:textSize="@dimen/SP16"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <View
+        android:id="@+id/view"
+        android:layout_width="@dimen/DP0"
+        android:layout_height="@dimen/DP0.5"
+        android:background="@color/LightGrey"
+        app:layout_constraintEnd_toEndOf="@+id/inputLayout"
+        app:layout_constraintStart_toStartOf="@+id/inputLayout"
+        app:layout_constraintTop_toBottomOf="@+id/inputLayout" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:layout_width="@dimen/DP0"
+        android:id="@+id/error"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/DP16"
+        android:layout_marginTop="@dimen/DP2"
+        android:textColor="@color/Red"
+        android:textSize="@dimen/SP12"
+        app:layout_constraintEnd_toEndOf="@+id/view"
+        app:layout_constraintStart_toEndOf="@+id/view"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/view" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -50,9 +50,9 @@ abstract class FragmentStateAdapterWrapper(fragmentActivity: FragmentActivity) :
 }
 
 fun TabLayout.setupWithViewPager(viewPager: ViewPager2) {
-    (viewPager.adapter as? com.adsperclick.media.applicationCommonView.wrapper.FragmentStateAdapterWrapper)?.attachTabLayout(this, viewPager)
+    (viewPager.adapter as? FragmentStateAdapterWrapper)?.attachTabLayout(this, viewPager)
 }
 
 fun ViewPager2.addOnPageChangeListener(pageChangeListener: ViewPager.OnPageChangeListener) {
-    (adapter as? com.adsperclick.media.applicationCommonView.wrapper.FragmentStateAdapterWrapper)?.addOnPageChangeListener(this, pageChangeListener)
+    (adapter as? FragmentStateAdapterWrapper)?.addOnPageChangeListener(this, pageChangeListener)
 }
