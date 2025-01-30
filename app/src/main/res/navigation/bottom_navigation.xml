@@ -7,19 +7,19 @@
 
     <fragment
         android:id="@+id/navigation_chat"
-        android:name="com.example.adsperclick.views.chat.fragment.ChatFragment"
+        android:name="com.adsperclick.media.views.chat.fragment.ChatFragment"
         android:label="fragment_chat"
         tools:layout="@layout/fragment_chat" >
     </fragment>
     <fragment
         android:id="@+id/navigation_user"
-        android:name="com.example.adsperclick.views.user.fragment.UserListFragment"
+        android:name="com.adsperclick.media.views.user.fragment.UserListFragment"
         android:label="fragment_user_list"
         tools:layout="@layout/fragment_user_list" >
     </fragment>
     <fragment
         android:id="@+id/navigation_setting"
-        android:name="com.example.adsperclick.views.setting.fragment.SettingFragment"
+        android:name="com.adsperclick.media.views.setting.fragment.SettingFragment"
         android:label="fragment_setting"
         tools:layout="@layout/fragment_setting" >
     </fragment>

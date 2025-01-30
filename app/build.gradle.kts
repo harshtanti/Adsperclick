@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.adsperclick"
+    namespace = "com.adsperclick.media"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.adsperclick"
+        applicationId = "com.adsperclick.media"
         minSdk = 24
         targetSdk = 34
         versionCode = 1

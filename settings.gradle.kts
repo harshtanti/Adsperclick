@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Adsperclick"
+rootProject.name = "media"
 include(":app")
  
