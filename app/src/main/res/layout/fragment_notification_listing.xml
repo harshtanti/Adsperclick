@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    tools:context=".views.chat.fragment.NotificationListingFragment">
+
+    <!-- TODO: Update blank fragment layout -->
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="@dimen/DP26"
+        android:layout_height="@dimen/DP26"
+        android:layout_marginTop="@dimen/DP20"
+        android:layout_marginStart="@dimen/DP10"
+        android:background="@drawable/arrow_back_ios_48px"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="@+id/btnBack"
+        app:layout_constraintBottom_toBottomOf="@+id/btnBack"
+        app:layout_constraintStart_toEndOf="@+id/btnBack"
+        android:text="Notifications"
+        android:textColor="@color/black"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        />
+
+    <ImageButton
+        android:id="@+id/btnAddNotifications"
+        android:layout_width="@dimen/DP26"
+        android:layout_height="@dimen/DP26"
+        android:layout_marginEnd="@dimen/DP10"
+        android:background="@drawable/notification_add_48px_filled"
+        app:layout_constraintTop_toTopOf="@+id/btnBack"
+        app:layout_constraintBottom_toBottomOf="@+id/btnBack"
+        app:layout_constraintEnd_toEndOf="parent"
+        />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_width="0dp"
+        android:layout_height="@dimen/DP0"
+        app:layout_constraintTop_toBottomOf="@+id/btnBack"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/btnBack"
+        app:layout_constraintEnd_toEndOf="@+id/btnAddNotifications"
+        android:layout_marginTop="@dimen/DP25"
+        android:layout_marginHorizontal="@dimen/DP10"
+        tools:listitem="@layout/notification_list_item"
+        />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

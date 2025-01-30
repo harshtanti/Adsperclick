@@ -97,4 +97,29 @@
         <item name="android:padding">8dp</item>
     </style>
 
+    <style name="tv_notification_title">
+        <item name="android:textSize">23sp</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/Black</item>
+    </style>
+
+    <style name="tv_notification_description">
+        <item name="android:textSize">14sp</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/Black_2</item>
+    </style>
+
+    <style name="tv_icon_new">
+        <item name="android:textSize">9sp</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:background">@drawable/bg_new_icon</item>
+        <item name="android:textColor">@color/Black</item>
+        <item name="android:padding">2.5dp</item>
+    </style>
+
 </resources>

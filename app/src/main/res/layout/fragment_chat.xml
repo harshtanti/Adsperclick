@@ -6,20 +6,50 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".views.chat.fragment.ChatFragment">
 
-    <TextView
-        android:id="@+id/tvLogo"
+    <View
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingTop="30dp"
-        android:paddingBottom="5dp"
-        android:text="Logo"
-        android:textAlignment="center"
-        android:textStyle="bold"
-        android:textSize="20sp"
+        android:layout_height="@dimen/DP0"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/tvChats"
         android:background="@color/grey_primary"
-        app:layout_constraintEnd_toEndOf="parent"
+        />
+
+    <ImageView
+        android:id="@+id/imgProfileDp"
+        android:layout_width="@dimen/DP45"
+        android:layout_height="@dimen/DP45"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="@dimen/DP22"
+        android:layout_marginStart="@dimen/DP13"
+        android:src="@drawable/person_24px"
+        />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tvChats"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingVertical="@dimen/DP4"
+        android:text="Chats"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:textSize="35sp"
+        android:background="@color/grey_primary"
+        app:layout_constraintStart_toEndOf="@+id/imgProfileDp"
+        app:layout_constraintTop_toTopOf="@+id/imgProfileDp"
+        app:layout_constraintBottom_toBottomOf="@+id/imgProfileDp"
+        />
+
+    <ImageButton
+        android:id="@+id/btnNotifications"
+        android:layout_width="@dimen/DP26"
+        android:layout_height="@dimen/DP26"
+        app:layout_constraintTop_toTopOf="@+id/tvChats"
+        app:layout_constraintBottom_toBottomOf="@+id/tvChats"
+        android:background="@drawable/notifications_24px"
+        android:layout_marginEnd="@dimen/DP12"
+        app:layout_constraintEnd_toEndOf="parent"
+        />
 
     <EditText
         android:id="@+id/etSearchBar"
@@ -29,7 +59,7 @@
         android:drawableStart="@drawable/search_24px"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvLogo" />
+        app:layout_constraintTop_toBottomOf="@+id/tvChats" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvHorizontalForCompanyList"
