@@ -9,7 +9,9 @@ data class User(
     val userName : String? = null,
     val email : String? = null,
     val password : String? = null,
-    val designation : Int = Constants.CLIENT
+    val designation : Int = Constants.CLIENT,
+    val listOfCompaniesEmployeeWorkFor : List<String>? = null,      // This field is only for employee
+    val listOfServicesCustomerUse : List<String>? = null            // This field is only for Clients/Customers
 ){
     constructor() : this(null, null, null, null)
 }
