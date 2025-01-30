@@ -24,7 +24,7 @@
     style="@style/bg_login_reg">
 
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/tvLogin"
         style="@style/tv_title_login_reg"
         android:text="@string/app_logo"
@@ -68,7 +68,7 @@
 
     </LinearLayout>
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/tvOr"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -108,7 +108,7 @@
 
 
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/tvCreateNewAcc"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

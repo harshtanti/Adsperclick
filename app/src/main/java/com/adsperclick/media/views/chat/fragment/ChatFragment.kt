@@ -37,6 +37,14 @@ class ChatFragment : Fragment() {
 
         }
         binding.rvHorizontalForCompanyList.adapter = adapter
+
+        listener()
+    }
+
+    fun listener(){
+        binding.btnNotifications.setOnClickListener{
+
+        }
     }
 }
 
