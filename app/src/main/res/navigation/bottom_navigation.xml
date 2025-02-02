@@ -16,11 +16,23 @@
         android:name="com.adsperclick.media.views.user.fragment.UserListFragment"
         android:label="fragment_user_list"
         tools:layout="@layout/fragment_user_list" >
+        <action
+            android:id="@+id/action_navigation_user_to_form_fragment"
+            app:destination="@id/form_fragment" />
     </fragment>
     <fragment
         android:id="@+id/navigation_setting"
         android:name="com.adsperclick.media.views.setting.fragment.SettingFragment"
         android:label="fragment_setting"
         tools:layout="@layout/fragment_setting" >
+    </fragment>
+    <fragment
+        android:id="@+id/form_fragment"
+        android:name="com.adsperclick.media.views.user.fragment.FormFragment"
+        android:label="fragment_form"
+        tools:layout="@layout/fragment_form" >
+        <action
+            android:id="@+id/action_form_fragment_to_navigation_user"
+            app:destination="@id/navigation_user" />
     </fragment>
 </navigation>

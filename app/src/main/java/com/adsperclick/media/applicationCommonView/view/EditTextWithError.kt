@@ -3,10 +3,10 @@ package com.adsperclick.media.applicationCommonView.view
 import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
-import androidx.appcompat.widget.AppCompatEditText
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.widget.addTextChangedListener
 import com.adsperclick.media.databinding.EditTextWithErrorLayoutBinding
+import com.google.android.material.textfield.TextInputEditText
 
 class EditeTextWithError : ConstraintLayout {
 
@@ -45,10 +45,10 @@ class EditeTextWithError : ConstraintLayout {
     }
 
     fun setHint(value: Int) {
-        binding.inputLayout.setHint(value)
+        binding.edittext.setHint(value)
     }
 
-    fun getEditView(): AppCompatEditText {
+    fun getEditView(): TextInputEditText {
         return binding.edittext
     }
 

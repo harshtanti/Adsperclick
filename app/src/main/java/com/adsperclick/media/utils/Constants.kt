@@ -11,4 +11,5 @@ object Constants {
     const val EMPLOYEE = 2
     const val MANAGER = 3
     const val ADMIN = 4
+    const val USER_TYPE="UserType"
 }
