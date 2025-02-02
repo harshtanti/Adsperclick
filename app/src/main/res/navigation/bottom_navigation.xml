@@ -5,12 +5,40 @@
     android:id="@+id/bottom_navigation"
     app:startDestination="@id/navigation_chat">
 
+<!--    <fragment
+        android:id="@+id/navigation_chat"
+        android:name="com.adsperclick.media.views.chat.fragment.ChatFragment"
+        android:label="fragment_chat"
+        tools:layout="@layout/fragment_chat" >
+    </fragment>-->
+
     <fragment
         android:id="@+id/navigation_chat"
         android:name="com.adsperclick.media.views.chat.fragment.ChatFragment"
         android:label="fragment_chat"
         tools:layout="@layout/fragment_chat" >
+        <action
+            android:id="@+id/action_navigation_chat_to_notificationListingFragment"
+            app:destination="@id/notificationListingFragment" />
     </fragment>
+
+    <fragment
+        android:id="@+id/notificationListingFragment"
+        android:name="com.adsperclick.media.views.chat.fragment.NotificationListingFragment"
+        android:label="fragment_notification_listing"
+        tools:layout="@layout/fragment_notification_listing" >
+        <action
+            android:id="@+id/action_notificationListingFragment_to_notificationCreationFragment"
+            app:destination="@id/notificationCreationFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/notificationCreationFragment"
+        android:name="com.adsperclick.media.views.chat.fragment.NotificationCreationFragment"
+        android:label="fragment_notification_creation"
+        tools:layout="@layout/fragment_notification_creation" />
+
+
     <fragment
         android:id="@+id/navigation_user"
         android:name="com.adsperclick.media.views.user.fragment.UserListFragment"

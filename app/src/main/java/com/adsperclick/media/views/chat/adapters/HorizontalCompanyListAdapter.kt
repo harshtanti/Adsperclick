@@ -3,12 +3,16 @@ package com.adsperclick.media.views.chat.adapters
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.adsperclick.media.data.dataModels.Company
+import com.adsperclick.media.data.dataModels.GroupForGroupChat
+import com.adsperclick.media.databinding.ChatGroupListItemBinding
 import com.adsperclick.media.databinding.HorizontalCompanyListItemBinding
 
 
 
+/*
 class HorizontalCompanyListAdapter(
     private var items: List<Company>?=null,
     private var companyId: String?=null,
@@ -69,6 +73,46 @@ class HorizontalCompanyListAdapter(
 //            view.background =
 //                AppCompatResources.getDrawable(view.context, backgroundColor)
 //        }
+    }
+}
+*/
+
+//class HorizontalCompanyListAdapter()
+
+class HorizontalCompanyListAdapter() : ListAdapter<Company, HorizontalCompanyListAdapter.MyViewHolder>(DiffUtil())
+{
+    inner class MyViewHolder(val binding: HorizontalCompanyListItemBinding): RecyclerView.ViewHolder(binding.root)
+    {
+        fun bind(chatGroup: Company)
+        {
+//            binding.tvGroupName.text = chatGroup.groupName
+//            binding.tvLastMsg.text= chatGroup.lastSentMsg?.message ?: ""
+//            binding.tvLastMsgDateTime.text = chatGroup.lastSentMsg?.timestamp.toString()
+
+
+            binding.tvItemHorizontalCompanyList.text = chatGroup.companyName
+        }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
+        val binding= HorizontalCompanyListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return MyViewHolder(binding)
+    }
+
+    override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
+        val company = getItem(position)
+        holder.bind(company)
+    }
+
+    class DiffUtil : androidx.recyclerview.widget.DiffUtil.ItemCallback<Company>()
+    {
+        override fun areItemsTheSame(oldItem: Company, newItem: Company): Boolean {
+            return oldItem.companyId == newItem.companyId
+        }
+
+        override fun areContentsTheSame(oldItem: Company, newItem: Company): Boolean {
+            return oldItem == newItem
+        }
     }
 }
 

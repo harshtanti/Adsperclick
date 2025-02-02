@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    tools:context=".views.chat.fragment.NotificationListingFragment">
+
+    <!-- TODO: Update blank fragment layout -->
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="@dimen/DP26"
+        android:layout_height="@dimen/DP26"
+        android:layout_marginStart="@dimen/DP10"
+        android:layout_marginTop="@dimen/DP20"
+        android:background="@drawable/arrow_back_ios_48px"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/materialTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Create Notifications"
+        android:textColor="@color/black"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/btnBack"
+        app:layout_constraintStart_toEndOf="@+id/btnBack"
+        app:layout_constraintTop_toTopOf="@+id/btnBack" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/vgNotificationDetails"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginHorizontal="@dimen/DP15"
+        android:layout_marginTop="@dimen/DP25"
+        android:background="@drawable/notification_item_bg"
+        android:padding="@dimen/DP20"
+        app:layout_constraintBottom_toTopOf="@+id/guideline"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnBack">
+
+        <View
+            android:id="@+id/viewTitleDescDivider"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.30"
+            tools:layout_editor_absoluteX="20dp" />
+
+        <EditText
+            android:id="@+id/etTitle"
+            style="@style/tv_notification_title"
+            android:hint="Title"
+            android:textColor="@color/Black_3"
+            android:layout_height="0dp"
+            android:background="@null"
+            android:textSize="@dimen/SP23"
+            app:layout_constraintBottom_toBottomOf="@+id/viewTitleDescDivider"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+<!--        <ScrollView
+            android:id="@+id/scrollView2"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/etTitle">
+
+            <EditText
+                android:id="@+id/etDescription"
+                style="@style/tv_notification_description"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/DP10"
+                android:textColor="@color/Black_5"
+                android:textSize="@dimen/SP17"
+
+                android:hint="Description"
+                android:paddingEnd="@dimen/DP20" />
+        </ScrollView>-->
+
+        <EditText
+            android:id="@+id/etDescription"
+            style="@style/tv_notification_description"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_marginTop="@dimen/DP10"
+            android:hint="Description"
+            android:paddingEnd="@dimen/DP20"
+            android:textColor="@color/Black_5"
+            android:background="@null"
+            android:textSize="@dimen/SP17"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/etTitle"
+            app:layout_constraintTop_toBottomOf="@id/viewTitleDescDivider" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    <CheckBox
+        android:id="@+id/cbSelectClients"
+        android:layout_width="wrap_content"
+        android:layout_height="35dp"
+        android:text="Send to all Clients"
+        android:visibility="visible"
+        app:layout_constraintStart_toStartOf="@+id/vgNotificationDetails"
+        app:layout_constraintTop_toBottomOf="@+id/vgNotificationDetails" />
+
+    <CheckBox
+        android:id="@+id/checkBoxSelectEmployees"
+        android:layout_width="wrap_content"
+        android:layout_height="35dp"
+        android:text="Send to all Employees"
+        android:visibility="visible"
+        app:layout_constraintEnd_toEndOf="@+id/vgNotificationDetails"
+        app:layout_constraintTop_toBottomOf="@+id/vgNotificationDetails" />
+
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnSendNotification"
+        style="@style/btn_common_layout"
+        android:layout_marginHorizontal="@dimen/DP15"
+        android:text="SEND NOTIFICATION"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+<!--    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_begin="351dp" />-->
+
+    <View
+        android:id="@+id/guideline"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.53"
+        tools:layout_editor_absoluteX="1dp" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

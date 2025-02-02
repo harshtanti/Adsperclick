@@ -3,10 +3,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     xmlns:tools="http://schemas.android.com/tools"
-    android:paddingTop="@dimen/DP15"
-    android:paddingStart="@dimen/DP20"
-    android:paddingEnd="@dimen/DP20"
-    android:paddingBottom="@dimen/DP20"
+    android:paddingTop="@dimen/DP10"
+    android:paddingStart="@dimen/DP15"
+    android:paddingEnd="@dimen/DP10"
+    android:paddingBottom="@dimen/DP10"
     android:layout_marginBottom="@dimen/DP20"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@drawable/notification_item_bg"
@@ -17,7 +17,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         android:text="This is title for Notification"
-        android:layout_marginTop="@dimen/DP5"
+        android:layout_marginTop="@dimen/DP15"
         style="@style/tv_notification_title"
         />
 
@@ -37,16 +37,20 @@
         android:id="@+id/tvDateTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textColor="@color/Black_6"
+        android:layout_marginTop="@dimen/DP7"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvDescription"
-        app:layout_constraintEnd_toEndOf="@+id/tvDescription"
-        tools:text="24 Jan, 2025"
-        />
+        tools:text="24 Jan, 2025" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/tvNewIcon"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:text="●NEW"
+        android:visibility="gone"
+        tools:visibility="visible"
         style="@style/tv_icon_new"
         />
 

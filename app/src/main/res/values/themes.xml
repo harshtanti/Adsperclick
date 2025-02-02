@@ -21,7 +21,7 @@
         <item name="maxImageSize">@dimen/cardview_default_radius</item>
     </style>
 
-    <style name="btn_login_reg">
+    <style name="btn_common_layout">
         <item name="android:background">@drawable/btn_login_register</item>
         <item name="android:textColor">@color/white</item>
         <item name="android:textSize">17sp</item>
@@ -102,14 +102,14 @@
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:textColor">@color/Black</item>
+        <item name="android:textColor">@color/Black_3</item>
     </style>
 
     <style name="tv_notification_description">
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">17sp</item>
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:textColor">@color/Black_2</item>
+        <item name="android:textColor">@color/Black_5</item>
     </style>
 
     <style name="tv_icon_new">
