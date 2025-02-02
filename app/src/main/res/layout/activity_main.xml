@@ -63,7 +63,7 @@
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnLogin"
-            style="@style/btn_login_reg"
+            style="@style/btn_common_layout"
             android:text="@string/login" />
 
     </LinearLayout>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="70dp"
+    xmlns:constraint="http://schemas.android.com/tools">
+
+    <ImageView
+        android:id="@+id/imgProfileDp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginStart="@dimen/DP5"
+        />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tvGroupName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="This is Name of Group"
+        android:layout_marginTop="@dimen/DP5"
+        android:textSize="@dimen/DP16"
+        android:textColor="@color/Black_1"
+        android:layout_marginStart="@dimen/DP5"
+        app:layout_constraintStart_toEndOf="@+id/imgProfileDp"
+        app:layout_constraintTop_toTopOf="@+id/imgProfileDp"
+        />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tvLastMsg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/tvGroupName"
+        app:layout_constraintStart_toStartOf="@+id/tvGroupName"
+        android:text="You: Let's have a chat"
+        android:layout_marginTop="@dimen/DP5"
+        android:textSize="@dimen/DP13"
+        android:textColor="@color/Black_6"
+        android:layout_marginStart="@dimen/DP5"
+        />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tvLastMsgDateTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="@+id/tvGroupName"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:text="4 Jan, 2002"
+        android:layout_marginEnd="@dimen/DP5"
+        android:textColor="@color/Black_6"
+        />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
