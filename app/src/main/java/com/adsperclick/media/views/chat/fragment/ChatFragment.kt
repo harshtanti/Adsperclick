@@ -46,10 +46,10 @@ class ChatFragment : Fragment() {
 
 
         val groupChatList = listOf(GroupForGroupChat("1", "Harsh Company"),
-            GroupForGroupChat("2", "Sigma Bois and Furnitures", listOf("1", "2"), lastSentMsg = Message("69", "Hello Harsh", "1")),
-            GroupForGroupChat("3", "Boba Glass Bangles", listOf("1", "2"), lastSentMsg = Message("68", "Hello Wet ass pussy", "1")),
-            GroupForGroupChat("4", "Boba Glass Bangles", listOf("1", "2"), lastSentMsg = Message("68", "Nigger Man", "1")),
-            GroupForGroupChat("5", "Boba Glass Bangles", listOf("1", "2"), lastSentMsg = Message("68", "DumbFuck", "1"))
+            GroupForGroupChat("2", "Sigma Bois and Furnitures", null, listOf("1", "2"), lastSentMsg = Message("69", "Hello Harsh", "1")),
+            GroupForGroupChat("3", "Saumya Coffee", null, listOf("1", "2"), lastSentMsg = Message("68", "Hello Wet ass pussy", "1")),
+            GroupForGroupChat("4", "Jay", null, listOf("1", "2"), lastSentMsg = Message("68", "Nigger Man", "1")),
+            GroupForGroupChat("5", "BholeShopper", null, listOf("1", "2"), lastSentMsg = Message("68", "DumbFuck", "1"))
         )
 
         chatGroupListAdapter = ChatGroupListAdapter()

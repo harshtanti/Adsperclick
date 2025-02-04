@@ -33,10 +33,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun listener(){
-        binding.btnLogin.setOnClickListener{
+        binding.incFile.btnLogin.setOnClickListener{
             startActivity(Intent(this, HomeActivity::class.java))
         }
-        binding.tvCreateNewAcc.setOnClickListener{
+        binding.incFile.tvCreateNewAcc.setOnClickListener{
             val intent = Intent(this, HomeActivity::class.java)
             intent.putExtra("isAdmin", true)  // ✅ Pass "isAdmin" as true
             startActivity(intent)

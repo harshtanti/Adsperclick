@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.navigation.fragment.findNavController
 import com.adsperclick.media.data.dataModels.NotificationMsg
 import com.adsperclick.media.databinding.FragmentNotificationCreationBinding
 
@@ -23,6 +24,10 @@ class NotificationCreationFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        listener()
+    }
+
+    private fun listener(){
         binding.btnSendNotification.setOnClickListener{
             val id = "2323"
             val title = binding.etTitle.text.toString()
@@ -31,6 +36,10 @@ class NotificationCreationFragment : Fragment() {
             val notification = NotificationMsg(id, title, description)
             binding.etTitle.text.clear()
             binding.etDescription.text.clear()
+        }
+
+        binding.btnBack.setOnClickListener{
+            findNavController().navigateUp()
         }
     }
 }

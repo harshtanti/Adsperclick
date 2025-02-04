@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.Adsperclick" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Base.Theme.Adsperclick" parent="Theme.Material3.Light.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
@@ -37,7 +37,7 @@
     <style name="tv_title_login_reg">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_marginTop">150dp</item>
+        <item name="android:layout_marginTop">10dp</item>
         <item name="android:textColor">@color/Black</item>
         <item name="android:textSize">46sp</item>
         <item name="android:textAlignment">center</item>
@@ -91,22 +91,29 @@
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_marginHorizontal">4dp</item>">
         <item name="android:textColorHint">#3c3c43</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:textColor">@color/Black_7</item>
+        <item name="android:fontFamily">@font/inter_600</item>
+        <item name="android:textColor">@color/Black_6</item>
         <item name="android:background">@drawable/et_horizontal_company_list_item_bg</item>
-        <item name="android:padding">8dp</item>
+        <item name="android:paddingVertical">8dp</item>
+        <item name="android:paddingHorizontal">@dimen/DP12</item>
     </style>
 
     <style name="tv_notification_title">
-        <item name="android:textSize">23sp</item>
+        <item name="android:textSize">21sp</item>
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">@font/inter_700</item>
         <item name="android:textColor">@color/Black_3</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.App.CornerSize50Percent" parent="">
+        <item name="cornerSize">50%</item>
+        <item name="android:padding">10dp</item>
     </style>
 
     <style name="tv_notification_description">
         <item name="android:textSize">17sp</item>
+        <item name="android:fontFamily">@font/inter_400</item>
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textColor">@color/Black_5</item>
