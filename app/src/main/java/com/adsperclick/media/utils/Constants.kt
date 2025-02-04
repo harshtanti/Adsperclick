@@ -5,6 +5,8 @@ object Constants {
     const val TOKEN_FOR_PREFS = "token_prefs"
     const val USER_IDENTITY = "user_identity"
     const val IS_USER_SIGNED_IN = "is_user_signed_in"
+    const val EMPTY = ""
+    const val SPACE = " "
 
 
     const val CLIENT = 1        // Can use Enum instead

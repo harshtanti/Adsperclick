@@ -37,7 +37,7 @@ class NotificationListingFragment : Fragment() {
             NotificationMsg("2", "Title2", "Description2"),
             NotificationMsg("3", "Title3", "Description3"),
             NotificationMsg("4", "Title4", "Description4"),
-            NotificationMsg("5", "Title5", "\"Description1 can be a very long description like can be about explaining a task to all the employees or for making a client deal with a task"),
+            NotificationMsg("5", "Title5", "Description1 can be a very long description like can be about explaining a task to all the employees or for making a client deal with a task"),
             NotificationMsg("6", "Title6", "Description6"),
             NotificationMsg("7", "Title7", "\"Description1 can be a very long description like can be about explaining a task to all the employees or for making a client deal with a task"),
             NotificationMsg("8", "Title8", "Description8"),

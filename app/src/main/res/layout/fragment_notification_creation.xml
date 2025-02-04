@@ -86,16 +86,17 @@
 
         <EditText
             android:id="@+id/etDescription"
-            style="@style/tv_notification_description"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginTop="@dimen/DP10"
+            android:background="@null"
             android:hint="Description"
             android:paddingEnd="@dimen/DP20"
             android:textColor="@color/Black_5"
-            android:background="@null"
             android:textSize="@dimen/SP17"
+            android:fontFamily="@font/inter_400"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="@+id/etTitle"
             app:layout_constraintTop_toBottomOf="@id/viewTitleDescDivider" />
 
