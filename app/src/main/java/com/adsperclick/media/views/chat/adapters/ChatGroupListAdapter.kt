@@ -1,13 +1,5 @@
 package com.adsperclick.media.views.chat.adapters
 
-import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.ColorFilter
-import android.graphics.Paint
-import android.graphics.PixelFormat
-import android.graphics.Typeface
-import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.ListAdapter
@@ -16,12 +8,15 @@ import com.adsperclick.media.data.dataModels.GroupForGroupChat
 import com.adsperclick.media.databinding.ChatGroupListItemBinding
 import com.adsperclick.media.utils.Constants.EMPTY
 import com.adsperclick.media.utils.UtilityFunctions
-import com.adsperclick.media.utils.Validate.toInitials
-import kotlin.math.abs
 
 
-class ChatGroupListAdapter() : ListAdapter<GroupForGroupChat, ChatGroupListAdapter.GroupChatListViewHolder>(DiffUtil())
+
+class ChatGroupListAdapter(val onGroupChatClickListener: OnGroupChatClickListener) : ListAdapter<GroupForGroupChat, ChatGroupListAdapter.GroupChatListViewHolder>(DiffUtil())
 {
+    interface OnGroupChatClickListener{
+        fun onItemClick(chatGroup: GroupForGroupChat)
+    }
+
     inner class GroupChatListViewHolder(val binding: ChatGroupListItemBinding): RecyclerView.ViewHolder(binding.root)
     {
         fun bind(chatGroup: GroupForGroupChat)
@@ -36,8 +31,13 @@ class ChatGroupListAdapter() : ListAdapter<GroupForGroupChat, ChatGroupListAdapt
 
                 binding.imgProfileDp.setImageDrawable(drawable)
             }
+
+            binding.root.setOnClickListener {
+                onGroupChatClickListener.onItemClick(chatGroup)
+            }
         }
     }
+
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GroupChatListViewHolder {
         val binding= ChatGroupListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)

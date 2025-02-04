@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.navigation.fragment.findNavController
 import com.adsperclick.media.R
 import com.adsperclick.media.data.dataModels.Company
@@ -52,7 +53,11 @@ class ChatFragment : Fragment(),View.OnClickListener {
             GroupForGroupChat("5", "BholeShopper", null, listOf("1", "2"), lastSentMsg = Message("68", "DumbFuck", "1"))
         )
 
-        chatGroupListAdapter = ChatGroupListAdapter()
+        chatGroupListAdapter = ChatGroupListAdapter(object : ChatGroupListAdapter.OnGroupChatClickListener{
+            override fun onItemClick(gc : GroupForGroupChat) {
+                Toast.makeText(context, "You clicked ${gc.groupName}!", Toast.LENGTH_SHORT).show()
+            }
+        })
         chatGroupListAdapter.submitList(groupChatList)
         binding.rvGroupChatList.adapter = chatGroupListAdapter
 
