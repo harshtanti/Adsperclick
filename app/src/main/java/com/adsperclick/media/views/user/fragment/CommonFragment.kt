@@ -5,9 +5,11 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.navigation.fragment.findNavController
 import com.adsperclick.media.R
 import com.adsperclick.media.databinding.FragmentCommonBinding
 import com.adsperclick.media.databinding.FragmentSettingBinding
+import com.adsperclick.media.utils.Constants
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -19,17 +21,16 @@ private const val ARG_PARAM2 = "param2"
  * Use the [CommonFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class CommonFragment : Fragment() {
+class CommonFragment : Fragment(), View.OnClickListener {
     // TODO: Rename and change types of parameters
-    private var param1: String? = null
+    private var tabName: String? = null
     private lateinit var binding: FragmentCommonBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
+            tabName = it.getString(ARG_PARAM1)
         }
-
     }
 
     override fun onCreateView(
@@ -43,7 +44,23 @@ class CommonFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.currentPage.text=param1
+        setOnClickListener()
+
+    }
+
+    private fun setOnClickListener(){
+        binding.addDetails.setOnClickListener(this)
+    }
+
+    override fun onClick(v: View?) {
+        when(v){
+            binding.addDetails -> {
+                val bundle = Bundle().apply {
+                    putString(Constants.USER_TYPE_SEMI_CAPS, tabName) // Pass your data
+                }
+                findNavController().navigate(R.id.action_navigation_user_to_form_fragment, bundle)
+            }
+        }
     }
 
     companion object {

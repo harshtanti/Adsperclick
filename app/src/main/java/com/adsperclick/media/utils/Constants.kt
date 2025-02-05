@@ -13,5 +13,9 @@ object Constants {
     const val EMPLOYEE = 2
     const val MANAGER = 3
     const val ADMIN = 4
-    const val USER_TYPE="UserType"
+    const val USER_TYPE_SEMI_CAPS="UserType"
+    const val EMPLOYEES_SEMI_CAPS = "Employees"
+    const val CLIENTS_SEMI_CAPS = "Clients"
+    const val SERVICES_SEMI_CAPS = "Services"
+    const val COMPANIES_SEMI_CAPS = "Companies"
 }

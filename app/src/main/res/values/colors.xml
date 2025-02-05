@@ -173,4 +173,6 @@
     <color name="bg_light_theme_reg_login_frag">#ffffff</color>
     <color name="transparent">#00000000</color>
     <color name="grey_primary">#f6f6f6</color>
+
+    <color name="blue_common_button">#2962D9</color>
 </resources>

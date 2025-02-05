@@ -59,8 +59,5 @@
         android:name="com.adsperclick.media.views.user.fragment.FormFragment"
         android:label="fragment_form"
         tools:layout="@layout/fragment_form" >
-        <action
-            android:id="@+id/action_form_fragment_to_navigation_user"
-            app:destination="@id/navigation_user" />
     </fragment>
 </navigation>

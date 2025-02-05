@@ -4,44 +4,166 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".views.user.fragment.CommonFragment">
+    tools:context=".views.user.fragment.CommonFragment"
+    android:backgroundTint="@color/white">
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/DP20"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:textColor="@color/black"
         android:textSize="@dimen/SP30"
         tools:text="Client"/>
-    <com.adsperclick.media.applicationCommonView.view.EditeTextWithError
-        android:id="@+id/first_name"
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_view"
         android:layout_width="@dimen/DP0"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/DP10"
-        android:layout_marginHorizontal="@dimen/DP10"
+        android:layout_height="@dimen/DP0"
+        android:layout_marginHorizontal="@dimen/DP15"
         app:layout_constraintTop_toBottomOf="@id/title"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/last_name"/>
-    <com.adsperclick.media.applicationCommonView.view.EditeTextWithError
-        android:id="@+id/last_name"
-        android:layout_width="@dimen/DP0"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/submit_button">
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+            <com.adsperclick.media.applicationCommonView.view.EditeTextWithError
+                android:id="@+id/first_name"
+                android:layout_width="@dimen/DP0"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/DP10"
+                android:layout_marginHorizontal="@dimen/DP10"
+                android:visibility="gone"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/last_name"/>
+            <com.adsperclick.media.applicationCommonView.view.EditeTextWithError
+                android:id="@+id/last_name"
+                android:layout_width="@dimen/DP0"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/DP10"
+                android:layout_marginHorizontal="@dimen/DP10"
+                android:visibility="gone"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toEndOf="@id/first_name"
+                app:layout_constraintEnd_toEndOf="parent" />
+            <com.adsperclick.media.applicationCommonView.view.EditeTextWithError
+                android:id="@+id/company_name"
+                android:layout_width="@dimen/DP0"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/DP10"
+                android:layout_marginHorizontal="@dimen/DP10"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/first_name"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+            <com.adsperclick.media.applicationCommonView.view.EditeTextWithError
+                android:id="@+id/gst"
+                android:layout_width="@dimen/DP0"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/DP10"
+                android:layout_marginHorizontal="@dimen/DP10"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/company_name"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+            <com.adsperclick.media.applicationCommonView.view.EditeTextWithError
+                android:id="@+id/aadhar_number"
+                android:layout_width="@dimen/DP0"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/DP10"
+                android:layout_marginHorizontal="@dimen/DP10"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/gst"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+            <com.adsperclick.media.applicationCommonView.view.EditeTextWithError
+                android:id="@+id/email"
+                android:layout_width="@dimen/DP0"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/DP10"
+                android:layout_marginHorizontal="@dimen/DP10"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/aadhar_number"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+            <com.adsperclick.media.applicationCommonView.view.EditeTextWithError
+                android:id="@+id/password"
+                android:layout_width="@dimen/DP0"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/DP10"
+                android:layout_marginHorizontal="@dimen/DP10"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/email"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+            <com.adsperclick.media.applicationCommonView.view.EditeTextWithError
+                android:id="@+id/confirm_password"
+                android:layout_width="@dimen/DP0"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/DP10"
+                android:layout_marginHorizontal="@dimen/DP10"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/password"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+            <com.adsperclick.media.applicationCommonView.view.EditeTextWithError
+                android:id="@+id/services"
+                android:layout_width="@dimen/DP0"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/DP10"
+                android:layout_marginHorizontal="@dimen/DP10"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/confirm_password"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+            <com.adsperclick.media.applicationCommonView.view.EditeTextWithError
+                android:id="@+id/service_name"
+                android:layout_width="@dimen/DP0"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/DP10"
+                android:layout_marginHorizontal="@dimen/DP10"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/services"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <androidx.constraintlayout.widget.Group
+                android:id="@+id/employee_group"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                app:constraint_referenced_ids="first_name,last_name,aadhar_number,email,password,confirm_password"/>
+            <androidx.constraintlayout.widget.Group
+                android:id="@+id/client_group"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                app:constraint_referenced_ids="first_name,last_name,company_name,gst,email,password,confirm_password"/>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/submit_button"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/DP10"
-        android:layout_marginHorizontal="@dimen/DP10"
-        app:layout_constraintTop_toBottomOf="@id/title"
-        app:layout_constraintStart_toEndOf="@id/first_name"
-        app:layout_constraintEnd_toEndOf="parent" />
-    <com.adsperclick.media.applicationCommonView.view.EditeTextWithError
-        android:id="@+id/company_name"
-        android:layout_width="@dimen/DP0"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/DP10"
-        android:layout_marginHorizontal="@dimen/DP10"
-        app:layout_constraintTop_toBottomOf="@id/first_name"
+        android:layout_marginHorizontal="@dimen/DP20"
+        android:backgroundTint="@color/blue_common_button"
+        android:text="@string/submit"
+        android:textColor="@color/white"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
