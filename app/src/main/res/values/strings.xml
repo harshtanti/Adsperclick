@@ -24,7 +24,12 @@
     <string name="enter_text">Enter Text</string>
     <string name="example_gmail">abc@gmail.com</string>
     <string name="search">Search</string>
-
+    <string name="save">Save</string>
+    <string name="association_date">Association Date</string>
+    <string name="phone">Phone</string>
+    <string name="block">Block</string>
+    <string name="delete">Delete</string>
+    <string name="logout">Log Out</string>
 
 
 </resources>

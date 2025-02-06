@@ -47,6 +47,9 @@
         <action
             android:id="@+id/action_navigation_user_to_form_fragment"
             app:destination="@id/form_fragment" />
+        <action
+            android:id="@+id/action_navigation_user_to_userInfoFragment"
+            app:destination="@id/userInfoFragment" />
     </fragment>
     <fragment
         android:id="@+id/navigation_setting"
@@ -60,4 +63,9 @@
         android:label="fragment_form"
         tools:layout="@layout/fragment_form" >
     </fragment>
+    <fragment
+        android:id="@+id/userInfoFragment"
+        android:name="com.adsperclick.media.views.user.fragment.UserInfoFragment"
+        android:label="UserInfoFragment"
+        tools:layout="@layout/fragment_user_info"/>
 </navigation>

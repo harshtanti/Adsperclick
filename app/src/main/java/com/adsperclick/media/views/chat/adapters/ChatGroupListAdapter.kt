@@ -15,7 +15,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.adsperclick.media.data.dataModels.GroupForGroupChat
 import com.adsperclick.media.databinding.ChatGroupListItemBinding
 import com.adsperclick.media.utils.Constants.EMPTY
-import com.adsperclick.media.utils.InitialsDrawable
 import com.adsperclick.media.utils.UtilityFunctions
 import com.adsperclick.media.utils.Validate.toInitials
 import kotlin.math.abs

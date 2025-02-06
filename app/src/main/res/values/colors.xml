@@ -175,4 +175,9 @@
     <color name="grey_primary">#f6f6f6</color>
 
     <color name="blue_common_button">#2962D9</color>
+    //user
+    <color name="blue_call">#0084FE</color>
+    <color name="red_email">#FE294D</color>
+    <color name="green_info">#5AD439</color>
+
 </resources>

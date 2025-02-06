@@ -42,9 +42,13 @@
         android:layout_height="@dimen/DP0"
         android:layout_marginTop="@dimen/DP10"
         android:layout_marginHorizontal="@dimen/DP10"
+        android:orientation="vertical"
+        android:visibility="visible"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintTop_toBottomOf="@id/etSearchBar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:listitem="@layout/user_list_item"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
