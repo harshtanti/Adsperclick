@@ -19,4 +19,14 @@ object Constants {
     const val CLIENTS_SEMI_CAPS = "Clients"
     const val SERVICES_SEMI_CAPS = "Services"
     const val COMPANIES_SEMI_CAPS = "Companies"
+    const val USER_TYPE="UserType"
+
+
+    const val TEXT = 1
+    const val IMG_URL = 2
+    const val PDF_DOC = 3
+    const val VIDEO = 4
+
+
+    const val BOTH = 70
 }

@@ -1,13 +1,10 @@
 package com.adsperclick.media.views.chat.adapters
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.adsperclick.media.data.dataModels.Company
-import com.adsperclick.media.data.dataModels.GroupForGroupChat
-import com.adsperclick.media.databinding.ChatGroupListItemBinding
 import com.adsperclick.media.databinding.HorizontalCompanyListItemBinding
 
 

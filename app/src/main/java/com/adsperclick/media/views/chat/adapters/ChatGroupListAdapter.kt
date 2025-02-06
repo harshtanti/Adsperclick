@@ -4,22 +4,22 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.adsperclick.media.data.dataModels.GroupForGroupChat
+import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.databinding.ChatGroupListItemBinding
 import com.adsperclick.media.utils.Constants.EMPTY
 import com.adsperclick.media.utils.UtilityFunctions
 
 
 
-class ChatGroupListAdapter(val onGroupChatClickListener: OnGroupChatClickListener) : ListAdapter<GroupForGroupChat, ChatGroupListAdapter.GroupChatListViewHolder>(DiffUtil())
+class ChatGroupListAdapter(val onGroupChatClickListener: OnGroupChatClickListener) : ListAdapter<GroupChatListingData, ChatGroupListAdapter.GroupChatListViewHolder>(DiffUtil())
 {
     interface OnGroupChatClickListener{
-        fun onItemClick(chatGroup: GroupForGroupChat)
+        fun onItemClick(chatGroup: GroupChatListingData)
     }
 
     inner class GroupChatListViewHolder(val binding: ChatGroupListItemBinding): RecyclerView.ViewHolder(binding.root)
     {
-        fun bind(chatGroup: GroupForGroupChat)
+        fun bind(chatGroup: GroupChatListingData)
         {
             binding.tvGroupName.text = chatGroup.groupName
             binding.tvLastMsg.text= chatGroup.lastSentMsg?.message ?: ""
@@ -49,13 +49,13 @@ class ChatGroupListAdapter(val onGroupChatClickListener: OnGroupChatClickListene
         holder.bind(note)
     }
 
-    class DiffUtil : androidx.recyclerview.widget.DiffUtil.ItemCallback<GroupForGroupChat>()
+    class DiffUtil : androidx.recyclerview.widget.DiffUtil.ItemCallback<GroupChatListingData>()
     {
-        override fun areItemsTheSame(oldItem: GroupForGroupChat, newItem: GroupForGroupChat): Boolean {
+        override fun areItemsTheSame(oldItem: GroupChatListingData, newItem: GroupChatListingData): Boolean {
             return oldItem.groupId == newItem.groupId
         }
 
-        override fun areContentsTheSame(oldItem: GroupForGroupChat, newItem: GroupForGroupChat): Boolean {
+        override fun areContentsTheSame(oldItem: GroupChatListingData, newItem: GroupChatListingData): Boolean {
             return oldItem == newItem
         }
     }
