@@ -3,19 +3,24 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/setting_fragment"
+    android:id="@+id/user_info_fragment"
+    android:orientation="vertical"
     android:background="@color/white"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".views.setting.fragment.SettingFragment">
+    tools:context=".views.user.fragment.UserInfoFragment">
+
+    <include
+        android:id="@+id/header"
+        layout="@layout/toolbar_layout" />
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/imgProfileDp"
-        android:layout_width="@dimen/DP150"
-        android:layout_height="@dimen/DP150"
+        android:layout_width="@dimen/DP200"
+        android:layout_height="@dimen/DP200"
         android:layout_centerInParent="true"
-        android:layout_marginTop="@dimen/DP50"
+        android:layout_marginTop="@dimen/DP10"
         android:contentDescription="@null"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/header"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize50Percent" />
@@ -29,14 +34,14 @@
         app:layout_constraintTop_toBottomOf="@id/imgProfileDp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:text="Welcome to Setting Fragment!!!" />
+        android:text="Welcome to User Fragment!!!" />
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="@dimen/DP0"
         android:layout_marginHorizontal="@dimen/DP10"
         android:layout_marginTop="@dimen/DP10"
-        app:layout_constraintBottom_toTopOf="@id/btn_logout"
+        app:layout_constraintBottom_toTopOf="@id/btn_block"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvName">
 
@@ -325,14 +330,23 @@
     </androidx.core.widget.NestedScrollView>
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_logout"
+        android:id="@+id/btn_block"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/DP30"
-        android:text="@string/logout"
-        app:icon="@drawable/logout_red"
-        app:iconTint="@color/red_email"
-        app:iconGravity="textEnd"
+        android:layout_marginBottom="@dimen/DP10"
+        android:text="@string/block"
+        android:textColor="@color/red_email"
+        android:backgroundTint="@color/transparent"
+        app:layout_constraintBottom_toTopOf="@id/btn_delete"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_delete"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/DP20"
+        android:text="@string/delete"
         android:textColor="@color/red_email"
         android:backgroundTint="@color/transparent"
         app:layout_constraintBottom_toBottomOf="parent"

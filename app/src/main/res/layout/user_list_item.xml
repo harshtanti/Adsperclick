@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_marginVertical="@dimen/DP13">
+
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/imgProfileDp"
+        android:layout_width="@dimen/DP45"
+        android:layout_height="@dimen/DP45"
+        android:layout_centerInParent="true"
+        android:layout_marginStart="@dimen/DP3"
+        android:contentDescription="@null"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize50Percent" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/txt_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/DP8"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/imgProfileDp"
+        app:layout_constraintTop_toTopOf="parent">
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tvName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/inter_600"
+            android:text="This is Name of Group"
+            android:textColor="@color/Black_2"
+            android:textSize="@dimen/SP15"
+            app:layout_constraintBottom_toTopOf="@+id/tvTagName"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tvTagName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/DP3"
+            android:fontFamily="@font/inter_400"
+            android:visibility="gone"
+            android:text="You: Let's have a chat"
+            android:textColor="@color/Black_8"
+            android:textSize="@dimen/SP13"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/tvName"
+            app:layout_constraintTop_toBottomOf="@+id/tvName"
+            />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/btn_delete"
+        android:layout_width="@dimen/DP30"
+        android:layout_height="@dimen/DP30"
+        android:layout_marginEnd="@dimen/DP20"
+        app:backgroundTint="@null"
+        android:visibility="gone"
+        android:background="@drawable/delete_red"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/txt_container"
+        app:layout_constraintTop_toTopOf="@+id/txt_container"
+        tools:visibility="visible"/>
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/btn_info"
+        android:layout_width="@dimen/DP30"
+        android:layout_height="@dimen/DP30"
+        android:layout_marginEnd="@dimen/DP20"
+        app:backgroundTint="@null"
+        android:visibility="gone"
+        android:background="@drawable/info_blue"
+        app:layout_constraintEnd_toStartOf="@id/btn_delete"
+        app:layout_constraintBottom_toBottomOf="@id/txt_container"
+        app:layout_constraintTop_toTopOf="@+id/txt_container"
+        tools:visibility="visible"/>
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/btn_check"
+        android:layout_width="@dimen/DP35"
+        android:layout_height="@dimen/DP35"
+        android:layout_marginEnd="@dimen/DP20"
+        android:visibility="gone"
+        android:background="@drawable/check_blue"
+        app:layout_constraintEnd_toStartOf="@id/btn_info"
+        app:layout_constraintBottom_toBottomOf="@id/txt_container"
+        app:layout_constraintTop_toTopOf="@+id/txt_container"
+        tools:visibility="visible"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

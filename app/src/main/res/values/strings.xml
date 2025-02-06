@@ -8,6 +8,28 @@
     <string name="or">OR</string>
     <string name="app_logo">App Logo</string>
     <string name="don_t_have_an_account_contact_us">Don\'t have an account? Contact Us</string>
-    <string name="employee">Employee</string>
-    <string name="customer">Customer</string>
+    <string name="employees">Employees</string>
+    <string name="clients">Clients</string>
+    <string name="services">Services</string>
+    <string name="companies">Companies</string>
+    <string name="first_name">First Name</string>
+    <string name="last_name">Surname</string>
+    <string name="company_name">Company Name</string>
+    <string name="gst_number">Gst Number</string>
+    <string name="aadhar_card">Aadhar Card</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="services_subscribed">Services Subscribed</string>
+    <string name="services_name">Services Name</string>
+    <string name="submit">Submit</string>
+    <string name="enter_text">Enter Text</string>
+    <string name="example_gmail">abc@gmail.com</string>
+    <string name="search">Search</string>
+    <string name="save">Save</string>
+    <string name="association_date">Association Date</string>
+    <string name="phone">Phone</string>
+    <string name="block">Block</string>
+    <string name="delete">Delete</string>
+    <string name="logout">Log Out</string>
+
+
 </resources>

@@ -49,6 +49,10 @@
     <dimen name="DP90">90dp</dimen>
     <dimen name="DP95">95dp</dimen>
     <dimen name="DP100">100dp</dimen>
+    <dimen name="DP150">150dp</dimen>
+    <dimen name="DP200">200dp</dimen>
+    <dimen name="DP300">300dp</dimen>
+    <dimen name="DP400">400dp</dimen>
 
     <!-- SP Values (0 to 30, interval of 1) -->
     <dimen name="SP0">0sp</dimen>
