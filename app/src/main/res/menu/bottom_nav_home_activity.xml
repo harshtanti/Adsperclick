@@ -4,16 +4,16 @@
     <item
         android:id="@+id/navigation_chat"
         android:title="Chat"
-        android:icon="@drawable/forum_24px"/>
+        android:icon="@drawable/ic_chat_bottom_nav"/>
 
     <item
         android:id="@+id/navigation_user"
         android:title="Users"
-        android:icon="@drawable/person_24px"/>
+        android:icon="@drawable/ic_person_selector"/>
     <item
         android:id="@+id/navigation_setting"
         android:title="Setting"
-        android:icon="@drawable/bottom_nav_settings_24px" />
+        android:icon="@drawable/ic_settings_bottom_nav" />
 
 </menu>
 

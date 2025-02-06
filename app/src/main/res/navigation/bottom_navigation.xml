@@ -5,22 +5,62 @@
     android:id="@+id/bottom_navigation"
     app:startDestination="@id/navigation_chat">
 
+<!--    <fragment
+        android:id="@+id/navigation_chat"
+        android:name="com.adsperclick.media.views.chat.fragment.ChatFragment"
+        android:label="fragment_chat"
+        tools:layout="@layout/fragment_chat" >
+    </fragment>-->
+
     <fragment
         android:id="@+id/navigation_chat"
         android:name="com.adsperclick.media.views.chat.fragment.ChatFragment"
         android:label="fragment_chat"
         tools:layout="@layout/fragment_chat" >
+        <action
+            android:id="@+id/action_navigation_chat_to_notificationListingFragment"
+            app:destination="@id/notificationListingFragment" />
     </fragment>
+
+    <fragment
+        android:id="@+id/notificationListingFragment"
+        android:name="com.adsperclick.media.views.chat.fragment.NotificationListingFragment"
+        android:label="fragment_notification_listing"
+        tools:layout="@layout/fragment_notification_listing" >
+        <action
+            android:id="@+id/action_notificationListingFragment_to_notificationCreationFragment"
+            app:destination="@id/notificationCreationFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/notificationCreationFragment"
+        android:name="com.adsperclick.media.views.chat.fragment.NotificationCreationFragment"
+        android:label="fragment_notification_creation"
+        tools:layout="@layout/fragment_notification_creation" />
+
+
     <fragment
         android:id="@+id/navigation_user"
         android:name="com.adsperclick.media.views.user.fragment.UserListFragment"
         android:label="fragment_user_list"
         tools:layout="@layout/fragment_user_list" >
+        <action
+            android:id="@+id/action_navigation_user_to_form_fragment"
+            app:destination="@id/form_fragment" />
     </fragment>
     <fragment
         android:id="@+id/navigation_setting"
         android:name="com.adsperclick.media.views.setting.fragment.SettingFragment"
         android:label="fragment_setting"
         tools:layout="@layout/fragment_setting" >
+    </fragment>
+    <fragment
+        android:id="@+id/form_fragment"
+        android:name="com.adsperclick.media.views.user.fragment.FormFragment"
+        android:label="fragment_form"
+        tools:layout="@layout/fragment_form" >
+        <action
+            android:id="@+id/action_form_fragment_to_navigation_user"
+            app:destination="@id/navigation_user" />
     </fragment>
 </navigation>

@@ -1,6 +1,7 @@
 package com.adsperclick.media.views.homeActivity
 
 import android.os.Bundle
+import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -32,5 +33,14 @@ class HomeActivity : AppCompatActivity() {
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_activity_home) as NavHostFragment
         val navController = navHostFragment.navController
         binding.bottomNavigation.setupWithNavController(navController)
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            if (destination.id == R.id.navigation_chat ||
+                destination.id == R.id.navigation_user ||
+                destination.id == R.id.navigation_setting) {
+                binding.bottomNavigation.visibility = View.VISIBLE
+            } else {
+                binding.bottomNavigation.visibility = View.GONE
+            }
+        }
     }
 }

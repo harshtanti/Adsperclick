@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".views.user.fragment.CommonFragment">
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:textColor="@color/black"
+        android:textSize="@dimen/SP30"
+        tools:text="Client"/>
+    <com.adsperclick.media.applicationCommonView.view.EditeTextWithError
+        android:id="@+id/first_name"
+        android:layout_width="@dimen/DP0"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/DP10"
+        android:layout_marginHorizontal="@dimen/DP10"
+        app:layout_constraintTop_toBottomOf="@id/title"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/last_name"/>
+    <com.adsperclick.media.applicationCommonView.view.EditeTextWithError
+        android:id="@+id/last_name"
+        android:layout_width="@dimen/DP0"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/DP10"
+        android:layout_marginHorizontal="@dimen/DP10"
+        app:layout_constraintTop_toBottomOf="@id/title"
+        app:layout_constraintStart_toEndOf="@id/first_name"
+        app:layout_constraintEnd_toEndOf="parent" />
+    <com.adsperclick.media.applicationCommonView.view.EditeTextWithError
+        android:id="@+id/company_name"
+        android:layout_width="@dimen/DP0"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/DP10"
+        android:layout_marginHorizontal="@dimen/DP10"
+        app:layout_constraintTop_toBottomOf="@id/first_name"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

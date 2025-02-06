@@ -172,4 +172,5 @@
     <color name="lesser_black">#202020</color>
     <color name="bg_light_theme_reg_login_frag">#ffffff</color>
     <color name="transparent">#00000000</color>
+    <color name="grey_primary">#f6f6f6</color>
 </resources>
