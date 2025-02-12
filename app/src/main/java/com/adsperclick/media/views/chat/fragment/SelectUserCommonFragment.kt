@@ -60,18 +60,15 @@ class SelectUserCommonFragment : Fragment() {
                 if (bucketName != "null" && id != "null") {
                     when (bucketName) {
                         Constants.EMPLOYEES_SEMI_CAPS -> {
-                            // ✅ Create a new list to trigger DiffUtil properly
-                            chatViewModel.employeeList = chatViewModel.employeeList.map { item ->
+                            chatViewModel.employeeList.map { item ->
                                 if (item.id == id) item.copy(isSelected = isSelected) else item
                             }
-                            adapter.submitList(chatViewModel.employeeList) // ✅ No flickering
                         }
 
                         Constants.CLIENTS_SEMI_CAPS -> {
-                            chatViewModel.clientList = chatViewModel.clientList.map { item ->
+                            chatViewModel.clientList.map { item ->
                                 if (item.id == id) item.copy(isSelected = isSelected) else item
                             }
-                            adapter.submitList(chatViewModel.clientList)
                         }
                     }
                 }

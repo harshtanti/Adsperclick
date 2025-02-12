@@ -3,16 +3,13 @@ package com.adsperclick.media.views.chat.viewmodel
 import androidx.lifecycle.ViewModel
 import com.adsperclick.media.data.dataModels.CommonData
 import dagger.hilt.android.scopes.ActivityScoped
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 @ActivityScoped
 class ChatViewModel@Inject constructor() :ViewModel() {
     var selectedTabPosition = 0
 
-    var employeeList = listOf(
+    var employeeList = mutableListOf(
         // Clients (20)
         CommonData(id = "21", name = "Alice White", tagName = "Client"),
         CommonData(id = "22", name = "Bob Green", tagName = "Client"),
@@ -36,7 +33,7 @@ class ChatViewModel@Inject constructor() :ViewModel() {
         CommonData(id = "40", name = "Ella King", tagName = "Client"),
     )
 
-    var clientList = listOf(
+    var clientList = mutableListOf(
         // Employees (20)
         CommonData(id = "1", name = "John Doe", tagName = "Employee"),
         CommonData(id = "2", name = "Jane Smith", tagName = "Employee"),
@@ -63,5 +60,12 @@ class ChatViewModel@Inject constructor() :ViewModel() {
     fun resetSelection() {
         employeeList.forEach { it.isSelected = false }
         clientList.forEach { it.isSelected = false }
+    }
+
+    fun getSelectedUsers(): Pair<List<CommonData>, List<CommonData>> {
+        val selectedEmployees = employeeList.filter { it.isSelected }
+        val selectedClients = clientList.filter { it.isSelected }
+
+        return Pair(selectedEmployees, selectedClients)
     }
 }

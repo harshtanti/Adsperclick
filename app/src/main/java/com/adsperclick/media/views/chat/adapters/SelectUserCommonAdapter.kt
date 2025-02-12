@@ -41,7 +41,13 @@ class SelectUserCommonAdapter:ListAdapter<CommonData,SelectUserCommonAdapter.Vie
                     btnCheck.gone()
                 }
                 userItem.setOnClickListener{
-                    listener?.btnCheck(bucketName.toString(),data.id.toString(),!data.isSelected)
+                    data.isSelected=!data.isSelected
+                    listener?.btnCheck(bucketName.toString(),data.id.toString(),data.isSelected)
+                    if(data.isSelected){
+                        btnCheck.visible()
+                    }else{
+                        btnCheck.gone()
+                    }
                 }
             }
         }

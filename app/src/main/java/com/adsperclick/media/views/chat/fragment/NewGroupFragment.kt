@@ -8,7 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import com.adsperclick.media.R
 import com.adsperclick.media.databinding.FragmentNewGroupBinding
+import com.adsperclick.media.utils.UtilityFunctions
 import com.adsperclick.media.utils.gone
+import com.adsperclick.media.utils.visible
 import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -36,6 +38,7 @@ class NewGroupFragment : Fragment() {
         setUpHeader()
         setUpHint()
         setUpInputType()
+        getSelectedUser()
     }
 
     private fun setUpHeader(){
@@ -55,6 +58,14 @@ class NewGroupFragment : Fragment() {
             groupName.setInputType(InputType.TYPE_CLASS_TEXT)
             serviceName.setInputType(InputType.TYPE_CLASS_TEXT)
         }
+    }
+
+    private fun getSelectedUser(){
+        val (selectedEmployees, selectedClients) = chatViewModel.getSelectedUsers()
+        val name = if(selectedEmployees.isNotEmpty()){selectedEmployees[0].name} else "ZZ"
+        val drawable = UtilityFunctions.generateInitialsDrawable(
+            binding.imgProfileDp.context, name ?: "A")
+        binding.imgProfileDp.setImageDrawable(drawable)
     }
 
 }
