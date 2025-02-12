@@ -14,7 +14,7 @@ import com.adsperclick.media.databinding.FragmentChatBinding
 import com.adsperclick.media.views.chat.adapters.ChatGroupListAdapter
 import com.adsperclick.media.views.chat.adapters.HorizontalCompanyListAdapter
 
-class ChatFragment : Fragment() {
+class ChatFragment : Fragment(),View.OnClickListener {
 
     private lateinit var binding: FragmentChatBinding
     private lateinit var horizontalCompanyListAdapter: HorizontalCompanyListAdapter
@@ -56,12 +56,22 @@ class ChatFragment : Fragment() {
         chatGroupListAdapter.submitList(groupChatList)
         binding.rvGroupChatList.adapter = chatGroupListAdapter
 
-        listener()
+        setUpListener()
     }
 
-    private fun listener(){
-        binding.btnNotifications.setOnClickListener{
-            findNavController().navigate(R.id.action_navigation_chat_to_notificationListingFragment)
+    private fun setUpListener(){
+        binding.btnNotifications.setOnClickListener(this)
+        binding.addDetails.setOnClickListener(this)
+    }
+
+    override fun onClick(v: View?) {
+        when(v){
+            binding.btnNotifications -> {
+                findNavController().navigate(R.id.action_navigation_chat_to_notificationListingFragment)
+            }
+            binding.addDetails -> {
+                findNavController().navigate(R.id.action_navigation_chat_to_selectUserFragment)
+            }
         }
     }
 }
