@@ -1,7 +1,6 @@
 package com.adsperclick.media.views.user.fragment
 
-import android.content.res.ColorStateList
-import android.graphics.Color
+
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -29,7 +28,7 @@ class UserListFragment : Fragment(), View.OnClickListener {
     private lateinit var binding: FragmentUserListBinding
     private lateinit var adapter: PagerAdapter
     private var tabName:String=""
-    private val tabsMapping = arrayListOf("Employee","Customer")
+    private val tabsMapping = arrayListOf(Constants.EMPLOYEES_SEMI_CAPS,Constants.CLIENTS_SEMI_CAPS,Constants.SERVICES_SEMI_CAPS,Constants.COMPANIES_SEMI_CAPS)
 
     @Inject
     lateinit var userViewModel:UserViewModel
@@ -50,7 +49,7 @@ class UserListFragment : Fragment(), View.OnClickListener {
     }
 
     private fun setOnClickListener(){
-        binding.addDetails.setOnClickListener(this)
+//        binding.addDetails.setOnClickListener(this)
     }
 
 
@@ -81,6 +80,7 @@ class UserListFragment : Fragment(), View.OnClickListener {
             tabColorChange(
                 userTabs.getTabAt(userViewModel.selectedTabPosition)?.customView,
                 R.color.white, true)
+            tabName = tabsMapping[userViewModel.selectedTabPosition]
         }
     }
 
@@ -108,15 +108,23 @@ class UserListFragment : Fragment(), View.OnClickListener {
     }
 
     private fun setupViewPagerAdapter() {
-        adapter = com.adsperclick.media.views.user.adapter.PagerAdapter(requireActivity())
+        adapter = PagerAdapter(requireActivity())
 
         adapter.addFragment(
-            CommonFragment.newInstance(getString(R.string.employee)),
-            getString(R.string.employee)
+            CommonFragment.newInstance(getString(R.string.employees)),
+            getString(R.string.employees)
         )
         adapter.addFragment(
-            CommonFragment.newInstance(getString(R.string.customer)),
-            getString(R.string.customer)
+            CommonFragment.newInstance(getString(R.string.clients)),
+            getString(R.string.clients)
+        )
+        adapter.addFragment(
+            CommonFragment.newInstance(getString(R.string.services)),
+            getString(R.string.services)
+        )
+        adapter.addFragment(
+            CommonFragment.newInstance(getString(R.string.companies)),
+            getString(R.string.companies)
         )
         with(binding) {
             viewPager.adapter = adapter
@@ -131,12 +139,12 @@ class UserListFragment : Fragment(), View.OnClickListener {
 
     override fun onClick(v: View?) {
         when(v){
-            binding.addDetails -> {
-                val bundle = Bundle().apply {
-                    putString(Constants.USER_TYPE, tabName) // Pass your data
-                }
-                findNavController().navigate(R.id.action_navigation_user_to_form_fragment, bundle)
-            }
+//            binding.addDetails -> {
+//                val bundle = Bundle().apply {
+//                    putString(Constants.USER_TYPE_SEMI_CAPS, tabName) // Pass your data
+//                }
+//                findNavController().navigate(R.id.action_navigation_user_to_form_fragment, bundle)
+//            }
         }
     }
 }
