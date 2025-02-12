@@ -30,6 +30,11 @@
     <string name="block">Block</string>
     <string name="delete">Delete</string>
     <string name="logout">Log Out</string>
+    <string name="done">Done</string>
+    <string name="select_user">Select User</string>
+    <string name="new_group">New Group</string>
+    <string name="enter_group_name">Enter Group Name</string>
+    <string name="select_service">Select Service</string>
 
 
 </resources>

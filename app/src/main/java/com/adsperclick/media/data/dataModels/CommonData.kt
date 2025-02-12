@@ -7,5 +7,6 @@ data class CommonData(
     val id : String? = null,
     val name : String? = null,
     val tagName: String? = null,
-    val imgUrl: String? = null
+    val imgUrl: String? = null,
+    var isSelected: Boolean = false
 )

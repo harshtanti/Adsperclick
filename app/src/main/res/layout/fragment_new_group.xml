@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/new_group_fragment"
+    android:background="@color/white"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".views.chat.fragment.NewGroupFragment">
+
+    <include
+        android:id="@+id/header"
+        layout="@layout/toolbar_layout" />
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/imgProfileDp"
+        android:layout_width="@dimen/DP150"
+        android:layout_height="@dimen/DP150"
+        android:layout_centerInParent="true"
+        android:layout_marginTop="@dimen/DP50"
+        android:contentDescription="@null"
+        app:layout_constraintTop_toBottomOf="@id/header"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize50Percent" />
+
+    <com.adsperclick.media.applicationCommonView.view.EditeTextWithError
+        android:id="@+id/group_name"
+        android:layout_width="@dimen/DP0"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/DP20"
+        android:layout_marginHorizontal="@dimen/DP20"
+        app:layout_constraintTop_toBottomOf="@id/imgProfileDp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <com.adsperclick.media.applicationCommonView.view.EditeTextWithError
+        android:id="@+id/service_name"
+        android:layout_width="@dimen/DP0"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/DP20"
+        android:layout_marginHorizontal="@dimen/DP20"
+        app:layout_constraintTop_toBottomOf="@id/group_name"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/submit_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/DP20"
+        android:layout_marginTop="@dimen/DP20"
+        android:backgroundTint="@color/blue_common_button"
+        android:text="@string/done"
+        android:textColor="@color/white"
+        app:layout_constraintTop_toBottomOf="@id/service_name"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
