@@ -20,17 +20,18 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".views.loginActivity.MainActivity"
+    tools:context=".views.login.MainActivity"
     style="@style/bg_login_reg">
 
-    <include
-        android:id="@+id/incFile"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/nav_host_fragment_activity_main"
+        android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        layout="@layout/testing_text_input_et_layout"
-        />
+        app:defaultNavHost="true"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:navGraph="@navigation/login_nav_graph" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="70dp"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@color/white">
+
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="40dp"
+        android:layout_height="50dp"
+        android:layout_marginEnd="@dimen/DP10"
+        android:backgroundTint="@color/transparent"
+        android:src="@drawable/ic_arrow_back_blue"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/imgProfileDp"
+        android:layout_width="@dimen/DP45"
+        android:layout_height="@dimen/DP45"
+        android:layout_centerInParent="true"
+        android:contentDescription="@null"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/btnBack"
+        app:layout_constraintTop_toTopOf="parent"
+        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize50Percent" />
+
+    <TextView
+        android:id="@+id/tv_group_name"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginStart="5dp"
+        android:gravity="center"
+        tools:text="Group Name"
+        android:textColor="@color/Black_4"
+        android:textSize="21sp"
+        android:fontFamily="@font/inter_400"
+        app:layout_constraintBottom_toBottomOf="@+id/imgProfileDp"
+        app:layout_constraintStart_toEndOf="@id/imgProfileDp"
+        app:layout_constraintTop_toTopOf="@+id/imgProfileDp" />
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/btnCall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/DP10"
+        android:backgroundTint="@color/transparent"
+        android:src="@drawable/call_filled_blue"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
