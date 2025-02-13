@@ -29,4 +29,14 @@ object Constants {
 
 
     const val BOTH = 70
+
+    const val CLICKED_GROUP = "Jis group ko click kia"
+
+
+    object DB{
+        const val USERS = "users"
+        const val GROUPS = "groups"
+        const val NOTIFICATIONS = "notifications"
+        const val MESSAGES = "groups"
+    }
 }

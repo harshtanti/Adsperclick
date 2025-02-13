@@ -14,6 +14,8 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class HomeActivity : AppCompatActivity() {
+    // This is the activity in which Bottom-nav graph is created, basically
+    // fragment-container for navigation across all fragments
     private lateinit var binding: ActivityHomeBinding
     private var isAdmin=false
     override fun onCreate(savedInstanceState: Bundle?) {

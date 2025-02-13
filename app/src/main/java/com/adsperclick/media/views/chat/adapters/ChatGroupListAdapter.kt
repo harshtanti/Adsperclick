@@ -25,7 +25,7 @@ class ChatGroupListAdapter(val onGroupChatClickListener: OnGroupChatClickListene
             binding.tvLastMsg.text= chatGroup.lastSentMsg?.message ?: ""
             binding.tvLastMsgDateTime.text = chatGroup.lastSentMsg?.timestamp.toString()
 
-            chatGroup.groupDpUrl?.let {  }?: run{
+            chatGroup.groupImgUrl?.let {  }?: run{
                 val drawable = UtilityFunctions.generateInitialsDrawable(
                     binding.imgProfileDp.context, chatGroup.groupName ?: "A")
 

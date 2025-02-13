@@ -6,10 +6,10 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class User(
     val userId : String? = null,
-    val userProfileImgUrl : String? = null,
     val userName : String? = null,
     val email : String? = null,
     val password : String? = null,
+    val userProfileImgUrl : String? = null,
     val role : Int = Constants.CLIENT,
     val isBlocked :Boolean= false,
     val userAdhaarNumber : String? = null,

@@ -11,14 +11,17 @@ import com.adsperclick.media.R
 import com.adsperclick.media.data.dataModels.Company
 import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.Message
+import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.databinding.FragmentChatBinding
+import com.adsperclick.media.utils.Constants.CLICKED_GROUP
 import com.adsperclick.media.views.chat.adapters.ChatGroupListAdapter
-import com.adsperclick.media.views.chat.adapters.HorizontalCompanyListAdapter
+import com.adsperclick.media.views.chat.adapters.HorizontalServiceListAdapter
+import kotlinx.serialization.json.Json
 
 class ChatFragment : Fragment(),View.OnClickListener {
 
     private lateinit var binding: FragmentChatBinding
-    private lateinit var horizontalCompanyListAdapter: HorizontalCompanyListAdapter
+    private lateinit var horizontalServiceListAdapter: HorizontalServiceListAdapter
     private lateinit var chatGroupListAdapter: ChatGroupListAdapter
 
     override fun onCreateView(
@@ -33,29 +36,43 @@ class ChatFragment : Fragment(),View.OnClickListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val companyList = listOf(Company("1", "All"),
-            Company("2", "Amazon"),
-            Company("3", "Meesho"),
-            Company("8", "companyNumber-8"),
-            Company("3", "Flipkart"),
-            Company("4", "Jumbo Tail"))
-        val compId = "3"
-        horizontalCompanyListAdapter = HorizontalCompanyListAdapter()
-        horizontalCompanyListAdapter.submitList(companyList)
-        binding.rvHorizontalForCompanyList.adapter = horizontalCompanyListAdapter
+        val companyList = listOf(Service("1", "All"),
+            Service("2", "Amazon"),
+            Service("3", "Meesho"),
+            Service("8", "companyNumber-8"),
+            Service("3", "Flipkart"),
+            Service("4", "Jumbo Tail"))
+
+        horizontalServiceListAdapter = HorizontalServiceListAdapter(
+            object : HorizontalServiceListAdapter.OnServiceClickListener{
+                override fun onItemClick(service: Service) {
+                    Toast.makeText(context, "Selected : ${service.serviceName}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        )
+        horizontalServiceListAdapter.submitList(companyList)
+        binding.rvHorizontalForServiceList.adapter = horizontalServiceListAdapter
 
 
 
         val groupChatList = listOf(GroupChatListingData("1", "Harsh Company"),
-            GroupChatListingData("2", "Sigma Bois and Furnitures", null, listOf("1", "2"), lastSentMsg = Message("69", "Hello Harsh", "1")),
-            GroupChatListingData("3", "Saumya Coffee", null, listOf("1", "2"), lastSentMsg = Message("68", "Hello Wet ass pussy", "1")),
-            GroupChatListingData("4", "Jay", null, listOf("1", "2"), lastSentMsg = Message("68", "Nigger Man", "1")),
-            GroupChatListingData("5", "BholeShopper", null, listOf("1", "2"), lastSentMsg = Message("68", "DumbFuck", "1"))
+            GroupChatListingData("2", "Sigma Bois and Furnitures", null, null, listOf(Pair("1", 2)), lastSentMsg = Message("69", "Hello Harsh", "1")),
+            GroupChatListingData("3", "Saumya Coffee", null, null, listOf(Pair("1", 2)), lastSentMsg = Message("68", "Hello Wet ass pussy", "1")),
+            GroupChatListingData("4", "Jay", null, null, listOf(Pair("1", 2)), lastSentMsg = Message("68", "Nigger Man", "1")),
+            GroupChatListingData("5", "BholeShopper", null, null, listOf(Pair("1", 2)), lastSentMsg = Message("68", "DumbFuck", "1"))
         )
 
         chatGroupListAdapter = ChatGroupListAdapter(object : ChatGroupListAdapter.OnGroupChatClickListener{
-            override fun onItemClick(gc : GroupChatListingData) {
-                Toast.makeText(context, "You clicked ${gc.groupName}!", Toast.LENGTH_SHORT).show()
+            override fun onItemClick(groupChat : GroupChatListingData) {
+                Toast.makeText(context, "You clicked ${groupChat.groupName}!", Toast.LENGTH_SHORT).show()
+
+                // We'll convert the "GroupChatListingData" object to "String" using the below function,
+                // later this "String" will be converted back to object of "GroupChatListingData"
+                val groupChatObjToString = Json.encodeToString(GroupChatListingData.serializer(), groupChat)
+
+                val bundle = Bundle()
+                bundle.putString(CLICKED_GROUP, groupChatObjToString)
+                findNavController().navigate(R.id.action_navigation_chat_to_messagingFragment, bundle)
             }
         })
         chatGroupListAdapter.submitList(groupChatList)

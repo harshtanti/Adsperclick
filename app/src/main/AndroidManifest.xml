@@ -15,9 +15,11 @@
         tools:targetApi="31">
         <activity
             android:name=".views.homeActivity.HomeActivity"
+            android:windowSoftInputMode="adjustResize"
             android:exported="false" />
         <activity
-            android:name=".views.loginActivity.MainActivity"
+            android:name=".views.login.MainActivity"
+            android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.Adsperclick.StartingScreen"
             android:exported="true">
             <intent-filter>
