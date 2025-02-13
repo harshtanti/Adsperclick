@@ -101,25 +101,5 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/tvCreateDemoUser"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Create Demo User"
-        app:layout_constraintBottom_toTopOf="@+id/tvCreateNewAcc"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvForgotPassword" />
-
-    <EditText
-        android:id="@+id/etDemoUsername"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@+id/tvCreateNewAcc"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:hint="Demo Username"
-        app:layout_constraintTop_toBottomOf="@+id/tvCreateDemoUser" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>
 
