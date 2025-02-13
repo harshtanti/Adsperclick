@@ -35,6 +35,17 @@
     <string name="new_group">New Group</string>
     <string name="enter_group_name">Enter Group Name</string>
     <string name="select_service">Select Service</string>
+    <string name="first_name_required">Select Service</string>
+    <string name="last_name_required">Select Service</string>
+    <string name="company_name_required">Select Service</string>
+    <string name="gst_number_is_incorrect">Select Service</string>
+    <string name="aadhar_number_is_incorrect">Select Service</string>
+    <string name="email_is_incorrect">Select Service</string>
+    <string name="password_required">Select Service</string>
+    <string name="confirm_password_required">Select Service</string>
+    <string name="services_required">Select Service</string>
+    <string name="service_name_required">Select Service</string>
+
 
 
 </resources>
