@@ -6,6 +6,7 @@ import com.adsperclick.media.utils.Constants.IS_USER_SIGNED_IN
 import com.adsperclick.media.utils.Constants.TOKEN_FOR_PREFS
 import com.adsperclick.media.utils.Constants.USER_IDENTITY
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
 class TokenManager @Inject constructor(@ApplicationContext context : Context) {
@@ -14,19 +15,20 @@ class TokenManager @Inject constructor(@ApplicationContext context : Context) {
 
 
     fun saveUser(user : User){
-        val jsonString = kotlinx.serialization.json.Json.encodeToString(User.serializer(), user)
+        val jsonString = Json.encodeToString(User.serializer(), user)
         // Above line is to convert "User" class object into a string, when getting, we'll reconvert
         // the string to the "User" class object, this is serialization and deserialization ;)
 
-        val editor = prefs.edit()
-        editor.putString(USER_IDENTITY, jsonString)
-        editor.putBoolean(IS_USER_SIGNED_IN, true)
-        editor.apply()
+        with(prefs.edit()){
+            putString(USER_IDENTITY, jsonString)
+            putBoolean(IS_USER_SIGNED_IN, true)
+            apply()
+        }
     }
 
     fun getUser(): User?{
         return prefs.getString(USER_IDENTITY, null)?.let {
-            kotlinx.serialization.json.Json.decodeFromString(User.serializer(), it)
+            Json.decodeFromString(User.serializer(), it)
         }
     }
 
@@ -35,8 +37,10 @@ class TokenManager @Inject constructor(@ApplicationContext context : Context) {
     }
 
     fun signOut(){
-        val editor = prefs.edit()
-        editor.putBoolean(IS_USER_SIGNED_IN, false)
-        editor.apply()
+        with(prefs.edit()){
+            putBoolean(IS_USER_SIGNED_IN, false)
+            remove(USER_IDENTITY)       // Remove stored user's details
+            apply()
+        }
     }
 }

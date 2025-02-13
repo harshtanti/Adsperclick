@@ -18,11 +18,6 @@ class NotificationListAdapter() : ListAdapter<NotificationMsg, NotificationListA
             binding.tvTitle.text = notif.notificationTitle
             binding.tvDescription.text= notif.notificationDescription
             binding.tvDateTime.text = notif.timestamp.toString()
-
-            if(notif.isRead.not()){
-                binding.tvNewIcon.visibility = View.VISIBLE
-            }
-
         }
     }
 
