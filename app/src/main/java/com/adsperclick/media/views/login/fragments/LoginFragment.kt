@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
@@ -27,7 +28,7 @@ class LoginFragment : Fragment() {
 
     lateinit var binding : FragmentLoginBinding
 
-    private lateinit var authViewModel : AuthViewModel
+    private val authViewModel : AuthViewModel by viewModels()
 
     @Inject
     lateinit var tokenManager: TokenManager
@@ -43,9 +44,6 @@ class LoginFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        authViewModel = ViewModelProvider(this)[AuthViewModel::class.java]
-
         listeners()
         observers()
     }
@@ -65,14 +63,6 @@ class LoginFragment : Fragment() {
                 findNavController().navigate(R.id.action_loginFragment_to_forgotPasswordFragment)
             }
 
-            tvCreateDemoUser.setOnClickListener{
-                binding.progressBar.visible()
-                val username = etDemoUsername.text.toString()
-                val email = etEmail.text.toString()
-                val password = etPassword.text.toString()
-
-                authViewModel.register(username, email, password)
-            }
         }
     }
 

@@ -11,20 +11,27 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import com.adsperclick.media.R
 import com.adsperclick.media.applicationCommonView.view.EditeTextWithError
+import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.databinding.FragmentFormBinding
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.gone
 import com.adsperclick.media.utils.visible
+import com.adsperclick.media.views.login.viewModels.AuthViewModel
 import com.adsperclick.media.views.user.viewmodel.UserViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
-
+@AndroidEntryPoint
 class FormFragment : Fragment(),View.OnClickListener {
 
     private lateinit var binding: FragmentFormBinding
     private lateinit var userType:String
-    private val userViewModel:UserViewModel by viewModels()
+    private val viewModel : UserViewModel by viewModels()
+
+    private val authViewModel: AuthViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,6 +55,7 @@ class FormFragment : Fragment(),View.OnClickListener {
         setUpPlaceholder()
         setUpVisibility()
         setUpInputType()
+        setUpClickListener()
         setUpDrawable()
         setUpErrorPadding()
         setCustomTextWatchers()
@@ -115,6 +123,10 @@ class FormFragment : Fragment(),View.OnClickListener {
             services.setInputType(InputType.TYPE_CLASS_TEXT)
             serviceName.setInputType(InputType.TYPE_CLASS_TEXT)
         }
+    }
+
+    private fun setUpClickListener(){
+        binding.submitButton.setOnClickListener(this)
     }
 
     private fun setUpErrorPadding(){
@@ -222,7 +234,7 @@ class FormFragment : Fragment(),View.OnClickListener {
             firstName.getEditView().addTextChangedListener(
                 FormTextWatcher(
                     this@FormFragment,
-                    viewModel = userViewModel,
+                    viewModel = viewModel,
                     view = firstName,
                     errorMessage = getString(R.string.first_name_required),
                     regexPattern = Constants.EMPTY
@@ -231,7 +243,7 @@ class FormFragment : Fragment(),View.OnClickListener {
             lastName.getEditView().addTextChangedListener(
                 FormTextWatcher(
                     this@FormFragment,
-                    viewModel = userViewModel,
+                    viewModel = viewModel,
                     view = lastName,
                     errorMessage = getString(R.string.last_name_required),
                     regexPattern = Constants.EMPTY
@@ -240,7 +252,7 @@ class FormFragment : Fragment(),View.OnClickListener {
             companyName.getEditView().addTextChangedListener(
                 FormTextWatcher(
                     this@FormFragment,
-                    viewModel = userViewModel,
+                    viewModel = viewModel,
                     view = companyName,
                     errorMessage = getString(R.string.company_name_required),
                     regexPattern = Constants.EMPTY
@@ -249,7 +261,7 @@ class FormFragment : Fragment(),View.OnClickListener {
             gst.getEditView().addTextChangedListener(
                 FormTextWatcher(
                     this@FormFragment,
-                    viewModel = userViewModel,
+                    viewModel = viewModel,
                     view = gst,
                     errorMessage = getString(R.string.gst_number_is_incorrect),
                     regexPattern = Constants.EMPTY
@@ -258,7 +270,7 @@ class FormFragment : Fragment(),View.OnClickListener {
             aadharNumber.getEditView().addTextChangedListener(
                 FormTextWatcher(
                     this@FormFragment,
-                    viewModel = userViewModel,
+                    viewModel = viewModel,
                     view = aadharNumber,
                     errorMessage = getString(R.string.aadhar_number_is_incorrect),
                     regexPattern = Constants.EMPTY
@@ -267,7 +279,7 @@ class FormFragment : Fragment(),View.OnClickListener {
             email.getEditView().addTextChangedListener(
                 FormTextWatcher(
                     this@FormFragment,
-                    viewModel = userViewModel,
+                    viewModel = viewModel,
                     view = email,
                     errorMessage = getString(R.string.email_is_incorrect),
                     regexPattern = Constants.EMPTY
@@ -276,7 +288,7 @@ class FormFragment : Fragment(),View.OnClickListener {
             password.getEditView().addTextChangedListener(
                 FormTextWatcher(
                     this@FormFragment,
-                    viewModel = userViewModel,
+                    viewModel = viewModel,
                     view = password,
                     errorMessage = getString(R.string.password_required),
                     regexPattern = Constants.EMPTY
@@ -285,7 +297,7 @@ class FormFragment : Fragment(),View.OnClickListener {
             confirmPassword.getEditView().addTextChangedListener(
                 FormTextWatcher(
                     this@FormFragment,
-                    viewModel = userViewModel,
+                    viewModel = viewModel,
                     view = confirmPassword,
                     errorMessage = getString(R.string.confirm_password_required),
                     regexPattern = Constants.EMPTY
@@ -294,7 +306,7 @@ class FormFragment : Fragment(),View.OnClickListener {
             services.getEditView().addTextChangedListener(
                 FormTextWatcher(
                     this@FormFragment,
-                    viewModel = userViewModel,
+                    viewModel = viewModel,
                     view = services,
                     errorMessage = getString(R.string.services_required),
                     regexPattern = Constants.EMPTY
@@ -303,7 +315,7 @@ class FormFragment : Fragment(),View.OnClickListener {
             serviceName.getEditView().addTextChangedListener(
                 FormTextWatcher(
                     this@FormFragment,
-                    viewModel = userViewModel,
+                    viewModel = viewModel,
                     view = serviceName,
                     errorMessage = getString(R.string.service_name_required),
                     regexPattern = Constants.EMPTY
@@ -312,10 +324,77 @@ class FormFragment : Fragment(),View.OnClickListener {
         }
     }
 
+    private fun saveUserDetails(userType: String) {
+        with(binding) {
+            val firstName = viewModel.firstName
+            val lastName = viewModel.lastName
+            val email = viewModel.email
+            val password = viewModel.password
+            val confirmPassword = viewModel.confirmPassword
+
+            // Initialize variables with null by default
+            var aadharNumber: String? = null
+            var companyName: String? = null
+            var gstNumber: String? = null
+            var serviceName: String? = null
+            var userRole: Int? = null
+
+            // Assign values based on userType and visibility of Groups
+            when (userType) {
+                Constants.EMPLOYEES_SEMI_CAPS -> {
+                    userRole=Constants.ADMIN
+                    aadharNumber = viewModel.aadharNumber
+                }
+
+                Constants.CLIENTS_SEMI_CAPS -> {
+                    userRole=Constants.CLIENT
+                    companyName = viewModel.companyName
+                    gstNumber = viewModel.gstNumber
+                }
+
+                Constants.SERVICES_SEMI_CAPS -> {
+                    serviceName = viewModel.serviceName
+                }
+
+                Constants.COMPANIES_SEMI_CAPS -> {
+                    companyName = viewModel.companyName
+                }
+            }
+
+            // Construct the User object based on available details
+            val user = User(
+                userName = firstName?.plus(" ")?.plus(lastName ?: ""),
+                email = email,
+                password = password,
+                role = userRole,
+                userAdhaarNumber = aadharNumber,
+                selfCompanyName = companyName,
+                selfCompanyGstNumber = gstNumber
+            )
+
+            when (userType) {
+                Constants.EMPLOYEES_SEMI_CAPS, Constants.CLIENTS_SEMI_CAPS -> {
+                    authViewModel.register(user)
+                }
+
+                Constants.SERVICES_SEMI_CAPS -> {
+
+                }
+
+                Constants.COMPANIES_SEMI_CAPS -> {
+
+                }
+            }
+        }
+    }
+
     override fun onClick(v: View?) {
         when(v){
             binding.submitButton -> {
-                validateSubmitButton()
+                if(areFixedDetailsValid(userType)){
+                    saveUserDetails(userType)
+                    findNavController().popBackStack()
+                }
             }
         }
     }

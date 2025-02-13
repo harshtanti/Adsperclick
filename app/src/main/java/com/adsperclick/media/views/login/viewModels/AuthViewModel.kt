@@ -38,9 +38,9 @@ class AuthViewModel @Inject constructor(private val authRepository: AuthReposito
         }
     }
 
-    fun register(username: String, email: String, password: String) {
+    fun register(user:User) {
         viewModelScope.launch(Dispatchers.IO){
-            val result = authRepository.register(username, email, password)
+            val result = authRepository.register(user)
             _registrationLiveData.postValue(result)
         }
     }
