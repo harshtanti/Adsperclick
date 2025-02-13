@@ -9,6 +9,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
+import androidx.core.widget.addTextChangedListener
+import androidx.fragment.app.viewModels
 import com.adsperclick.media.R
 import com.adsperclick.media.applicationCommonView.view.EditeTextWithError
 import com.adsperclick.media.databinding.FragmentFormBinding
@@ -18,10 +20,11 @@ import com.adsperclick.media.utils.visible
 import com.adsperclick.media.views.user.viewmodel.UserViewModel
 
 
-class FormFragment : Fragment() {
+class FormFragment : Fragment(),View.OnClickListener {
 
     private lateinit var binding: FragmentFormBinding
     private lateinit var userType:String
+    private val userViewModel:UserViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,7 +49,9 @@ class FormFragment : Fragment() {
         setUpVisibility()
         setUpInputType()
         setUpDrawable()
-        areFixedDetailsValid(userType)
+        setUpErrorPadding()
+        setCustomTextWatchers()
+        validateSubmitButton()
     }
 
     private fun setUpTitle(){
@@ -112,6 +117,32 @@ class FormFragment : Fragment() {
         }
     }
 
+    private fun setUpErrorPadding(){
+        with(binding) {
+            firstName.setErrorText(Constants.SPACE)
+            lastName.setErrorText(Constants.SPACE)
+            companyName.setErrorText(Constants.SPACE)
+            gst.setErrorText(Constants.SPACE)
+            email.setErrorText(Constants.SPACE)
+            aadharNumber.setErrorText(Constants.SPACE)
+            password.setErrorText(Constants.SPACE)
+            confirmPassword.setErrorText(Constants.SPACE)
+            services.setErrorText(Constants.SPACE)
+            serviceName.setErrorText(Constants.SPACE)
+
+            firstName.removeErrorText()
+            lastName.removeErrorText()
+            companyName.removeErrorText()
+            gst.removeErrorText()
+            email.removeErrorText()
+            aadharNumber.removeErrorText()
+            password.removeErrorText()
+            confirmPassword.removeErrorText()
+            services.removeErrorText()
+            serviceName.removeErrorText()
+        }
+    }
+
     private fun setUpDrawable(){
         with(binding) {
             password.setStartIcon(password.context,R.drawable.ic_lock)
@@ -159,7 +190,7 @@ class FormFragment : Fragment() {
         }
     }
 
-    fun validateSubmitButton(userType: String) {
+    fun validateSubmitButton() {
         if (areFixedDetailsValid(userType)) {
             enableSubmitButton()
         } else {
@@ -186,14 +217,120 @@ class FormFragment : Fragment() {
         return pattern.matches(text)
     }
 
+    private fun setCustomTextWatchers(){
+        with(binding){
+            firstName.getEditView().addTextChangedListener(
+                FormTextWatcher(
+                    this@FormFragment,
+                    viewModel = userViewModel,
+                    view = firstName,
+                    errorMessage = getString(R.string.first_name_required),
+                    regexPattern = Constants.EMPTY
+                )
+            )
+            lastName.getEditView().addTextChangedListener(
+                FormTextWatcher(
+                    this@FormFragment,
+                    viewModel = userViewModel,
+                    view = lastName,
+                    errorMessage = getString(R.string.last_name_required),
+                    regexPattern = Constants.EMPTY
+                )
+            )
+            companyName.getEditView().addTextChangedListener(
+                FormTextWatcher(
+                    this@FormFragment,
+                    viewModel = userViewModel,
+                    view = companyName,
+                    errorMessage = getString(R.string.company_name_required),
+                    regexPattern = Constants.EMPTY
+                )
+            )
+            gst.getEditView().addTextChangedListener(
+                FormTextWatcher(
+                    this@FormFragment,
+                    viewModel = userViewModel,
+                    view = gst,
+                    errorMessage = getString(R.string.gst_number_is_incorrect),
+                    regexPattern = Constants.EMPTY
+                )
+            )
+            aadharNumber.getEditView().addTextChangedListener(
+                FormTextWatcher(
+                    this@FormFragment,
+                    viewModel = userViewModel,
+                    view = aadharNumber,
+                    errorMessage = getString(R.string.aadhar_number_is_incorrect),
+                    regexPattern = Constants.EMPTY
+                )
+            )
+            email.getEditView().addTextChangedListener(
+                FormTextWatcher(
+                    this@FormFragment,
+                    viewModel = userViewModel,
+                    view = email,
+                    errorMessage = getString(R.string.email_is_incorrect),
+                    regexPattern = Constants.EMPTY
+                )
+            )
+            password.getEditView().addTextChangedListener(
+                FormTextWatcher(
+                    this@FormFragment,
+                    viewModel = userViewModel,
+                    view = password,
+                    errorMessage = getString(R.string.password_required),
+                    regexPattern = Constants.EMPTY
+                )
+            )
+            confirmPassword.getEditView().addTextChangedListener(
+                FormTextWatcher(
+                    this@FormFragment,
+                    viewModel = userViewModel,
+                    view = confirmPassword,
+                    errorMessage = getString(R.string.confirm_password_required),
+                    regexPattern = Constants.EMPTY
+                )
+            )
+            services.getEditView().addTextChangedListener(
+                FormTextWatcher(
+                    this@FormFragment,
+                    viewModel = userViewModel,
+                    view = services,
+                    errorMessage = getString(R.string.services_required),
+                    regexPattern = Constants.EMPTY
+                )
+            )
+            serviceName.getEditView().addTextChangedListener(
+                FormTextWatcher(
+                    this@FormFragment,
+                    viewModel = userViewModel,
+                    view = serviceName,
+                    errorMessage = getString(R.string.service_name_required),
+                    regexPattern = Constants.EMPTY
+                )
+            )
+        }
+    }
+
+    override fun onClick(v: View?) {
+        when(v){
+            binding.submitButton -> {
+                validateSubmitButton()
+            }
+        }
+    }
+
 }
 
 class FormTextWatcher(
+    private val fragment: FormFragment,
     private val viewModel: UserViewModel, // ViewModel to update fields
     private val view: EditeTextWithError, // Custom EditText view
     private val errorMessage: String, // Error message to display
     private val regexPattern: String // Validation regex pattern
 ) : TextWatcher {
+
+
 
     override fun afterTextChanged(s: Editable?) {
         val inputText = s?.toString()?.trim() ?: Constants.EMPTY
@@ -211,6 +348,7 @@ class FormTextWatcher(
             R.id.services -> handleValidation(inputText, regexPattern, R.string.services_required) { viewModel.services = it }
             R.id.service_name -> handleValidation(inputText, regexPattern, R.string.service_name_required) { viewModel.serviceName = it }
         }
+        fragment.validateSubmitButton()
     }
 
     private fun handleValidation(
@@ -221,15 +359,12 @@ class FormTextWatcher(
     ) {
         val context = view.context
         when {
-            isValidInput(inputText, regexPattern) -> {
-                view.removeErrorText()
-                updateViewModel(inputText)
-            }
-            inputText.isNotEmpty() -> {
+            inputText.isEmpty() -> {
                 view.setErrorText(context.getString(errorResId))
             }
             else -> {
-                view.setErrorText(errorMessage)
+                view.removeErrorText()
+                updateViewModel(inputText)
             }
         }
     }
@@ -241,4 +376,5 @@ class FormTextWatcher(
     override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
     override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
 }

@@ -2,10 +2,11 @@ package com.adsperclick.media.views.chat.viewmodel
 
 import androidx.lifecycle.ViewModel
 import com.adsperclick.media.data.dataModels.CommonData
+import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.scopes.ActivityScoped
 import javax.inject.Inject
 
-@ActivityScoped
+@HiltViewModel
 class ChatViewModel@Inject constructor() :ViewModel() {
     var selectedTabPosition = 0
 

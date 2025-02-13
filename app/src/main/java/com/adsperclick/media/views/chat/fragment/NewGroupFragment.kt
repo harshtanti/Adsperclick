@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.viewModels
 import com.adsperclick.media.R
 import com.adsperclick.media.databinding.FragmentNewGroupBinding
 import com.adsperclick.media.utils.UtilityFunctions
@@ -21,8 +22,7 @@ class NewGroupFragment : Fragment() {
 
     private lateinit var binding: FragmentNewGroupBinding
 
-    @Inject
-    lateinit var chatViewModel: ChatViewModel
+    private val chatViewModel: ChatViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.adsperclick.media.R
 import com.adsperclick.media.applicationCommonView.wrapper.addOnPageChangeListener
@@ -30,8 +31,7 @@ class UserListFragment : Fragment(), View.OnClickListener {
     private var tabName:String=""
     private val tabsMapping = arrayListOf(Constants.EMPLOYEES_SEMI_CAPS,Constants.CLIENTS_SEMI_CAPS,Constants.SERVICES_SEMI_CAPS,Constants.COMPANIES_SEMI_CAPS)
 
-    @Inject
-    lateinit var userViewModel:UserViewModel
+    private val userViewModel:UserViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

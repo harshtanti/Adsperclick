@@ -29,7 +29,7 @@ class HomeActivity : AppCompatActivity() {
             insets
         }
         isAdmin = intent.getBooleanExtra("isAdmin", false)
-        if (!isAdmin) {
+        if (isAdmin) {
             binding.bottomNavigation.menu.removeItem(R.id.navigation_user) // Hides "User"
         }
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_activity_home) as NavHostFragment
