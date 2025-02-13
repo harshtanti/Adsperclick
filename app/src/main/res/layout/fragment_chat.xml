@@ -52,6 +52,17 @@
         app:layout_constraintEnd_toEndOf="parent"
         />
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/addDetails"
+        android:layout_width="@dimen/DP24"
+        android:layout_height="@dimen/DP16"
+        android:layout_marginEnd="@dimen/DP15"
+        app:backgroundTint="@null"
+        android:background="@drawable/ic_add_group"
+        app:layout_constraintEnd_toStartOf="@id/btnNotifications"
+        app:layout_constraintTop_toTopOf="@id/tvChats"
+        app:layout_constraintBottom_toBottomOf="@id/tvChats" />
+
     <EditText
         android:id="@+id/etSearchBar"
         style="@style/et_search_bar"

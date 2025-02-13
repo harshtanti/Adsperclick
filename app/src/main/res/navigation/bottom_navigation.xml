@@ -20,6 +20,9 @@
         <action
             android:id="@+id/action_navigation_chat_to_notificationListingFragment"
             app:destination="@id/notificationListingFragment" />
+        <action
+            android:id="@+id/action_navigation_chat_to_selectUserFragment"
+            app:destination="@id/selectUserFragment" />
     </fragment>
 
     <fragment
@@ -68,4 +71,18 @@
         android:name="com.adsperclick.media.views.user.fragment.UserInfoFragment"
         android:label="UserInfoFragment"
         tools:layout="@layout/fragment_user_info"/>
+    <fragment
+        android:id="@+id/selectUserFragment"
+        android:name="com.adsperclick.media.views.chat.fragment.SelectUserFragment"
+        android:label="fragment_select_user"
+        tools:layout="@layout/fragment_select_user" >
+        <action
+            android:id="@+id/action_selectUserFragment_to_newGroupFragment"
+            app:destination="@id/newGroupFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/newGroupFragment"
+        android:name="com.adsperclick.media.views.chat.fragment.NewGroupFragment"
+        android:label="fragment_new_group"
+        tools:layout="@layout/fragment_new_group" />
 </navigation>
