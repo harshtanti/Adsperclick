@@ -11,5 +11,5 @@ data class Company(
     /*val listOfCompanyMembers : List<String>? = null,*/        // "id" of people who are member of this company
     val listOfServices : List<String>? = null
 ){
-    constructor() : this(null, null)
+    constructor() : this(null, null,null,null)
 }

@@ -1,5 +1,6 @@
 package com.adsperclick.media.views.user.fragment
 
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.InputType
@@ -8,21 +9,30 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.adsperclick.media.R
 import com.adsperclick.media.applicationCommonView.view.EditeTextWithError
+import com.adsperclick.media.data.dataModels.Company
+import com.adsperclick.media.data.dataModels.NetworkResult
+import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.databinding.FragmentFormBinding
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.gone
 import com.adsperclick.media.utils.visible
+import com.adsperclick.media.views.homeActivity.HomeActivity
 import com.adsperclick.media.views.login.viewModels.AuthViewModel
 import com.adsperclick.media.views.user.viewmodel.UserViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class FormFragment : Fragment(),View.OnClickListener {
@@ -30,8 +40,6 @@ class FormFragment : Fragment(),View.OnClickListener {
     private lateinit var binding: FragmentFormBinding
     private lateinit var userType:String
     private val viewModel : UserViewModel by viewModels()
-
-    private val authViewModel: AuthViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,6 +66,7 @@ class FormFragment : Fragment(),View.OnClickListener {
         setUpClickListener()
         setUpDrawable()
         setUpErrorPadding()
+        setUpObserver()
         setCustomTextWatchers()
         validateSubmitButton()
     }
@@ -102,6 +111,7 @@ class FormFragment : Fragment(),View.OnClickListener {
                 }
                 Constants.COMPANIES_SEMI_CAPS ->{
                     companyName.visible()
+                    gst.visible()
                 }
                 else -> {
 
@@ -194,7 +204,8 @@ class FormFragment : Fragment(),View.OnClickListener {
                 }
 
                 Constants.COMPANIES_SEMI_CAPS -> {
-                    companyName.getText()?.isNotEmpty() == true
+                    companyName.getText()?.isNotEmpty() == true &&
+                            gst.getText()?.isNotEmpty() == true
                 }
 
                 else -> false
@@ -358,33 +369,107 @@ class FormFragment : Fragment(),View.OnClickListener {
 
                 Constants.COMPANIES_SEMI_CAPS -> {
                     companyName = viewModel.companyName
+                    gstNumber = viewModel.gstNumber
                 }
             }
 
             // Construct the User object based on available details
-            val user = User(
-                userName = firstName?.plus(" ")?.plus(lastName ?: ""),
-                email = email,
-                password = password,
-                role = userRole,
-                userAdhaarNumber = aadharNumber,
-                selfCompanyName = companyName,
-                selfCompanyGstNumber = gstNumber
-            )
+
 
             when (userType) {
                 Constants.EMPLOYEES_SEMI_CAPS, Constants.CLIENTS_SEMI_CAPS -> {
-                    authViewModel.register(user)
+                    val user = User(
+                        userName = firstName?.plus(" ")?.plus(lastName ?: ""),
+                        email = email,
+                        password = password,
+                        role = userRole,
+                        userAdhaarNumber = aadharNumber,
+                        selfCompanyName = companyName,
+                        selfCompanyGstNumber = gstNumber
+                    )
+                    viewModel.register(user)
                 }
 
                 Constants.SERVICES_SEMI_CAPS -> {
+                    val service = Service(
+                        serviceName = serviceName
+                    )
+                    viewModel.registerService(service)
 
                 }
 
                 Constants.COMPANIES_SEMI_CAPS -> {
-
+                    val company = Company(
+                        companyName = companyName,
+                        gstNumber = gstNumber
+                    )
+                    viewModel.registerCompany(company)
                 }
             }
+        }
+    }
+
+    private fun setUpObserver(){
+
+        viewModel.registrationLiveData.observe(viewLifecycleOwner, Observer{response->
+
+            when(response){
+
+                is NetworkResult.Success ->{
+                    successMessage()
+                }
+
+                is NetworkResult.Error ->{
+                    Toast.makeText(context, "Error: ${response.message}", Toast.LENGTH_SHORT).show()
+                }
+
+                is NetworkResult.Loading ->{}
+            }
+        })
+
+        viewModel.registerCompanyLiveData.observe(viewLifecycleOwner, Observer{response->
+
+            when(response){
+
+                is NetworkResult.Success ->{
+                    successMessage()
+                }
+
+                is NetworkResult.Error ->{
+                    Toast.makeText(context, "Error: ${response.message}", Toast.LENGTH_SHORT).show()
+                }
+
+                is NetworkResult.Loading ->{}
+            }
+        })
+
+        viewModel.registerServiceLiveData.observe(viewLifecycleOwner, Observer{response->
+
+            when(response){
+
+                is NetworkResult.Success ->{
+                    successMessage()
+                }
+
+                is NetworkResult.Error ->{
+                    Toast.makeText(context, "Error: ${response.message}", Toast.LENGTH_SHORT).show()
+                }
+
+                is NetworkResult.Loading ->{}
+            }
+        })
+    }
+
+    private fun successMessage(){
+        binding.submitButton.apply {
+            text = getString(R.string.success)
+            backgroundTintList = ContextCompat.getColorStateList(requireContext(), R.color.green_info)
+            isEnabled = false
+        }
+
+        lifecycleScope.launch {
+            delay(1000)
+            findNavController().popBackStack()
         }
     }
 
@@ -393,7 +478,6 @@ class FormFragment : Fragment(),View.OnClickListener {
             binding.submitButton -> {
                 if(areFixedDetailsValid(userType)){
                     saveUserDetails(userType)
-                    findNavController().popBackStack()
                 }
             }
         }

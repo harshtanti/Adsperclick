@@ -38,5 +38,7 @@ object Constants {
         const val GROUPS = "groups"
         const val NOTIFICATIONS = "notifications"
         const val MESSAGES = "groups"
+        const val COMPANY = "companies"
+        const val SERVICE = "services"
     }
 }
