@@ -8,21 +8,31 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.navigation.fragment.findNavController
 import com.adsperclick.media.R
+import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.data.dataModels.Company
 import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.Message
 import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.databinding.FragmentChatBinding
+import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.Constants.CLICKED_GROUP
+import com.adsperclick.media.utils.gone
 import com.adsperclick.media.views.chat.adapters.ChatGroupListAdapter
 import com.adsperclick.media.views.chat.adapters.HorizontalServiceListAdapter
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.serialization.json.Json
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class ChatFragment : Fragment(),View.OnClickListener {
 
     private lateinit var binding: FragmentChatBinding
+    private var isAdmin = false
     private lateinit var horizontalServiceListAdapter: HorizontalServiceListAdapter
     private lateinit var chatGroupListAdapter: ChatGroupListAdapter
+
+    @Inject
+    lateinit var tokenManager: TokenManager
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -35,6 +45,7 @@ class ChatFragment : Fragment(),View.OnClickListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setUpVisibility()
 
         val companyList = listOf(Service("1", "All"),
             Service("2", "Amazon"),
@@ -79,6 +90,13 @@ class ChatFragment : Fragment(),View.OnClickListener {
         binding.rvGroupChatList.adapter = chatGroupListAdapter
 
         setUpListener()
+    }
+
+    private fun setUpVisibility(){
+        isAdmin = tokenManager.getUser()?.role == Constants.ADMIN
+        if (!isAdmin) {
+            binding.addDetails.gone()
+        }
     }
 
     private fun setUpListener(){

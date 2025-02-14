@@ -342,7 +342,7 @@ class FormFragment : Fragment(),View.OnClickListener {
             // Assign values based on userType and visibility of Groups
             when (userType) {
                 Constants.EMPLOYEES_SEMI_CAPS -> {
-                    userRole=Constants.ADMIN
+                    userRole=Constants.EMPLOYEE
                     aadharNumber = viewModel.aadharNumber
                 }
 
