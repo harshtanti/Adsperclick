@@ -62,12 +62,34 @@ class AuthRepository @Inject constructor() {
     // realtime db .. which will store the various other things related to the user... like user's name, email, profilePic, etc...
 
 
-    suspend fun register(username: String, email: String, password: String): NetworkResult<User> {
+    suspend fun register(data: User): NetworkResult<User> {
         return try {
-            val result = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
-            val firebaseUser = result.user ?: return NetworkResult.Error(null, "User authentication failed")
+            val result =
+                data.email?.let { data.password?.let { it1 ->
+                    firebaseAuth.createUserWithEmailAndPassword(it,
+                        it1
+                    ).await()
+                } }
+            val firebaseUser = result?.user ?: return NetworkResult.Error(null, "User authentication failed")
 
-            val user = User(firebaseUser.uid, username, email, password)  // Custom User object
+
+            val user = User(
+                firebaseUser.uid,
+                data.userName,
+                data.email,
+                data.password,
+                data.userProfileImgUrl,
+                data.role,
+                data.isBlocked,
+                data.userAdhaarNumber,
+                data.listOfGroupsAssigned,
+                data.listOfServicesAssigned,
+                data.selfCompanyName,
+                data.selfCompanyGstNumber,
+                data.associationDate,
+                data.mobileNo,
+                data.fcmTokenListOfDevices,
+                data.lastNotificationSeenTime)  // Custom User object
 
             // Wait for Firestore to save the user before returning success
             firebaseDb.collection(Constants.DB.USERS).document(firebaseUser.uid).set(user).await()

@@ -9,8 +9,11 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.adsperclick.media.R
+import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.databinding.ActivityHomeBinding
+import com.adsperclick.media.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class HomeActivity : AppCompatActivity() {
@@ -18,6 +21,10 @@ class HomeActivity : AppCompatActivity() {
     // fragment-container for navigation across all fragments
     private lateinit var binding: ActivityHomeBinding
     private var isAdmin=false
+
+    @Inject
+    lateinit var tokenManager: TokenManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityHomeBinding.inflate(layoutInflater)
@@ -28,7 +35,7 @@ class HomeActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        isAdmin = intent.getBooleanExtra("isAdmin", false)
+        isAdmin = tokenManager.getUser()?.role==Constants.ADMIN
         if (!isAdmin) {
             binding.bottomNavigation.menu.removeItem(R.id.navigation_user) // Hides "User"
         }
