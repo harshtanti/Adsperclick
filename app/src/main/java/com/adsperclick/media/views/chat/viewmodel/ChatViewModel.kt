@@ -1,13 +1,21 @@
 package com.adsperclick.media.views.chat.viewmodel
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.adsperclick.media.data.dataModels.CommonData
+import com.adsperclick.media.data.dataModels.NetworkResult
+import com.adsperclick.media.data.dataModels.NotificationMsg
+import com.adsperclick.media.data.repositories.ChatRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.scopes.ActivityScoped
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class ChatViewModel@Inject constructor() :ViewModel() {
+class ChatViewModel@Inject constructor(private val chatRepository: ChatRepository) :ViewModel() {
     var selectedTabPosition = 0
 
     var employeeList = mutableListOf(
@@ -68,5 +76,18 @@ class ChatViewModel@Inject constructor() :ViewModel() {
         val selectedClients = clientList.filter { it.isSelected }
 
         return Pair(selectedEmployees, selectedClients)
+    }
+
+
+//    private val _createNotificationLiveData = MutableLiveData<NetworkResult<NotificationMsg>>()
+//    val createNotificationLiveData: LiveData<NetworkResult<NotificationMsg>> get() = _createNotificationLiveData
+
+    val createNotificationLiveData :
+            LiveData<NetworkResult<NotificationMsg>> get()  = chatRepository.createNotificationLiveData
+
+    fun createNotification(notification : NotificationMsg){
+        viewModelScope.launch (Dispatchers.IO){
+            chatRepository.createNotification(notification)
+        }
     }
 }

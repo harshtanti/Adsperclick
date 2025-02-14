@@ -8,13 +8,13 @@ data class User(
     val userId : String? = null,
     val userName : String? = null,
     val email : String? = null,
-    val password : String? = null,
+    val password : String? =null,
     val userProfileImgUrl : String? = null,
     val role : Int? = null,
     val isBlocked :Boolean= false,
     val userAdhaarNumber : String? = null,
     val listOfGroupsAssigned : List<String>? = null,            // List of groups this user is part of
-    val listOfServicesAssigned : List<String>? = null,           // This field can be used for both
+    val listOfServicesAssigned : List<Service>? = null,           // This field can be used for both
     val selfCompanyId : String? = null,
     val selfCompanyName : String? = null,
     val selfCompanyGstNumber : String? = null,// For clients only, name of company the client is associated with
