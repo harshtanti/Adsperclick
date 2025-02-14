@@ -7,14 +7,24 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.fragment.findNavController
 import com.adsperclick.media.R
+import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.data.dataModels.NotificationMsg
 import com.adsperclick.media.databinding.FragmentNotificationListingBinding
+import com.adsperclick.media.utils.Constants
+import com.adsperclick.media.utils.gone
 import com.adsperclick.media.views.chat.adapters.NotificationListAdapter
 import com.adsperclick.media.views.homeActivity.HomeActivity
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
-class NotificationListingFragment : Fragment() {
+@AndroidEntryPoint
+class NotificationListingFragment : Fragment(), View.OnClickListener {
 
     private lateinit var binding: FragmentNotificationListingBinding
+    private var isAdmin = false
+
+    @Inject
+    lateinit var tokenManager: TokenManager
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -28,6 +38,9 @@ class NotificationListingFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        setUpVisibility()
+        setUpListener()
 
         val adapter = NotificationListAdapter()
         binding.rvNotificationList.adapter = adapter
@@ -45,18 +58,30 @@ class NotificationListingFragment : Fragment() {
         )
 
         adapter.submitList(myList)
-        listener()
+
     }
 
-    private fun listener(){
-        binding.btnBack.setOnClickListener {
-            requireActivity().onBackPressed()
+    private fun setUpVisibility(){
+        isAdmin = tokenManager.getUser()?.role == Constants.ADMIN
+        if (!isAdmin) {
+            binding.btnAddNotifications.gone()
         }
+    }
 
-        binding.btnAddNotifications.setOnClickListener {
-            findNavController().navigate(R.id.action_notificationListingFragment_to_notificationCreationFragment)
+    private fun setUpListener(){
+        binding.btnBack.setOnClickListener(this)
+        binding.btnAddNotifications.setOnClickListener(this)
+    }
+
+    override fun onClick(v: View?) {
+        when(v){
+            binding.btnBack -> {
+                findNavController().popBackStack()
+            }
+            binding.btnAddNotifications -> {
+                findNavController().navigate(R.id.action_notificationListingFragment_to_notificationCreationFragment)
+            }
         }
-
     }
 
 }

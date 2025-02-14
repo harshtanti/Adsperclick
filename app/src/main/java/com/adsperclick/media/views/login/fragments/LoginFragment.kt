@@ -92,34 +92,5 @@ class LoginFragment : Fragment() {
             }
         })
 
-
-
-
-
-
-        authViewModel.registrationLiveData.observe(viewLifecycleOwner, Observer{response->
-
-            when(response){
-
-                is NetworkResult.Success ->{
-                    response.data?.let { user->
-                        tokenManager.saveUser(user)
-                        binding.progressBar.gone()
-
-                        val intent = Intent(requireActivity(), HomeActivity::class.java)
-                        startActivity(intent)
-                        requireActivity().finish()
-                    }
-                }
-
-                is NetworkResult.Error ->{
-                    Toast.makeText(context, "Error: ${response.message}", Toast.LENGTH_SHORT).show()
-                    binding.progressBar.gone()
-                }
-
-                is NetworkResult.Loading ->{}
-            }
-        })
-
     }
 }
