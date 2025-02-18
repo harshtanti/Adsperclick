@@ -34,7 +34,7 @@
         android:id="@+id/btnAddNotifications"
         android:layout_width="@dimen/DP26"
         android:layout_height="@dimen/DP26"
-        android:layout_marginEnd="@dimen/DP10"
+        android:layout_marginEnd="@dimen/DP13"
         android:background="@drawable/notification_add_48px_filled"
         app:layout_constraintTop_toTopOf="@+id/btnBack"
         app:layout_constraintBottom_toBottomOf="@+id/btnBack"

@@ -5,16 +5,20 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.adsperclick.media.R
 import com.adsperclick.media.applicationCommonView.TokenManager
-import com.adsperclick.media.data.dataModels.NotificationMsg
 import com.adsperclick.media.databinding.FragmentNotificationListingBinding
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.gone
-import com.adsperclick.media.views.chat.adapters.NotificationListAdapter
-import com.adsperclick.media.views.homeActivity.HomeActivity
+import com.adsperclick.media.views.chat.adapters.NotificationsPagingAdapter
+import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -22,6 +26,10 @@ class NotificationListingFragment : Fragment(), View.OnClickListener {
 
     private lateinit var binding: FragmentNotificationListingBinding
     private var isAdmin = false
+
+    private val chatViewModel: ChatViewModel by viewModels()
+
+    private lateinit var adapter : NotificationsPagingAdapter
 
     @Inject
     lateinit var tokenManager: TokenManager
@@ -41,28 +49,11 @@ class NotificationListingFragment : Fragment(), View.OnClickListener {
 
         setUpVisibility()
         setUpListener()
-
-        val adapter = NotificationListAdapter()
-        binding.rvNotificationList.adapter = adapter
-
-        val myList = arrayListOf(
-            NotificationMsg("1", "Title1", "Description1 can be a very long description like can be about explaining a task to all the employees or for making a client deal with a task"),
-            NotificationMsg("2", "Title2", "Description2"),
-            NotificationMsg("3", "Title3", "Description3"),
-            NotificationMsg("4", "Title4", "Description4"),
-            NotificationMsg("5", "Title5", "Description1 can be a very long description like can be about explaining a task to all the employees or for making a client deal with a task"),
-            NotificationMsg("6", "Title6", "Description6"),
-            NotificationMsg("7", "Title7", "\"Description1 can be a very long description like can be about explaining a task to all the employees or for making a client deal with a task"),
-            NotificationMsg("8", "Title8", "Description8"),
-            NotificationMsg("9", "Title9", "Description9")
-        )
-
-        adapter.submitList(myList)
-
+        setUpAdapter()
     }
 
     private fun setUpVisibility(){
-        isAdmin = tokenManager.getUser()?.role == Constants.ADMIN
+        isAdmin = tokenManager.getUser()?.role == Constants.ROLE.ADMIN
         if (!isAdmin) {
             binding.btnAddNotifications.gone()
         }
@@ -84,5 +75,20 @@ class NotificationListingFragment : Fragment(), View.OnClickListener {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        adapter.refresh() // Forces Paging to re-fetch data
+    }
+
+    private fun setUpAdapter(){
+        adapter = NotificationsPagingAdapter()
+        binding.rvNotificationList.adapter = adapter
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            chatViewModel.notificationsPager.collectLatest { pagingData ->
+                adapter.submitData(pagingData)
+            }
+        }
+    }
 }
 

@@ -4,10 +4,15 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.cachedIn
 import com.adsperclick.media.data.dataModels.CommonData
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.NotificationMsg
+import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.data.repositories.ChatRepository
+import com.adsperclick.media.data.repositories.NotificationsPagingSource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.scopes.ActivityScoped
 import kotlinx.coroutines.Dispatchers
@@ -90,4 +95,20 @@ class ChatViewModel@Inject constructor(private val chatRepository: ChatRepositor
             chatRepository.createNotification(notification)
         }
     }
+
+    val userLiveData :
+            LiveData<NetworkResult<User>> get()  = chatRepository.userLiveData
+    fun syncUser(){
+        viewModelScope.launch (Dispatchers.IO){
+            chatRepository.syncUser()
+        }
+    }
+
+    val notificationsPager = Pager(
+        config = PagingConfig(
+            pageSize = 10, // Load 10 items at a time
+            enablePlaceholders = false
+        ),
+        pagingSourceFactory = { NotificationsPagingSource() }
+    ).flow.cachedIn(viewModelScope)
 }

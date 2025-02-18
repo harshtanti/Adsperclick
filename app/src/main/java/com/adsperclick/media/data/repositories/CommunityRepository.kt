@@ -118,7 +118,7 @@ class CommunityRepository @Inject constructor() {
             val firebaseUser = result?.user ?: return NetworkResult.Error(null, "User authentication failed")
 
             // 3️⃣ Create User Object with fetched/created company ID
-            val user = User(
+/*            val user = User(
                 userId = firebaseUser.uid,
                 userName = data.userName,
                 email = data.email,
@@ -136,7 +136,9 @@ class CommunityRepository @Inject constructor() {
                 mobileNo = data.mobileNo,
                 fcmTokenListOfDevices = data.fcmTokenListOfDevices,
                 lastNotificationSeenTime = data.lastNotificationSeenTime
-            )
+            )*/
+
+            val user = data.copy(userId = firebaseUser.uid, selfCompanyId = companyId)
 
             // 4️⃣ Save User in Firestore
             firebaseDb.collection(Constants.DB.USERS).document(firebaseUser.uid).set(user).await()

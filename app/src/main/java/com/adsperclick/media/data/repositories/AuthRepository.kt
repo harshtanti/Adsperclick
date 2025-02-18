@@ -71,23 +71,8 @@ class AuthRepository @Inject constructor() {
                 } }
             val firebaseUser = result?.user ?: return NetworkResult.Error(null, "User authentication failed")
 
-            val user = User(
-                firebaseUser.uid,
-                data.userName,
-                data.email,
-                null,
-                data.userProfileImgUrl,
-                data.role,
-                data.isBlocked,
-                data.userAdhaarNumber,
-                data.listOfGroupsAssigned,
-                data.listOfServicesAssigned,
-                data.selfCompanyName,
-                data.selfCompanyGstNumber,
-                data.associationDate,
-                data.mobileNo,
-                data.fcmTokenListOfDevices,
-                data.lastNotificationSeenTime)  // Custom User object
+            // create "user" object which will be stored in db and our shared-Preferences
+            val user = data.copy(userId = firebaseUser.uid, password = null)
 
             // Wait for Firestore to save the user before returning success
             firebaseDb.collection(Constants.DB.USERS).document(firebaseUser.uid).set(user).await()

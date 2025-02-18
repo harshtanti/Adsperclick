@@ -1,6 +1,5 @@
 package com.adsperclick.media.data.dataModels
 
-import com.adsperclick.media.utils.Constants
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -16,8 +15,6 @@ data class User(
     val listOfGroupsAssigned : List<String>? = null,            // List of groups this user is part of
     val listOfServicesAssigned : List<Service>? = null,           // This field can be used for both
     val selfCompanyId : String? = null,
-    val listOfGroupsAssigned : List<String>? = null,             // List of groups this user is part of
-    val listOfServicesAssigned : List<Service>? = null,           // This field can be used for both
     val selfCompanyName : String? = null,
     val selfCompanyGstNumber : String? = null,// For clients only, name of company the client is associated with
     val associationDate : String? = null,
