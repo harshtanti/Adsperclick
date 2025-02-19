@@ -1,5 +1,6 @@
 package com.adsperclick.media.data.repositories
 
+
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.adsperclick.media.data.dataModels.NotificationMsg
@@ -8,10 +9,17 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
 
-class NotificationsPagingSource() : PagingSource<QuerySnapshot, NotificationMsg>() {
 
-    private val db = FirebaseFirestore.getInstance()
+class NotificationsPagingSource @Inject constructor(private val db: FirebaseFirestore) : PagingSource<QuerySnapshot, NotificationMsg>() {
+
+//    @Inject                 // this code won't work  // In this file we can't directly use "Dependency Injection"
+//    lateinit var db : FirebaseFirestore   // That's why we fetch FirebaseFirestore instance from ChatRepository
+
+
+    //    val db = FirebaseFirestore.getInstance()      // This will work but we don't encourage this, we use FirebaseModule
+                                                    // to provide Firestore instance, so all our settings is at one place :)
 
     override suspend fun load(params: LoadParams<QuerySnapshot>): LoadResult<QuerySnapshot, NotificationMsg> {
         return try {

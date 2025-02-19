@@ -12,8 +12,11 @@ import javax.inject.Inject
 
 class CommunityRepository @Inject constructor() {
 
-    private val firebaseAuth = FirebaseAuth.getInstance()
-    private val firebaseDb = FirebaseFirestore.getInstance()
+    @Inject
+    lateinit var firebaseAuth : FirebaseAuth
+
+    @Inject
+    lateinit var firebaseDb : FirebaseFirestore
 
     suspend fun registerCompany(data:Company): NetworkResult<Company> {
         return try {

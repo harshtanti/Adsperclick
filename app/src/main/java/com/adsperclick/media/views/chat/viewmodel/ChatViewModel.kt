@@ -104,11 +104,5 @@ class ChatViewModel@Inject constructor(private val chatRepository: ChatRepositor
         }
     }
 
-    val notificationsPager = Pager(
-        config = PagingConfig(
-            pageSize = 10, // Load 10 items at a time
-            enablePlaceholders = false
-        ),
-        pagingSourceFactory = { NotificationsPagingSource() }
-    ).flow.cachedIn(viewModelScope)
+    val notificationsPager = chatRepository.getNotificationPager().flow.cachedIn(viewModelScope)
 }

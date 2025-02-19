@@ -22,5 +22,5 @@ data class User(
     val fcmTokenListOfDevices : List<String> ? = null,
     val lastNotificationSeenTime : Long ?= null
 ){
-    constructor() : this(null, null, null, null, null, Constants.CLIENT, false, null, null, null, null, null, null, null, null,null,null)
+    constructor() : this(null, null, null, null, null, null, false, null, null, null, null, null, null, null, null,null,null)
 }

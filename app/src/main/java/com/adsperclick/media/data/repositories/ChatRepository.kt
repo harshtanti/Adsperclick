@@ -2,6 +2,8 @@ package com.adsperclick.media.data.repositories
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
 import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.NotificationMsg
@@ -9,13 +11,15 @@ import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.utils.Constants
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.snapshots
+import com.google.firebase.firestore.QuerySnapshot
+import com.google.firebase.firestore.Source
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class ChatRepository @Inject constructor() {
 
-    private val db = FirebaseFirestore.getInstance()
+    @Inject
+    lateinit var db: FirebaseFirestore
 
     @Inject
     lateinit var tokenManager : TokenManager
@@ -114,5 +118,18 @@ class ChatRepository @Inject constructor() {
         }
     }
 
+    // Note in our "NotificationsPagingSource" or any other PagingSource file, we can't
+    // directly apply dependency injection! So we need to send the FirebaseFirestore instance
+    // from this file to the "NotificationsPagingSource" so that it can access it :)
+    fun getNotificationPager(): Pager<QuerySnapshot, NotificationMsg> {
+
+        return Pager(
+            config = PagingConfig(
+                pageSize = 10,
+                enablePlaceholders = false
+            ),
+            pagingSourceFactory = { NotificationsPagingSource(db) } // Pass Firestore here
+        )
+    }
 }
 
