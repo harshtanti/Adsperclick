@@ -22,8 +22,6 @@ class AuthRepository @Inject constructor() {
 
     private val _loginLiveData = MutableLiveData<NetworkResult<User>>()
     val loginLiveData: LiveData<NetworkResult<User>> get() = _loginLiveData
-    private val _registrationLiveData = MutableLiveData<NetworkResult<User>>()
-    val registrationLiveData: LiveData<NetworkResult<User>> get() = _registrationLiveData
 
 
     val _userStateLiveData = MutableLiveData<NetworkResult<User>>()
@@ -60,47 +58,6 @@ class AuthRepository @Inject constructor() {
     // this "uid" will be unique identification for each user,  NOTE: U CAN'T OBTAIN PASSWORD AS IT IS ENCRYPTED FOR SECURITY PURPOSE
     // so in our Realtime DB we are also storing things other than "email" and "uid" right, so we'll create a "users" node in our
     // realtime db .. which will store the various other things related to the user... like user's name, email, profilePic, etc...
-
-
-    suspend fun register(data: User): NetworkResult<User> {
-        return try {
-            val result =
-                data.email?.let { data.password?.let { it1 ->
-                    firebaseAuth.createUserWithEmailAndPassword(it,
-                        it1
-                    ).await()
-                } }
-            val firebaseUser = result?.user ?: return NetworkResult.Error(null, "User authentication failed")
-
-
-            val user = User(
-                firebaseUser.uid,
-                data.userName,
-                data.email,
-                data.password,
-                data.userProfileImgUrl,
-                data.role,
-                data.isBlocked,
-                data.userAdhaarNumber,
-                data.listOfGroupsAssigned,
-                data.listOfServicesAssigned,
-                data.selfCompanyName,
-                data.selfCompanyGstNumber,
-                data.associationDate,
-                data.mobileNo,
-                data.fcmTokenListOfDevices,
-                data.lastNotificationSeenTime)  // Custom User object
-
-            // Wait for Firestore to save the user before returning success
-            firebaseDb.collection(Constants.DB.USERS).document(firebaseUser.uid).set(user).await()
-
-            tokenManager.saveUser(user)
-            NetworkResult.Success(user)
-
-        } catch (e: Exception) {
-            NetworkResult.Error(null, e.message ?: "Registration failed")
-        }
-    }
 
     fun isUserLoggedIn(): Boolean {
         return firebaseAuth.currentUser != null

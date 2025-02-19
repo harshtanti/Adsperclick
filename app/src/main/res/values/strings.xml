@@ -45,6 +45,7 @@
     <string name="confirm_password_required">Confirm Password Required</string>
     <string name="services_required">Services Required</string>
     <string name="service_name_required">Service Name Required</string>
+    <string name="success">Success</string>
 
 
 

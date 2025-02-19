@@ -15,6 +15,7 @@ data class User(
     val userAdhaarNumber : String? = null,
     val listOfGroupsAssigned : List<String>? = null,            // List of groups this user is part of
     val listOfServicesAssigned : List<String>? = null,           // This field can be used for both
+    val selfCompanyId : String? = null,
     val selfCompanyName : String? = null,
     val selfCompanyGstNumber : String? = null,// For clients only, name of company the client is associated with
     val associationDate : String? = null,
@@ -22,5 +23,5 @@ data class User(
     val fcmTokenListOfDevices : List<String> ? = null,
     val lastNotificationSeenTime : Long ?= null
 ){
-    constructor() : this(null, null, null, null, null, Constants.CLIENT, false, null, null, null, null, null, null, null, null,null)
+    constructor() : this(null, null, null, null, null, Constants.CLIENT, false, null, null, null, null, null, null, null, null,null,null)
 }

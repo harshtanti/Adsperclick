@@ -38,13 +38,6 @@ class AuthViewModel @Inject constructor(private val authRepository: AuthReposito
         }
     }
 
-    fun register(user:User) {
-        viewModelScope.launch(Dispatchers.IO){
-            val result = authRepository.register(user)
-            _registrationLiveData.postValue(result)
-        }
-    }
-
     fun isUserLoggedIn(): Boolean {
         return authRepository.isUserLoggedIn()
     }
