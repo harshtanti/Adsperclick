@@ -9,10 +9,20 @@ object Constants {
     const val SPACE = " "
 
 
-    const val CLIENT = 1        // Can use Enum instead
-    const val EMPLOYEE = 2
-    const val MANAGER = 3
-    const val ADMIN = 4
+    object ROLE{
+        const val CLIENT = 1        // Can use Enum instead
+        const val EMPLOYEE = 2
+        const val MANAGER = 3
+        const val ADMIN = 4
+    }
+
+    object SEND_TO{
+        const val CLIENT = 1
+        const val EMPLOYEE = 2
+        const val BOTH = 70
+    }
+
+
     const val USER_TYPE_SEMI_CAPS="UserType"
     const val USER_NAME="UserName"
     const val EMPLOYEES_SEMI_CAPS = "Employees"
@@ -22,13 +32,13 @@ object Constants {
     const val USER_TYPE="UserType"
 
 
-    const val TEXT = 1
-    const val IMG_URL = 2
-    const val PDF_DOC = 3
-    const val VIDEO = 4
+    object MSG_TYPE{
+        const val TEXT = 180
+        const val IMG_URL = 200
+        const val PDF_DOC = 220
+        const val VIDEO = 240
+    }
 
-
-    const val BOTH = 70
 
     const val CLICKED_GROUP = "Jis group ko click kia"
 

@@ -23,7 +23,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Create Notifications"
-        android:textColor="@color/black"
+        android:textColor="@color/Black_2"
         android:textSize="22sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="@+id/btnBack"
@@ -37,7 +37,7 @@
         android:layout_marginHorizontal="@dimen/DP15"
         android:layout_marginTop="@dimen/DP25"
         android:background="@drawable/notification_item_bg"
-        android:padding="@dimen/DP20"
+        android:padding="@dimen/DP5"
         app:layout_constraintBottom_toTopOf="@+id/guideline"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -52,9 +52,9 @@
             app:layout_constraintVertical_bias="0.30"
             tools:layout_editor_absoluteX="20dp" />
 
-        <EditText
+<!--        <EditText
             android:id="@+id/etTitle"
-            style="@style/tv_notification_title"
+            style="@style/et_notification_title"
             android:hint="Title"
             android:textColor="@color/Black_3"
             android:layout_height="0dp"
@@ -64,26 +64,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-<!--        <ScrollView
-            android:id="@+id/scrollView2"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/etTitle">
-
-            <EditText
-                android:id="@+id/etDescription"
-                style="@style/tv_notification_description"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/DP10"
-                android:textColor="@color/Black_5"
-                android:textSize="@dimen/SP17"
-
-                android:hint="Description"
-                android:paddingEnd="@dimen/DP20" />
-        </ScrollView>-->
-
         <EditText
             android:id="@+id/etDescription"
             android:layout_width="0dp"
@@ -92,13 +72,53 @@
             android:background="@null"
             android:hint="Description"
             android:paddingEnd="@dimen/DP20"
-            android:textColor="@color/Black_5"
-            android:textSize="@dimen/SP17"
+            android:textColor="@color/Black_4"
+            android:textSize="@dimen/SP21"
             android:fontFamily="@font/inter_400"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="@+id/etTitle"
-            app:layout_constraintTop_toBottomOf="@id/viewTitleDescDivider" />
+            app:layout_constraintTop_toBottomOf="@id/viewTitleDescDivider" />-->
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_notification_title"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:hint="Notification Title"
+            app:layout_constraintBottom_toBottomOf="@+id/viewTitleDescDivider"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginBottom="8dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etTitle"
+                android:textSize="@dimen/DP20"
+                android:fontFamily="@font/inter_700"
+                android:textColor="@color/Black_3"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:inputType="textMultiLine"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_notification_desc"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/til_notification_title"
+            app:layout_constraintTop_toBottomOf="@id/viewTitleDescDivider"
+            android:hint="Type your description here...">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etDescription"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:textSize="@dimen/DP18"
+                android:fontFamily="@font/inter_400"
+                android:textColor="@color/Black_4"
+                android:inputType="textMultiLine"/>
+        </com.google.android.material.textfield.TextInputLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -113,7 +133,7 @@
         app:layout_constraintTop_toBottomOf="@+id/vgNotificationDetails" />
 
     <CheckBox
-        android:id="@+id/checkBoxSelectEmployees"
+        android:id="@+id/cbSelectEmployees"
         android:layout_width="wrap_content"
         android:layout_height="35dp"
         android:text="Send to all Employees"
@@ -131,13 +151,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-<!--    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_begin="351dp" />-->
-
     <View
         android:id="@+id/guideline"
         android:layout_width="match_parent"
@@ -146,6 +159,4 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.53"
         tools:layout_editor_absoluteX="1dp" />
-
-
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -76,7 +76,7 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:drawablePadding">4dp</item>">
-        <item name="android:layout_marginHorizontal">13dp</item>">
+        <item name="android:layout_marginHorizontal">16dp</item>">
         <item name="android:textColorHint">#3c3c43</item>
         <item name="android:background">@drawable/et_search_bar_bg</item>
         <item name="android:layout_marginBottom">20dp</item>
@@ -100,6 +100,13 @@
 
     <style name="tv_notification_title">
         <item name="android:textSize">21sp</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">@font/inter_700</item>
+        <item name="android:textColor">@color/Black_3</item>
+    </style>
+
+    <style name="et_notification_title">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:fontFamily">@font/inter_700</item>

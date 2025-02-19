@@ -35,7 +35,7 @@ class HomeActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        isAdmin = tokenManager.getUser()?.role==Constants.ADMIN
+        isAdmin = tokenManager.getUser()?.role == Constants.ROLE.ADMIN
         if (!isAdmin) {
             binding.bottomNavigation.menu.removeItem(R.id.navigation_user) // Hides "User"
         }

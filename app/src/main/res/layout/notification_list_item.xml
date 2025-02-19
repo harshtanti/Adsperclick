@@ -43,6 +43,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvDescription"
+        android:textSize="@dimen/DP12"
         tools:text="24 Jan, 2025" />
 
     <com.google.android.material.textview.MaterialTextView

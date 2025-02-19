@@ -19,6 +19,7 @@ googleGmsGoogleServices = "4.4.2"
 firebaseFirestore = "25.1.1"
 firebaseAuth = "23.2.0"
 firebaseBom = "33.7.0"
+pagingVersion = "3.2.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -39,6 +40,7 @@ core-splashscreen = { group = "androidx.core", name = "core-splashscreen", versi
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore"}
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth"}
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+androidx-paging = { group = "androidx.paging", name = "paging-runtime", version.ref = "pagingVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

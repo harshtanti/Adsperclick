@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.adsperclick.media.data.dataModels.NotificationMsg
 import com.adsperclick.media.databinding.NotificationListItemBinding
+import com.adsperclick.media.utils.UtilityFunctions
 
 
 class NotificationListAdapter() : ListAdapter<NotificationMsg, NotificationListAdapter.NotificationListViewHolder>(DiffUtil())
@@ -17,7 +18,7 @@ class NotificationListAdapter() : ListAdapter<NotificationMsg, NotificationListA
         {
             binding.tvTitle.text = notif.notificationTitle
             binding.tvDescription.text= notif.notificationDescription
-            binding.tvDateTime.text = notif.timestamp.toString()
+            binding.tvDateTime.text = UtilityFunctions.formatNotificationTimestamp(notif.timestamp)
         }
     }
 

@@ -8,12 +8,12 @@
     tools:context=".views.chat.fragment.ChatFragment">
 
     <View
+        android:id="@+id/view2"
         android:layout_width="match_parent"
         android:layout_height="@dimen/DP0"
-        app:layout_constraintTop_toTopOf="parent"
+        android:background="@color/white"
         app:layout_constraintBottom_toBottomOf="@id/tvChats"
-        android:background="@color/grey_primary"
-        />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
         android:id="@+id/imgProfileDp"
@@ -23,6 +23,7 @@
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginTop="@dimen/DP22"
         android:layout_marginStart="@dimen/DP13"
+        android:visibility="gone"
         android:src="@drawable/person_24px"
         />
 
@@ -30,23 +31,21 @@
         android:id="@+id/tvChats"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingVertical="@dimen/DP4"
+        android:background="@color/white"
+        android:fontFamily="@font/inter_900"
+        android:paddingTop="@dimen/DP28"
         android:text="Chats"
-        android:textStyle="bold"
         android:textColor="@color/black"
-        android:textSize="35sp"
-        android:background="@color/grey_primary"
-        app:layout_constraintStart_toEndOf="@+id/imgProfileDp"
-        app:layout_constraintTop_toTopOf="@+id/imgProfileDp"
-        app:layout_constraintBottom_toBottomOf="@+id/imgProfileDp"
-        />
+        android:textSize="36sp"
+        app:layout_constraintStart_toStartOf="@+id/etSearchBar"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageButton
         android:id="@+id/btnNotifications"
         android:layout_width="@dimen/DP26"
         android:layout_height="@dimen/DP26"
-        app:layout_constraintTop_toTopOf="@+id/tvChats"
-        app:layout_constraintBottom_toBottomOf="@+id/tvChats"
+        android:layout_marginTop="@dimen/DP12"
+        app:layout_constraintTop_toTopOf="parent"
         android:background="@drawable/notifications_24px"
         android:layout_marginEnd="@dimen/DP12"
         app:layout_constraintEnd_toEndOf="parent"
@@ -57,11 +56,11 @@
         android:layout_width="@dimen/DP24"
         android:layout_height="@dimen/DP16"
         android:layout_marginEnd="@dimen/DP15"
-        app:backgroundTint="@null"
         android:background="@drawable/ic_add_group"
+        app:backgroundTint="@null"
+        app:layout_constraintBottom_toBottomOf="@+id/btnNotifications"
         app:layout_constraintEnd_toStartOf="@id/btnNotifications"
-        app:layout_constraintTop_toTopOf="@id/tvChats"
-        app:layout_constraintBottom_toBottomOf="@id/tvChats" />
+        app:layout_constraintTop_toTopOf="@+id/btnNotifications" />
 
     <EditText
         android:id="@+id/etSearchBar"

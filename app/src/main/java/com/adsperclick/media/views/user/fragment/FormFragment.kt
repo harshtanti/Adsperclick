@@ -353,12 +353,12 @@ class FormFragment : Fragment(),View.OnClickListener {
             // Assign values based on userType and visibility of Groups
             when (userType) {
                 Constants.EMPLOYEES_SEMI_CAPS -> {
-                    userRole=Constants.EMPLOYEE
+                    userRole = Constants.ROLE.EMPLOYEE
                     aadharNumber = viewModel.aadharNumber
                 }
 
                 Constants.CLIENTS_SEMI_CAPS -> {
-                    userRole=Constants.CLIENT
+                    userRole=Constants.ROLE.CLIENT
                     companyName = viewModel.companyName
                     gstNumber = viewModel.gstNumber
                 }
@@ -468,7 +468,7 @@ class FormFragment : Fragment(),View.OnClickListener {
         }
 
         lifecycleScope.launch {
-            delay(1000)
+            delay(2000)
             findNavController().popBackStack()
         }
     }
