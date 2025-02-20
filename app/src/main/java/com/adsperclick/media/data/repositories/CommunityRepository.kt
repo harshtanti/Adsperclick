@@ -1,12 +1,20 @@
 package com.adsperclick.media.data.repositories
 
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import com.adsperclick.media.data.dataModels.CommonData
 import com.adsperclick.media.data.dataModels.Company
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.data.dataModels.User
+import com.adsperclick.media.data.pagingsource.CompanyListPagingSource
+import com.adsperclick.media.data.pagingsource.ServiceListPagingSource
+import com.adsperclick.media.data.pagingsource.UserCommunityPagingSource
 import com.adsperclick.media.utils.Constants
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -16,30 +24,30 @@ class CommunityRepository @Inject constructor() {
     lateinit var firebaseAuth : FirebaseAuth
 
     @Inject
-    lateinit var firebaseDb : FirebaseFirestore
+    lateinit var db : FirebaseFirestore
 
     suspend fun registerCompany(data:Company): NetworkResult<Company> {
         return try {
 
-            var companyId: String? = null
+            val companyId: String?
             val companyNameInDataBase: String?
+            val newCompanyRef = db.collection(Constants.DB.COMPANY).document()
 
-            val companyQuery = firebaseDb.collection(Constants.DB.COMPANY)
+
+            val companyQuery = db.collection(Constants.DB.COMPANY)
                 .whereEqualTo("gstNumber", data.gstNumber)
                 .get()
                 .await()
 
             if (!companyQuery.isEmpty) {
-                // Company exists, fetch its ID
                 companyId = companyQuery.documents.first().id
                 companyNameInDataBase = companyQuery.documents.first().getString("companyName")
                 if(companyNameInDataBase!=data.companyName){
                     return NetworkResult.Error(null, "GST number is already registered with $companyNameInDataBase. Please Try Again")
                 }
+            } else {
+                companyId = newCompanyRef.id
             }
-
-            val newCompanyRef = firebaseDb.collection(Constants.DB.COMPANY).document()
-            companyId = newCompanyRef.id
 
             val company = Company(
                 companyId = companyId,
@@ -59,7 +67,7 @@ class CommunityRepository @Inject constructor() {
     suspend fun registerService(data:Service): NetworkResult<Service> {
         return try {
 
-            val newCompanyRef = firebaseDb.collection(Constants.DB.SERVICE).document()
+            val newCompanyRef = db.collection(Constants.DB.SERVICE).document()
             val serviceId = newCompanyRef.id
 
             val service = Service(
@@ -84,7 +92,7 @@ class CommunityRepository @Inject constructor() {
 
             // 1️⃣ Check if the company GST exists (only if a GST number is provided)
             if (!data.selfCompanyGstNumber.isNullOrEmpty()) {
-                val companyQuery = firebaseDb.collection(Constants.DB.COMPANY)
+                val companyQuery = db.collection(Constants.DB.COMPANY)
                     .whereEqualTo("gstNumber", data.selfCompanyGstNumber)
                     .get()
                     .await()
@@ -98,7 +106,7 @@ class CommunityRepository @Inject constructor() {
                     }
                 } else {
                     // Company does not exist, create a new company
-                    val newCompanyRef = firebaseDb.collection(Constants.DB.COMPANY).document()
+                    val newCompanyRef = db.collection(Constants.DB.COMPANY).document()
                     companyId = newCompanyRef.id
 
                     val company = Company(
@@ -144,12 +152,42 @@ class CommunityRepository @Inject constructor() {
             val user = data.copy(userId = firebaseUser.uid, selfCompanyId = companyId)
 
             // 4️⃣ Save User in Firestore
-            firebaseDb.collection(Constants.DB.USERS).document(firebaseUser.uid).set(user).await()
+            db.collection(Constants.DB.USERS).document(firebaseUser.uid).set(user).await()
 
             NetworkResult.Success(user)
 
         } catch (e: Exception) {
             NetworkResult.Error(null, e.message ?: "Registration failed")
         }
+    }
+
+    fun getUserListData(searchQuery: String = "", userRole: Int): Flow<PagingData<CommonData>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = 10,
+                enablePlaceholders = false
+            ),
+            pagingSourceFactory = { UserCommunityPagingSource(db, searchQuery, userRole) }
+        ).flow
+    }
+
+    fun getCompanyListData(searchQuery: String = ""): Flow<PagingData<CommonData>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = 10,
+                enablePlaceholders = false
+            ),
+            pagingSourceFactory = { CompanyListPagingSource(db, searchQuery) }
+        ).flow
+    }
+
+    fun getServiceListData(searchQuery: String = ""): Flow<PagingData<CommonData>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = 10,
+                enablePlaceholders = false
+            ),
+            pagingSourceFactory = { ServiceListPagingSource(db, searchQuery) }
+        ).flow
     }
 }

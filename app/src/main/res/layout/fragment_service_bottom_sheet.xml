@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".views.chat.fragment.SelectUserCommonFragment">
+    tools:context=".views.chat.bottomsheet.ServiceBottomSheetFragment">
 
     <com.google.android.material.textfield.TextInputEditText
         android:id="@+id/etSearchBar"
@@ -17,14 +17,12 @@
         android:drawableStart="@drawable/search_24px"
         android:drawablePadding="@dimen/DP4"
         android:background="@drawable/et_search_bar_bg"
-        android:layout_marginStart="@dimen/DP10"
-        android:layout_marginEnd="@dimen/DP20"
+        android:layout_marginHorizontal="@dimen/DP10"
         android:padding="@dimen/DP10"
         android:layout_marginTop="@dimen/DP10"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvUser"
         android:layout_width="match_parent"
@@ -38,6 +36,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        tools:listitem="@layout/user_list_item"/>
+        tools:listitem="@layout/user_list_item"
+        tools:itemCount="10"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import com.adsperclick.media.R
 import com.adsperclick.media.applicationCommonView.wrapper.addOnPageChangeListener
@@ -51,12 +52,12 @@ class SelectUserFragment : Fragment(), View.OnClickListener {
         setupViewPagerAdapter()
         setupTabLayout()
         setOnClickListener()
-        chatViewModel.resetSelection()
     }
 
     private fun setUpHeader(){
         binding.header.tvTitle.text = getString(R.string.select_user)
         binding.header.btnSave.text = getString(R.string.new_group)
+        binding.header.btnSave.isEnabled = false // Initially disable save button
     }
 
     private fun setOnClickListener(){
@@ -72,7 +73,6 @@ class SelectUserFragment : Fragment(), View.OnClickListener {
                     LayoutInflater.from(binding.userTabs.context),
                     binding.userTabs, false
                 )
-                //binding custom tab view
                 tabBinding.textTabTitle.text = tabsMapping[position]
                 userTabs.getTabAt(position)?.customView = tabBinding.root
             }

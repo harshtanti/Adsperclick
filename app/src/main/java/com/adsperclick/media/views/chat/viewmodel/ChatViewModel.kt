@@ -4,18 +4,16 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.adsperclick.media.data.dataModels.CommonData
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.NotificationMsg
 import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.data.repositories.ChatRepository
-import com.adsperclick.media.data.repositories.NotificationsPagingSource
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.scopes.ActivityScoped
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -23,65 +21,7 @@ import javax.inject.Inject
 class ChatViewModel@Inject constructor(private val chatRepository: ChatRepository) :ViewModel() {
     var selectedTabPosition = 0
 
-    var employeeList = mutableListOf(
-        // Clients (20)
-        CommonData(id = "21", name = "Alice White", tagName = "Client"),
-        CommonData(id = "22", name = "Bob Green", tagName = "Client"),
-        CommonData(id = "23", name = "Charlie Black", tagName = "Client"),
-        CommonData(id = "24", name = "Daniel Harris", tagName = "Client"),
-        CommonData(id = "25", name = "Eva Scott", tagName = "Client"),
-        CommonData(id = "26", name = "Frank Adams", tagName = "Client"),
-        CommonData(id = "27", name = "Grace Baker", tagName = "Client"),
-        CommonData(id = "28", name = "Henry Carter", tagName = "Client"),
-        CommonData(id = "29", name = "Isabella King", tagName = "Client"),
-        CommonData(id = "30", name = "Jack Turner", tagName = "Client"),
-        CommonData(id = "31", name = "Sophia Williams", tagName = "Client"),
-        CommonData(id = "32", name = "Benjamin Miller", tagName = "Client"),
-        CommonData(id = "33", name = "Lucas Evans", tagName = "Client"),
-        CommonData(id = "34", name = "Emma Phillips", tagName = "Client"),
-        CommonData(id = "35", name = "Oliver Lewis", tagName = "Client"),
-        CommonData(id = "36", name = "Chloe Walker", tagName = "Client"),
-        CommonData(id = "37", name = "Jack Hall", tagName = "Client"),
-        CommonData(id = "38", name = "Amelia Allen", tagName = "Client"),
-        CommonData(id = "39", name = "Noah Young", tagName = "Client"),
-        CommonData(id = "40", name = "Ella King", tagName = "Client"),
-    )
-
-    var clientList = mutableListOf(
-        // Employees (20)
-        CommonData(id = "1", name = "John Doe", tagName = "Employee"),
-        CommonData(id = "2", name = "Jane Smith", tagName = "Employee"),
-        CommonData(id = "3", name = "Robert Brown", tagName = "Employee"),
-        CommonData(id = "4", name = "Emily Davis", tagName = "Employee"),
-        CommonData(id = "5", name = "Michael Johnson", tagName = "Employee"),
-        CommonData(id = "6", name = "Sarah Lee", tagName = "Employee"),
-        CommonData(id = "7", name = "David Wilson", tagName = "Employee"),
-        CommonData(id = "8", name = "Olivia Martinez", tagName = "Employee"),
-        CommonData(id = "9", name = "James Anderson", tagName = "Employee"),
-        CommonData(id = "10", name = "Sophia Thomas", tagName = "Employee"),
-        CommonData(id = "11", name = "Daniel White", tagName = "Employee"),
-        CommonData(id = "12", name = "Emma Black", tagName = "Employee"),
-        CommonData(id = "13", name = "Liam Harris", tagName = "Employee"),
-        CommonData(id = "14", name = "Noah King", tagName = "Employee"),
-        CommonData(id = "15", name = "Isabella Scott", tagName = "Employee"),
-        CommonData(id = "16", name = "Lucas Carter", tagName = "Employee"),
-        CommonData(id = "17", name = "Mia Adams", tagName = "Employee"),
-        CommonData(id = "18", name = "Ethan Clark", tagName = "Employee"),
-        CommonData(id = "19", name = "Charlotte Baker", tagName = "Employee"),
-        CommonData(id = "20", name = "Mason Turner", tagName = "Employee")
-    )
-
-    fun resetSelection() {
-        employeeList.forEach { it.isSelected = false }
-        clientList.forEach { it.isSelected = false }
-    }
-
-    fun getSelectedUsers(): Pair<List<CommonData>, List<CommonData>> {
-        val selectedEmployees = employeeList.filter { it.isSelected }
-        val selectedClients = clientList.filter { it.isSelected }
-
-        return Pair(selectedEmployees, selectedClients)
-    }
+    var selectedUserList:MutableList<String> = mutableListOf()
 
 
 //    private val _createNotificationLiveData = MutableLiveData<NetworkResult<NotificationMsg>>()
@@ -105,4 +45,13 @@ class ChatViewModel@Inject constructor(private val chatRepository: ChatRepositor
     }
 
     val notificationsPager = chatRepository.getNotificationPager().flow.cachedIn(viewModelScope)
+
+
+    fun getUserListData(searchTxt:String,role:Int):Flow<PagingData<CommonData>>{
+        return chatRepository.getUserListData(
+            searchTxt,
+            role
+        ).cachedIn(viewModelScope)
+    }
+
 }

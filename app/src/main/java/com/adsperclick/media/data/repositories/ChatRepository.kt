@@ -4,15 +4,19 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import com.adsperclick.media.applicationCommonView.TokenManager
+import com.adsperclick.media.data.dataModels.CommonData
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.NotificationMsg
 import com.adsperclick.media.data.dataModels.User
+import com.adsperclick.media.data.pagingsource.NotificationsPagingSource
+import com.adsperclick.media.data.pagingsource.UserCommunityPagingSource
 import com.adsperclick.media.utils.Constants
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
-import com.google.firebase.firestore.Source
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -130,6 +134,16 @@ class ChatRepository @Inject constructor() {
             ),
             pagingSourceFactory = { NotificationsPagingSource(db) } // Pass Firestore here
         )
+    }
+
+    fun getUserListData(searchQuery: String = "", userRole: Int): Flow<PagingData<CommonData>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = 10,
+                enablePlaceholders = false
+            ),
+            pagingSourceFactory = { UserCommunityPagingSource(db, searchQuery, userRole) }
+        ).flow
     }
 }
 

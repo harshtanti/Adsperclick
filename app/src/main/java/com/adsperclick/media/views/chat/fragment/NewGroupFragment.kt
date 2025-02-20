@@ -56,16 +56,15 @@ class NewGroupFragment : Fragment() {
     private fun setUpInputType(){
         with(binding){
             groupName.setInputType(InputType.TYPE_CLASS_TEXT)
-            serviceName.setInputType(InputType.TYPE_CLASS_TEXT)
         }
     }
 
     private fun getSelectedUser(){
-        val (selectedEmployees, selectedClients) = chatViewModel.getSelectedUsers()
-        val name = if(selectedEmployees.isNotEmpty()){selectedEmployees[0].name} else "ZZ"
-        val drawable = UtilityFunctions.generateInitialsDrawable(
-            binding.imgProfileDp.context, name ?: "A")
-        binding.imgProfileDp.setImageDrawable(drawable)
+//        val (selectedEmployees, selectedClients) = chatViewModel.getSelectedUsers()
+//        val name = if(selectedEmployees.isNotEmpty()){selectedEmployees[0].name} else "ZZ"
+//        val drawable = UtilityFunctions.generateInitialsDrawable(
+//            binding.imgProfileDp.context, name ?: "A")
+//        binding.imgProfileDp.setImageDrawable(drawable)
     }
 
 }
