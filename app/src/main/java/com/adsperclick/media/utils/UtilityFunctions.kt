@@ -9,6 +9,10 @@ import android.graphics.PixelFormat
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import com.adsperclick.media.utils.Validate.toInitials
+import com.google.firebase.Timestamp
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 import kotlin.math.abs
 
 object UtilityFunctions {
@@ -81,5 +85,58 @@ object UtilityFunctions {
 
         // Generate a consistent color based on the name's hash
         return colors[abs(name.hashCode()) % colors.size]
+    }
+
+    fun formatTimestamp(timestamp: Timestamp?): String {
+        if (timestamp == null) return "N/A"
+
+        val date = timestamp.toDate() // Convert Firestore Timestamp to Java Date
+        val sdf = SimpleDateFormat("dd MMM, yyyy  hh:mm a", Locale.getDefault()) // Format
+        return sdf.format(date)
+    }
+
+    fun formatNotificationTimestamp(timestamp: Timestamp?): String {
+        if (timestamp == null) return "N/A"
+
+        val date = timestamp.toDate()
+        val calendar = Calendar.getInstance()
+        val today = Calendar.getInstance()
+
+        calendar.time = date
+
+        return when {
+            // If the notification was sent today
+            isSameDay(calendar, today) -> {
+                SimpleDateFormat("hh:mm a", Locale.getDefault()).format(date)  // "3:30 PM"
+            }
+            // If it was sent yesterday
+            isYesterday(calendar, today) -> {
+                "Yesterday, " + SimpleDateFormat("hh:mm a", Locale.getDefault()).format(date)
+            }
+            // If it was sent within the last 7 days
+            isWithinLastWeek(calendar, today) -> {
+                SimpleDateFormat("EEEE, hh:mm a", Locale.getDefault()).format(date)  // "Monday, 3:30 PM"
+            }
+            // If it's older than a week
+            else -> {
+                SimpleDateFormat("dd MMM, yyyy  hh:mm a", Locale.getDefault()).format(date)  // "15 Jan, 2025 3:30 PM"
+            }
+        }
+    }
+
+    // Helper functions
+    fun isSameDay(cal1: Calendar, cal2: Calendar): Boolean {
+        return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
+                cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR)
+    }
+
+    fun isYesterday(cal1: Calendar, cal2: Calendar): Boolean {
+        cal2.add(Calendar.DAY_OF_YEAR, -1)  // Move to yesterday
+        return isSameDay(cal1, cal2)
+    }
+
+    fun isWithinLastWeek(cal1: Calendar, cal2: Calendar): Boolean {
+        cal2.add(Calendar.DAY_OF_YEAR, 7)  // Move back to original
+        return cal1.after(cal2.apply { add(Calendar.DAY_OF_YEAR, -7) })  // Compare within last 7 days
     }
 }

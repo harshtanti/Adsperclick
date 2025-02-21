@@ -5,13 +5,23 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.NotificationMsg
 import com.adsperclick.media.databinding.FragmentNotificationCreationBinding
+import com.adsperclick.media.utils.Constants
+import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class NotificationCreationFragment : Fragment() {
 
     private lateinit var binding: FragmentNotificationCreationBinding
+
+    private val chatViewModel : ChatViewModel by viewModels()
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -24,22 +34,60 @@ class NotificationCreationFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        listener()
+        listeners()
+        observer()
     }
 
-    private fun listener(){
+    private fun listeners(){
         binding.btnSendNotification.setOnClickListener{
-            val id = "2323"
             val title = binding.etTitle.text.toString()
             val description = binding.etDescription.text.toString()
 
-            val notification = NotificationMsg(id, title, description)
-            binding.etTitle.text.clear()
-            binding.etDescription.text.clear()
+            val sentTo = when{
+                binding.cbSelectClients.isChecked && binding.cbSelectEmployees.isChecked ->{
+                    Constants.SEND_TO.BOTH
+                }
+                binding.cbSelectClients.isChecked ->{
+                    Constants.SEND_TO.CLIENT
+                }
+                binding.cbSelectEmployees.isChecked ->{
+                    Constants.SEND_TO.EMPLOYEE
+                }
+
+                else ->{
+                    Toast.makeText(context, "Select client/employee to send them", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+            }
+
+            val notification = NotificationMsg(null, title, description, sentTo)
+            binding.etTitle.text?.clear()
+            binding.etDescription.text?.clear()
+            binding.cbSelectClients.isChecked = false
+            binding.cbSelectEmployees.isChecked = false
+
+            chatViewModel.createNotification(notification)
         }
 
         binding.btnBack.setOnClickListener{
             findNavController().navigateUp()
+        }
+    }
+
+    private fun observer(){
+
+        chatViewModel.createNotificationLiveData.observe(viewLifecycleOwner){ response ->
+            when(response){
+                is NetworkResult.Success ->{
+                    Toast.makeText(context, "Notification Sent!", Toast.LENGTH_SHORT).show()
+                }
+
+                is NetworkResult.Loading ->{}
+
+                is NetworkResult.Error ->{
+                    Toast.makeText(context, "Error : ${response.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 }

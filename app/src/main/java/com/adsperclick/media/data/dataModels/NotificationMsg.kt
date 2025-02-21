@@ -1,6 +1,8 @@
 package com.adsperclick.media.data.dataModels
 
-import com.adsperclick.media.utils.Constants.EMPLOYEE
+import com.adsperclick.media.utils.Constants
+import com.adsperclick.media.utils.TimestampSerializer
+import com.google.firebase.Timestamp
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -8,8 +10,9 @@ data class NotificationMsg(
     val notificationId : String? = null,
     val notificationTitle : String? = null,
     val notificationDescription : String? = null,
-    val sentTo : Int = EMPLOYEE,
-    val timestamp: Long = System.currentTimeMillis()
+    val sentTo : Int = Constants.SEND_TO.EMPLOYEE,
+    @Serializable(with = TimestampSerializer::class)
+    val timestamp: Timestamp ?=null
 ){
-    constructor() : this( null, null, null, EMPLOYEE, System.currentTimeMillis())
+    constructor() : this( null, null, null, Constants.SEND_TO.EMPLOYEE, null)
 }

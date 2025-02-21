@@ -6,12 +6,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import com.adsperclick.media.R
 import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.data.dataModels.Company
 import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.Message
+import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.databinding.FragmentChatBinding
 import com.adsperclick.media.utils.Constants
@@ -19,6 +22,7 @@ import com.adsperclick.media.utils.Constants.CLICKED_GROUP
 import com.adsperclick.media.utils.gone
 import com.adsperclick.media.views.chat.adapters.ChatGroupListAdapter
 import com.adsperclick.media.views.chat.adapters.HorizontalServiceListAdapter
+import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
@@ -30,6 +34,8 @@ class ChatFragment : Fragment(),View.OnClickListener {
     private var isAdmin = false
     private lateinit var horizontalServiceListAdapter: HorizontalServiceListAdapter
     private lateinit var chatGroupListAdapter: ChatGroupListAdapter
+
+    private val chatViewModel : ChatViewModel by viewModels()
 
     @Inject
     lateinit var tokenManager: TokenManager
@@ -45,7 +51,20 @@ class ChatFragment : Fragment(),View.OnClickListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        syncUser()              // To fetch latest "User" object from DB (In case some changes were made regarding this user, like he maybe blocked by admin or maybe assigned some new services!)
         setUpVisibility()
+        setUpAdapters()
+        setUpListener()
+        setUpObservers()
+    }
+
+    fun syncUser(){
+
+    }
+
+
+    private fun setUpAdapters(){
 
         val companyList = listOf(Service("1", "All"),
             Service("2", "Amazon"),
@@ -88,20 +107,38 @@ class ChatFragment : Fragment(),View.OnClickListener {
         })
         chatGroupListAdapter.submitList(groupChatList)
         binding.rvGroupChatList.adapter = chatGroupListAdapter
-
-        setUpListener()
     }
 
     private fun setUpVisibility(){
-        isAdmin = tokenManager.getUser()?.role == Constants.ADMIN
+        isAdmin = tokenManager.getUser()?.role == Constants.ROLE.ADMIN
         if (!isAdmin) {
             binding.addDetails.gone()
+        }
+
+        val isClient = tokenManager.getUser()?.role == Constants.ROLE.CLIENT
+        if(isClient){
+            binding.rvHorizontalForServiceList.gone()       // List of services an employee is assigned,
+                                                            // makes no sense for a client
         }
     }
 
     private fun setUpListener(){
         binding.btnNotifications.setOnClickListener(this)
         binding.addDetails.setOnClickListener(this)
+    }
+
+    private fun setUpObservers(){
+        chatViewModel.userLiveData.observe(viewLifecycleOwner){response->
+            when(response){
+                is NetworkResult.Error ->{
+                    Toast.makeText(context, "${response.message}" , Toast.LENGTH_SHORT).show()
+                }
+                else ->{}
+            }
+        }
+
+        
+
     }
 
     override fun onClick(v: View?) {
