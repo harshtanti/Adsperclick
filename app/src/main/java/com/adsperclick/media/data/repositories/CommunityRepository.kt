@@ -64,19 +64,27 @@ class CommunityRepository @Inject constructor() {
         }
     }
 
-    suspend fun registerService(data:Service): NetworkResult<Service> {
+    suspend fun registerService(data: Service): NetworkResult<Service> {
         return try {
 
-            val newCompanyRef = db.collection(Constants.DB.SERVICE).document()
-            val serviceId = newCompanyRef.id
+            val existingServices = db.collection(Constants.DB.SERVICE)
+                .whereEqualTo("serviceName", data.serviceName)
+                .get()
+                .await()
+
+            if (!existingServices.isEmpty) {
+                return NetworkResult.Error(null, "Service with this name already exists.")
+            }
+
+            val newServiceRef = db.collection(Constants.DB.SERVICE).document()
+            val serviceId = newServiceRef.id
 
             val service = Service(
                 serviceId = serviceId,
                 serviceName = data.serviceName
             )
 
-            // Save company details in Firestore
-            newCompanyRef.set(service).await()
+            newServiceRef.set(service).await()
 
             NetworkResult.Success(service)
 

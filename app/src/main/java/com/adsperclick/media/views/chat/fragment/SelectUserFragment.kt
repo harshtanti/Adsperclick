@@ -6,23 +6,24 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import com.adsperclick.media.R
 import com.adsperclick.media.applicationCommonView.wrapper.addOnPageChangeListener
 import com.adsperclick.media.applicationCommonView.wrapper.setupWithViewPager
+import com.adsperclick.media.data.dataModels.NetworkResult
+import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.databinding.FragmentSelectUserBinding
 import com.adsperclick.media.databinding.TabViewBinding
 import com.adsperclick.media.utils.Constants
-import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
+import com.adsperclick.media.views.chat.viewmodel.NewGroupViewModel
 import com.adsperclick.media.views.user.adapter.PagerAdapter
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.textview.MaterialTextView
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.forEach
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class SelectUserFragment : Fragment(), View.OnClickListener {
@@ -34,7 +35,7 @@ class SelectUserFragment : Fragment(), View.OnClickListener {
         Constants.EMPLOYEES_SEMI_CAPS,
         Constants.CLIENTS_SEMI_CAPS)
 
-    private val chatViewModel: ChatViewModel by viewModels()
+    private val viewModel: NewGroupViewModel by activityViewModels()
 
 
     override fun onCreateView(
@@ -49,19 +50,25 @@ class SelectUserFragment : Fragment(), View.OnClickListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setUpHeader()
+        fetchData()
         setupViewPagerAdapter()
         setupTabLayout()
         setOnClickListener()
+        setUpObservers()
+    }
+
+    private fun fetchData(){
+        viewModel.getServiceList()
     }
 
     private fun setUpHeader(){
         binding.header.tvTitle.text = getString(R.string.select_user)
         binding.header.btnSave.text = getString(R.string.new_group)
-        binding.header.btnSave.isEnabled = false // Initially disable save button
     }
 
     private fun setOnClickListener(){
         binding.header.btnSave.setOnClickListener(this)
+        binding.header.btnBack.setOnClickListener(this)
     }
 
     private fun setupTabLayout() {
@@ -88,9 +95,9 @@ class SelectUserFragment : Fragment(), View.OnClickListener {
                 override fun onTabReselected(tab: TabLayout.Tab) {}
             })
             tabColorChange(
-                userTabs.getTabAt(chatViewModel.selectedTabPosition)?.customView,
+                userTabs.getTabAt(viewModel.selectedTabPosition)?.customView,
                 R.color.white, true)
-            tabName = tabsMapping[chatViewModel.selectedTabPosition]
+            tabName = tabsMapping[viewModel.selectedTabPosition]
         }
     }
 
@@ -136,13 +143,35 @@ class SelectUserFragment : Fragment(), View.OnClickListener {
                 )
             )
         }
-        binding.viewPager.currentItem = chatViewModel.selectedTabPosition
+        binding.viewPager.currentItem = viewModel.selectedTabPosition
+    }
+
+    private fun setUpObservers(){
+        viewModel.listServiceLiveData.observe(viewLifecycleOwner,serviceListObserver)
+    }
+
+    private val serviceListObserver = Observer<NetworkResult<ArrayList<Service>>> {
+        when(it){
+
+            is NetworkResult.Success ->{
+                it.data?.let { it1 -> viewModel.serviceList = it1 }
+            }
+
+            is NetworkResult.Error ->{
+                Toast.makeText(context, "Error: ${it.message}", Toast.LENGTH_SHORT).show()
+            }
+
+            is NetworkResult.Loading ->{}
+        }
     }
 
     override fun onClick(v: View?) {
         when(v){
             binding.header.btnSave -> {
                 findNavController().navigate(R.id.action_selectUserFragment_to_newGroupFragment)
+            }
+            binding.header.btnBack ->{
+                findNavController().popBackStack()
             }
         }
     }

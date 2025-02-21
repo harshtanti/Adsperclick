@@ -7,8 +7,10 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.data.dataModels.CommonData
+import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.NotificationMsg
+import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.data.pagingsource.NotificationsPagingSource
 import com.adsperclick.media.data.pagingsource.UserCommunityPagingSource
@@ -144,6 +146,75 @@ class ChatRepository @Inject constructor() {
             ),
             pagingSourceFactory = { UserCommunityPagingSource(db, searchQuery, userRole) }
         ).flow
+    }
+
+    suspend fun getServiceList(): NetworkResult<ArrayList<Service>> {
+        return try {
+
+            val querySnapshot = db.collection(Constants.DB.SERVICE).get().await()
+            val serviceList = arrayListOf<Service>()
+            serviceList.addAll(querySnapshot.toObjects(Service::class.java))
+
+            NetworkResult.Success(serviceList)
+
+        } catch (e: Exception) {
+            NetworkResult.Error(null, e.message ?: "Service data fetching failed")
+        }
+    }
+
+    suspend fun createGroup(data: GroupChatListingData): NetworkResult<GroupChatListingData> {
+
+        return try {
+            val groupCollection = FirebaseFirestore.getInstance().collection("groups")
+
+            // Step 1: Check if a group with the same groupName, associatedServiceId, and associatedService exists
+            val query = groupCollection
+                .whereEqualTo("groupName", data.groupName)
+                .whereEqualTo("associatedServiceId", data.associatedServiceId)
+                .whereEqualTo("associatedService", data.associatedService)
+                .get()
+                .await()
+
+            if (query.isEmpty) {
+                // Step 2: If no such group exists, create the group document
+                val groupRef = groupCollection.document()  // Generates a new document ID
+                val groupId = groupRef.id  // Get the auto-generated group ID
+
+                // Step 3: Update the group data with the generated groupId
+                val groupData = data.copy(groupId = groupId)
+
+                // Step 4: Save the updated group data in Firestore
+                groupRef.set(groupData).await()
+
+                // Step 5: Update each user's listOfGroupsAssigned with the new groupId
+                val userCollection = FirebaseFirestore.getInstance().collection("users")
+
+                data.listOfUsers?.forEach { userPair ->
+                    val userId = userPair.userId  // Extract userId
+
+                    val userRef = userCollection.document(userId)
+                    userRef.get().await().toObject(User::class.java)?.let { user ->
+                        val updatedGroups = user.listOfGroupsAssigned?.toMutableList() ?: mutableListOf()
+                        if (!updatedGroups.contains(groupId)) {
+                            updatedGroups.add(groupId)
+                        }
+
+                        // Step 6: Update user document with new groupId
+                        userRef.update("listOfGroupsAssigned", updatedGroups).await()
+                    }
+                }
+
+                // Step 7: Return success if everything went well
+                NetworkResult.Success(groupData)
+            } else {
+                // Step 8: Return error if a group with the same name and service already exists
+                NetworkResult.Error(null, "A group with this name and service already exists.")
+            }
+
+        } catch (e: Exception) {
+            // Step 9: Handle any errors that occur
+            NetworkResult.Error(null, e.message ?: "Group Creation failed")
+        }
     }
 }
 

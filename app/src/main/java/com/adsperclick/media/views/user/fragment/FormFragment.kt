@@ -452,6 +452,7 @@ class FormFragment : Fragment(),View.OnClickListener {
                 }
 
                 is NetworkResult.Error ->{
+                    response.message?.let { failedMessage() }
                     Toast.makeText(context, "Error: ${response.message}", Toast.LENGTH_SHORT).show()
                 }
 
@@ -470,6 +471,23 @@ class FormFragment : Fragment(),View.OnClickListener {
         lifecycleScope.launch {
             delay(2000)
             findNavController().popBackStack()
+        }
+    }
+
+    private fun failedMessage() {
+        binding.submitButton.apply {
+            text = getString(R.string.failed)
+            backgroundTintList = ContextCompat.getColorStateList(requireContext(), R.color.red_email)
+            isEnabled = false
+        }
+
+        lifecycleScope.launch {
+            delay(1000) // Show the error message for 1 second
+            binding.submitButton.apply {
+                text = getString(R.string.submit) // Change back to original text
+                backgroundTintList = ContextCompat.getColorStateList(requireContext(), R.color.blue_common_button)
+                isEnabled = true
+            }
         }
     }
 

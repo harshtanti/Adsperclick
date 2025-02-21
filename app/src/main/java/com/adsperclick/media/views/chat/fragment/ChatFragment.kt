@@ -13,6 +13,7 @@ import com.adsperclick.media.R
 import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.data.dataModels.Company
 import com.adsperclick.media.data.dataModels.GroupChatListingData
+import com.adsperclick.media.data.dataModels.GroupUser
 import com.adsperclick.media.data.dataModels.Message
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.Service
@@ -86,10 +87,10 @@ class ChatFragment : Fragment(),View.OnClickListener {
 
 
         val groupChatList = listOf(GroupChatListingData("1", "Harsh Company"),
-            GroupChatListingData("2", "Sigma Bois and Furnitures", null, null, listOf(Pair("1", 2)), lastSentMsg = Message("69", "Hello Harsh", "1")),
-            GroupChatListingData("3", "Saumya Coffee", null, null, listOf(Pair("1", 2)), lastSentMsg = Message("68", "Hello Wet ass pussy", "1")),
-            GroupChatListingData("4", "Jay", null, null, listOf(Pair("1", 2)), lastSentMsg = Message("68", "Nigger Man", "1")),
-            GroupChatListingData("5", "BholeShopper", null, null, listOf(Pair("1", 2)), lastSentMsg = Message("68", "DumbFuck", "1"))
+            GroupChatListingData("2", "Sigma Bois and Furnitures", null, null, null,listOf(GroupUser("1", 2)), lastSentMsg = Message("69", "Hello Harsh", "1")),
+            GroupChatListingData("3", "Saumya Coffee", null, null,null, listOf(GroupUser("1", 2)), lastSentMsg = Message("68", "Hello Wet ass pussy", "1")),
+            GroupChatListingData("4", "Jay", null, null,null, listOf(GroupUser("1", 2)), lastSentMsg = Message("68", "Nigger Man", "1")),
+            GroupChatListingData("5", "BholeShopper", null, null,null, listOf(GroupUser("1", 2)), lastSentMsg = Message("68", "DumbFuck", "1"))
         )
 
         chatGroupListAdapter = ChatGroupListAdapter(object : ChatGroupListAdapter.OnGroupChatClickListener{

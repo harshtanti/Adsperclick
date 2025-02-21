@@ -51,7 +51,7 @@ class SelectUserCommonAdapter :
 
                 userItem.setOnClickListener {
                     data.isSelected = !data.isSelected
-                    listener?.btnCheck(bucketName.toString(), data.name.toString(), data.isSelected)
+                    listener?.btnCheck(bucketName.toString(), data)
 
                     // Toggle visibility
                     if (data.isSelected) btnCheck.visible() else btnCheck.gone()
@@ -78,6 +78,6 @@ class SelectUserCommonAdapter :
     }
 
     interface GroupListener {
-        fun btnCheck(bucketName: String, id: String, isSelected: Boolean)
+        fun btnCheck(bucketName: String, data: CommonData)
     }
 }

@@ -8,17 +8,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.widget.addTextChangedListener
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
+import com.adsperclick.media.data.dataModels.CommonData
 import com.adsperclick.media.databinding.FragmentSelectUserCommonBinding
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.showToast
 import com.adsperclick.media.views.chat.adapters.SelectUserCommonAdapter
-import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
+import com.adsperclick.media.views.chat.viewmodel.NewGroupViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 
 private const val ARG_PARAM1 = "param1"
@@ -33,7 +33,7 @@ class SelectUserCommonFragment : Fragment() {
     private var handler = Handler(Looper.getMainLooper())
     private lateinit var adapter: SelectUserCommonAdapter
 
-    private val chatViewModel: ChatViewModel by viewModels()
+    private val viewModel: NewGroupViewModel by activityViewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,8 +62,8 @@ class SelectUserCommonFragment : Fragment() {
 
         // Handle selection changes
         val listener = object : SelectUserCommonAdapter.GroupListener {
-            override fun btnCheck(bucketName: String, id: String, isSelected: Boolean) {
-                updateSelectedUsers(id, isSelected)
+            override fun btnCheck(bucketName: String, data: CommonData) {
+                updateSelectedUsers(data)
             }
         }
 
@@ -99,19 +99,18 @@ class SelectUserCommonFragment : Fragment() {
                 Constants.CLIENTS_SEMI_CAPS -> 1
                 else -> 1
             }
-            chatViewModel.getUserListData(searchTxt,role).collectLatest { pagingData ->
+            viewModel.getUserListData(searchTxt,role).collectLatest { pagingData ->
                 adapter.submitData(pagingData)
             }
         }
     }
 
-    private fun updateSelectedUsers(id: String, isSelected: Boolean) {
-        val user = adapter.snapshot().items.find { it.id == id }
-        user?.id?.let {
-            if (isSelected) {
-                chatViewModel.selectedUserList.add(it)
+    private fun updateSelectedUsers(data: CommonData) {
+        data.id?.let {
+            if (data.isSelected) {
+                viewModel.selectedUserSet.add(it)
             } else {
-                chatViewModel.selectedUserList.remove(it)
+                viewModel.selectedUserSet.remove(it)
             }
         }
     }
