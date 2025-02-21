@@ -92,5 +92,9 @@
         android:id="@+id/newGroupFragment"
         android:name="com.adsperclick.media.views.chat.fragment.NewGroupFragment"
         android:label="fragment_new_group"
-        tools:layout="@layout/fragment_new_group" />
+        tools:layout="@layout/fragment_new_group" >
+        <action
+            android:id="@+id/action_newGroupFragment_to_navigation_chat"
+            app:destination="@id/navigation_chat" />
+    </fragment>
 </navigation>

@@ -34,7 +34,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <com.adsperclick.media.applicationCommonView.view.EditeTextWithError
+    <com.adsperclick.media.applicationCommonView.view.SpinnerWithError
         android:id="@+id/service_name"
         android:layout_width="@dimen/DP0"
         android:layout_height="wrap_content"

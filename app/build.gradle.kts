@@ -54,7 +54,9 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(platform(libs.firebase.bom))
     implementation("androidx.paging:paging-runtime:3.2.1")
-    implementation("androidx.paging:paging-common-ktx:3.2.1") // Required if using Paging in Repository with Flow
+    implementation("androidx.paging:paging-common-ktx:3.2.1")
+    implementation(libs.androidx.paging.common.android)
+    implementation(libs.firebase.database.ktx) // Required if using Paging in Repository with Flow
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

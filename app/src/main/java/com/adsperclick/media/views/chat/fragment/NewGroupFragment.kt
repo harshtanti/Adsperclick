@@ -6,23 +6,38 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.viewModels
+import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.core.widget.doAfterTextChanged
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavOptions
+import androidx.navigation.fragment.findNavController
 import com.adsperclick.media.R
+import com.adsperclick.media.applicationCommonView.TokenManager
+import com.adsperclick.media.data.dataModels.GroupChatListingData
+import com.adsperclick.media.data.dataModels.GroupUser
+import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.databinding.FragmentNewGroupBinding
 import com.adsperclick.media.utils.UtilityFunctions
 import com.adsperclick.media.utils.gone
-import com.adsperclick.media.utils.visible
-import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
+import com.adsperclick.media.views.chat.viewmodel.NewGroupViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
 @AndroidEntryPoint
-class NewGroupFragment : Fragment() {
+class NewGroupFragment : Fragment(),View.OnClickListener {
 
     private lateinit var binding: FragmentNewGroupBinding
 
-    private val chatViewModel: ChatViewModel by viewModels()
+    @Inject
+    lateinit var tokenManager : TokenManager
+
+    private val viewModel: NewGroupViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -38,7 +53,13 @@ class NewGroupFragment : Fragment() {
         setUpHeader()
         setUpHint()
         setUpInputType()
-        getSelectedUser()
+        setUpClickListener()
+        setUpOnChangeListener()
+        validateSubmitButton()
+        setUpObserver()
+        val drawable = UtilityFunctions.generateInitialsDrawable(
+            binding.imgProfileDp.context, "A")
+        binding.imgProfileDp.setImageDrawable(drawable)
     }
 
     private fun setUpHeader(){
@@ -56,16 +77,153 @@ class NewGroupFragment : Fragment() {
     private fun setUpInputType(){
         with(binding){
             groupName.setInputType(InputType.TYPE_CLASS_TEXT)
-            serviceName.setInputType(InputType.TYPE_CLASS_TEXT)
+            serviceName.setDataItemList(viewModel.serviceList.mapNotNull { it.serviceName })
         }
     }
 
-    private fun getSelectedUser(){
-        val (selectedEmployees, selectedClients) = chatViewModel.getSelectedUsers()
-        val name = if(selectedEmployees.isNotEmpty()){selectedEmployees[0].name} else "ZZ"
-        val drawable = UtilityFunctions.generateInitialsDrawable(
-            binding.imgProfileDp.context, name ?: "A")
-        binding.imgProfileDp.setImageDrawable(drawable)
+    private fun setUpClickListener(){
+        binding.submitButton.setOnClickListener(this)
     }
+    private fun setUpOnChangeListener(){
+        binding.groupName.getEditView().doAfterTextChanged{
+            viewModel.groupName = it.toString().trim()
+            validateSubmitButton()
+        }
+        binding.serviceName.getSpinnerView().doAfterTextChanged {
+            val enteredText = it.toString().trim()
+            viewModel.selectedService = viewModel.serviceList.find { service ->
+                service.serviceName.equals(enteredText, ignoreCase = true)
+            }
+            validateSubmitButton()
+        }
+    }
+
+    private fun validateSubmitButton() {
+        if (areFixedDetailsValid()) {
+            enableSubmitButton()
+        } else {
+            disableSubmitButton()
+        }
+    }
+
+    private fun disableSubmitButton() {
+        binding.submitButton.backgroundTintList = ContextCompat.getColorStateList(
+            requireContext(), R.color.disabled_color
+        )
+        binding.submitButton.isEnabled = false
+    }
+
+    private fun enableSubmitButton() {
+        binding.submitButton.backgroundTintList = ContextCompat.getColorStateList(
+            requireContext(), R.color.blue_common_button
+        )
+        binding.submitButton.isEnabled = true
+    }
+
+    private fun areFixedDetailsValid(): Boolean {
+        with(binding) {
+            if (groupName.getText()?.isEmpty() == true){
+                return false
+            }
+            if (serviceName.getSelectedItem()?.isEmpty() == true){
+                return false
+            }
+            return true
+        }
+    }
+
+    private fun saveUserDetails() {
+        val user = tokenManager.getUser()
+
+        if (user != null) {
+            user.userId?.let { userId ->
+                viewModel.selectedUserSet.add(userId)
+            }
+        }
+
+        val userListWithRoles: List<GroupUser> = viewModel.selectedUserSet.map { userId ->
+            GroupUser(userId, null)
+        }
+
+        val groupData = GroupChatListingData(
+            groupId = null,
+            groupName = viewModel.groupName,
+            groupImgUrl = null,
+            associatedServiceId = viewModel.selectedService?.serviceId,
+            associatedService = viewModel.selectedService?.serviceName,
+            listOfUsers = userListWithRoles,
+            lastSentMsg = null
+        )
+        viewModel.createGroup(groupData)
+    }
+
+    private fun setUpObserver(){
+        viewModel.createGroupLiveData.observe(viewLifecycleOwner,createGroupObserver)
+    }
+
+    private val createGroupObserver = Observer<NetworkResult<GroupChatListingData>> {
+        when(it){
+
+            is NetworkResult.Success ->{
+                successMessage()
+            }
+
+            is NetworkResult.Error ->{
+                failedMessage()
+                Toast.makeText(context, "Error: ${it.message}", Toast.LENGTH_SHORT).show()
+            }
+
+            is NetworkResult.Loading ->{}
+        }
+    }
+
+    private fun successMessage(){
+        binding.submitButton.apply {
+            text = getString(R.string.success)
+            backgroundTintList = ContextCompat.getColorStateList(requireContext(), R.color.green_info)
+            isEnabled = false
+        }
+        viewModel.resetLiveData()
+
+        lifecycleScope.launch {
+            delay(2000)
+            findNavController().navigate(
+                R.id.action_newGroupFragment_to_navigation_chat,
+                null,
+                NavOptions.Builder()
+                    .setPopUpTo(R.id.navigation_chat, true) // Pops back to ChatFragment and clears UserListFragment
+                    .build()
+            )
+        }
+    }
+
+    private fun failedMessage() {
+        binding.submitButton.apply {
+            text = getString(R.string.failed)
+            backgroundTintList = ContextCompat.getColorStateList(requireContext(), R.color.red_email)
+            isEnabled = false
+        }
+
+        lifecycleScope.launch {
+            delay(1000) // Show the error message for 1 second
+            binding.submitButton.apply {
+                text = getString(R.string.done) // Change back to original text
+                backgroundTintList = ContextCompat.getColorStateList(requireContext(), R.color.blue_common_button)
+                isEnabled = true
+            }
+        }
+    }
+
+
+    override fun onClick(v: View?) {
+        when(v){
+            binding.submitButton -> {
+                if (areFixedDetailsValid()) {
+                    saveUserDetails()
+                }
+            }
+        }
+    }
+
 
 }

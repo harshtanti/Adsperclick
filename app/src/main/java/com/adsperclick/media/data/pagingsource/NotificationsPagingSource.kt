@@ -1,4 +1,4 @@
-package com.adsperclick.media.data.repositories
+package com.adsperclick.media.data.pagingsource
 
 
 import androidx.paging.PagingSource

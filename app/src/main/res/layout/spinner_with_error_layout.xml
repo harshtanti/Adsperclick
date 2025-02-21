@@ -8,10 +8,14 @@
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/inputLayout"
         android:layout_width="@dimen/DP0"
-        android:layout_height="60dp"
-        app:boxStrokeWidth="@dimen/DP0"
-        app:boxStrokeWidthFocused="@dimen/DP0"
-        android:layout_marginHorizontal="@dimen/DP0"
+        android:layout_height="wrap_content"
+        app:boxBackgroundMode="outline"
+        app:boxStrokeColor="@color/RoyalBlue"
+        app:boxStrokeWidth="@dimen/DP1"
+        app:boxCornerRadiusTopStart="@dimen/DP14"
+        app:boxCornerRadiusTopEnd="@dimen/DP14"
+        app:boxCornerRadiusBottomStart="@dimen/DP14"
+        app:boxCornerRadiusBottomEnd="@dimen/DP14"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -19,10 +23,10 @@
         <AutoCompleteTextView
             android:id="@+id/spinnerLayout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:paddingTop="@dimen/DP0"
-            android:background="@color/white"
-            android:backgroundTint="@color/white"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/DP16"
+            android:hint="@string/select_service"
+            android:background="@null"
             android:drawableEnd="@drawable/baseline_arrow_drop_down_24"
             android:inputType="none"
             android:textColor="@color/black"
@@ -30,15 +34,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
     </com.google.android.material.textfield.TextInputLayout>
-
-    <View
-        android:id="@+id/view"
-        android:layout_width="@dimen/DP0"
-        android:layout_height="@dimen/DP0.5"
-        android:background="@color/LightGrey"
-        app:layout_constraintEnd_toEndOf="@+id/inputLayout"
-        app:layout_constraintStart_toStartOf="@+id/inputLayout"
-        app:layout_constraintTop_toBottomOf="@+id/inputLayout" />
 
     <androidx.appcompat.widget.AppCompatTextView
         android:layout_width="@dimen/DP0"
@@ -48,9 +43,9 @@
         android:layout_marginTop="@dimen/DP2"
         android:textColor="@color/Red"
         android:textSize="@dimen/SP12"
-        app:layout_constraintEnd_toEndOf="@+id/view"
-        app:layout_constraintStart_toEndOf="@+id/view"
+        app:layout_constraintEnd_toEndOf="@id/inputLayout"
+        app:layout_constraintStart_toEndOf="@id/inputLayout"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/view" />
+        app:layout_constraintTop_toBottomOf="@id/inputLayout" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
