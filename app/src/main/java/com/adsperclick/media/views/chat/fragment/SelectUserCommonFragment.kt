@@ -10,6 +10,8 @@ import android.view.ViewGroup
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.navGraphViewModels
+import com.adsperclick.media.R
 import com.adsperclick.media.data.dataModels.CommonData
 import com.adsperclick.media.databinding.FragmentSelectUserCommonBinding
 import com.adsperclick.media.utils.Constants
@@ -33,7 +35,9 @@ class SelectUserCommonFragment : Fragment() {
     private var handler = Handler(Looper.getMainLooper())
     private lateinit var adapter: SelectUserCommonAdapter
 
-    private val viewModel: NewGroupViewModel by activityViewModels()
+    private val viewModel: NewGroupViewModel by navGraphViewModels(R.id.new_group_navigation) {
+        defaultViewModelProviderFactory
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

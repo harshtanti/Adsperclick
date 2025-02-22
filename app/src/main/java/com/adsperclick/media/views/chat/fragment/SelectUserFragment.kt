@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.navGraphViewModels
 import com.adsperclick.media.R
 import com.adsperclick.media.applicationCommonView.wrapper.addOnPageChangeListener
 import com.adsperclick.media.applicationCommonView.wrapper.setupWithViewPager
@@ -35,7 +36,9 @@ class SelectUserFragment : Fragment(), View.OnClickListener {
         Constants.EMPLOYEES_SEMI_CAPS,
         Constants.CLIENTS_SEMI_CAPS)
 
-    private val viewModel: NewGroupViewModel by activityViewModels()
+    private val viewModel: NewGroupViewModel by navGraphViewModels(R.id.new_group_navigation) {
+        defaultViewModelProviderFactory
+    }
 
 
     override fun onCreateView(

@@ -1,5 +1,6 @@
 package com.adsperclick.media.views.chat.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -68,8 +69,8 @@ class NewGroupViewModel@Inject constructor(private val chatRepository: ChatRepos
         }
     }
 
-    fun resetLiveData() {
-        // Reset LiveData to default values
+    override fun onCleared() {
+        super.onCleared()
         _createGroupLiveData.postValue(NetworkResult.Loading())
         _listServiceLiveData.postValue(NetworkResult.Loading())
 
@@ -78,6 +79,5 @@ class NewGroupViewModel@Inject constructor(private val chatRepository: ChatRepos
         serviceList = listOf()
         selectedService = null
         groupName = null
-
     }
 }

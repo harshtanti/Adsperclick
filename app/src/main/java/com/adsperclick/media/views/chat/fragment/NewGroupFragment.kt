@@ -14,6 +14,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.navGraphViewModels
 import com.adsperclick.media.R
 import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.data.dataModels.GroupChatListingData
@@ -37,7 +38,9 @@ class NewGroupFragment : Fragment(),View.OnClickListener {
     @Inject
     lateinit var tokenManager : TokenManager
 
-    private val viewModel: NewGroupViewModel by activityViewModels()
+    private val viewModel: NewGroupViewModel by navGraphViewModels(R.id.new_group_navigation) {
+        defaultViewModelProviderFactory
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -183,7 +186,6 @@ class NewGroupFragment : Fragment(),View.OnClickListener {
             backgroundTintList = ContextCompat.getColorStateList(requireContext(), R.color.green_info)
             isEnabled = false
         }
-        viewModel.resetLiveData()
 
         lifecycleScope.launch {
             delay(2000)
