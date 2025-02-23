@@ -39,3 +39,56 @@ class NotificationsPagingAdapter : PagingDataAdapter<NotificationMsg, Notificati
         }
     }
 }
+
+
+/*
+// With feature to "insertNotificationsAtTop" ... not working ..
+class NotificationsPagingAdapter() : PagingDataAdapter<NotificationMsg, NotificationsPagingAdapter.NotificationViewHolder>(DiffUtil()) {
+
+    private val newNotifications = mutableListOf<NotificationMsg>()
+
+    fun insertNotificationsAtTop(notifications: List<NotificationMsg>) {
+        newNotifications.addAll(0, notifications) // Add new notifications at the top
+        notifyItemRangeInserted(0, notifications.size) // Notify RecyclerView
+    }
+
+    override fun getItemCount(): Int {
+        return super.getItemCount() + newNotifications.size
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NotificationViewHolder {
+        val binding = NotificationListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return NotificationViewHolder(binding)
+    }
+
+    override fun onBindViewHolder(holder: NotificationViewHolder, position: Int) {
+        val notification = if (position < newNotifications.size) {
+            newNotifications[position] // Show new notifications first
+        } else {
+            getItem(position - newNotifications.size) // Show paged old notifications
+        }
+        if (notification != null) {
+            holder.bind(notification)
+        }
+    }
+
+    inner class NotificationViewHolder(private val binding: NotificationListItemBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        fun bind(notification: NotificationMsg) {
+            binding.tvTitle.text = notification.notificationTitle
+            binding.tvDescription.text = notification.notificationDescription
+            binding.tvDateTime.text = UtilityFunctions.formatNotificationTimestamp(notification.timestamp)
+        }
+    }
+
+    class DiffUtil : androidx.recyclerview.widget.DiffUtil.ItemCallback<NotificationMsg>() {
+        override fun areItemsTheSame(oldItem: NotificationMsg, newItem: NotificationMsg): Boolean {
+            return oldItem.notificationId == newItem.notificationId
+        }
+        override fun areContentsTheSame(oldItem: NotificationMsg, newItem: NotificationMsg): Boolean {
+            return oldItem == newItem
+        }
+    }
+}
+
+*/

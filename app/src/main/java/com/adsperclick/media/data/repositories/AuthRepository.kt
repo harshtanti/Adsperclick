@@ -1,5 +1,6 @@
 package com.adsperclick.media.data.repositories
 
+import android.util.Log
 import androidx.core.util.TimeUtils
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -67,7 +68,17 @@ class AuthRepository @Inject constructor() {
         return firebaseAuth.currentUser != null
     }
 
-    fun signoutUser() {
+    suspend fun signoutUser() {
+        tokenManager.signOut()
+        clearFirestoreCache()
         firebaseAuth.signOut()
+    }
+
+    private suspend fun clearFirestoreCache() {
+        try {
+            firebaseDb.clearPersistence().await()
+        } catch (e: Exception) {
+            Log.e("Firestore", "Error clearing cache: ${e.message}")
+        }
     }
 }

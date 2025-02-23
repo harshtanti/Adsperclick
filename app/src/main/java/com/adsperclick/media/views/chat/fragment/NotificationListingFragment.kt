@@ -84,7 +84,7 @@ class NotificationListingFragment : Fragment(), View.OnClickListener {
         adapter = NotificationsPagingAdapter()
         binding.rvNotificationList.adapter = adapter
 
-        lifecycleScope.launch(Dispatchers.IO) {
+        lifecycleScope.launch {
             chatViewModel.notificationsPager.collectLatest { pagingData ->
                 adapter.submitData(pagingData)
             }
