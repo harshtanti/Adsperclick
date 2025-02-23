@@ -88,7 +88,7 @@ object UtilityFunctions {
     }
 
     fun formatTimestamp(timestamp: Timestamp?): String {
-        if (timestamp == null) return "N/A"
+        if (timestamp == null) return "Syncing... (check n/w connection)"
 
         val date = timestamp.toDate() // Convert Firestore Timestamp to Java Date
         val sdf = SimpleDateFormat("dd MMM, yyyy  hh:mm a", Locale.getDefault()) // Format
