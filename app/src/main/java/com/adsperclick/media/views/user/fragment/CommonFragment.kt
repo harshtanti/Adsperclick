@@ -62,12 +62,27 @@ class CommonFragment : Fragment(), View.OnClickListener {
 
     }
 
+    override fun onResume() {
+        super.onResume()
+//        refreshPageList()
+    }
+
+    private fun refreshPageList(){
+        if (isAdded && isVisible){
+            collectUiData(searchTxt,tabName)
+        }
+    }
+
     private fun setOnClickListener(){
         binding.addDetails.setOnClickListener(this)
     }
 
     private fun setUpAdapter(){
         adapter= CommonAdapter()
+//        adapter.addLoadStateListener {
+//            refreshPageList()
+//
+//        }
         listener = object :CommonAdapter.CommunityListener{
             override fun btnDelete(bucketName:String, id:String) {
                 if(!(bucketName == "null" || id == "null")){

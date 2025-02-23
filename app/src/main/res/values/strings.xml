@@ -47,6 +47,7 @@
     <string name="service_name_required">Service Name Required</string>
     <string name="success">Success</string>
     <string name="failed">Failed</string>
+    <string name="profile_photo">Profile photo</string>
 
 
 </resources>

@@ -30,7 +30,7 @@ class NewGroupViewModel@Inject constructor(private val chatRepository: ChatRepos
     var groupName: String? = null
 
 
-    fun getUserListData(searchTxt:String,role:Int): Flow<PagingData<CommonData>> {
+    fun getUserListData(searchTxt:String="",role:Int): Flow<PagingData<CommonData>> {
         return chatRepository.getUserListData(
             searchTxt,
             role

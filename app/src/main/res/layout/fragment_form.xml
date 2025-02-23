@@ -107,7 +107,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
             <com.adsperclick.media.applicationCommonView.view.EditeTextWithError
-                android:id="@+id/services"
+                android:id="@+id/services_subscribed"
                 android:layout_width="@dimen/DP0"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/DP10"
@@ -121,7 +121,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/DP10"
                 android:visibility="gone"
-                app:layout_constraintTop_toBottomOf="@id/services"
+                app:layout_constraintTop_toBottomOf="@id/services_subscribed"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
 

@@ -11,10 +11,8 @@ import com.adsperclick.media.data.dataModels.Company
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.data.dataModels.User
-import com.adsperclick.media.data.repositories.CommunityRepository
+import com.adsperclick.media.views.user.repository.CommunityRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.scopes.ActivityScoped
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
@@ -33,6 +31,8 @@ class UserViewModel @Inject constructor(private val communityRepository: Communi
     var confirmPassword:String?=null
     var services:String?=null
     var serviceName:String?=null
+    var serviceList:List<CommonData> = listOf()
+    var selectServiceList = arrayListOf<CommonData>()
 
     private val _registerCompanyLiveData = MutableLiveData<NetworkResult<Company>>()
     val registerCompanyLiveData: LiveData<NetworkResult<Company>> get() = _registerCompanyLiveData
@@ -57,27 +57,43 @@ class UserViewModel @Inject constructor(private val communityRepository: Communi
     private val _registrationLiveData = MutableLiveData<NetworkResult<User>>()
     val registrationLiveData: LiveData<NetworkResult<User>> get() = _registrationLiveData
 
-    fun register(user:User) {
+    fun registerUser(user:User) {
         viewModelScope.launch(Dispatchers.IO){
-            val result = communityRepository.register(user)
+            val result = communityRepository.registerUser(user)
             _registrationLiveData.postValue(result)
         }
     }
 
-    fun getUserListData(searchTxt:String,role:Int): Flow<PagingData<CommonData>> {
+    private val _listServiceLiveData = MutableLiveData<NetworkResult<ArrayList<Service>>>()
+    val listServiceLiveData: LiveData<NetworkResult<ArrayList<Service>>> get() = _listServiceLiveData
+
+    fun getServiceList(){
+        _listServiceLiveData.postValue(NetworkResult.Loading())
+
+        try {
+            viewModelScope.launch(Dispatchers.IO){
+                val result = communityRepository.getServiceList()
+                _listServiceLiveData.postValue(result)
+            }
+        } catch (e : Exception){
+            _listServiceLiveData.postValue(NetworkResult.Error(null, "Error ${e.message}"))
+        }
+    }
+
+    fun getUserListData(searchTxt:String = "",role:Int): Flow<PagingData<CommonData>> {
         return communityRepository.getUserListData(
             searchTxt,
             role
         ).cachedIn(viewModelScope)
     }
 
-    fun getCompanyListData(searchTxt:String): Flow<PagingData<CommonData>> {
+    fun getCompanyListData(searchTxt:String = ""): Flow<PagingData<CommonData>> {
         return communityRepository.getCompanyListData(
             searchTxt
         ).cachedIn(viewModelScope)
     }
 
-    fun getServiceListData(searchTxt:String): Flow<PagingData<CommonData>> {
+    fun getServiceListData(searchTxt:String = ""): Flow<PagingData<CommonData>> {
         return communityRepository.getServiceListData(
             searchTxt
         ).cachedIn(viewModelScope)

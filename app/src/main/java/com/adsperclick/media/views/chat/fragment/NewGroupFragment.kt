@@ -188,7 +188,7 @@ class NewGroupFragment : Fragment(),View.OnClickListener {
         }
 
         lifecycleScope.launch {
-            delay(2000)
+            delay(1000)
             findNavController().navigate(
                 R.id.action_newGroupFragment_to_navigation_chat,
                 null,

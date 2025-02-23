@@ -4,7 +4,31 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".views.chat.bottomsheet.ServiceBottomSheetFragment">
+    tools:context=".views.user.bottomsheet.ServiceBottomSheetFragment">
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/btn_close"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/close_blue"
+        android:visibility="gone"
+        android:layout_marginHorizontal="@dimen/DP10"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/tvTitle"
+        app:layout_constraintBottom_toBottomOf="@id/tvTitle"/>
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/DP10"
+        android:gravity="center"
+        android:text="@string/select_service"
+        android:textColor="@color/black"
+        android:textSize="@dimen/SP17"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.textfield.TextInputEditText
         android:id="@+id/etSearchBar"
@@ -22,21 +46,35 @@
         android:layout_marginTop="@dimen/DP10"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/tvTitle" />
+
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvUser"
+        android:id="@+id/rvService"
         android:layout_width="match_parent"
         android:layout_height="@dimen/DP0"
-        android:layout_marginTop="@dimen/DP10"
         android:layout_marginHorizontal="@dimen/DP10"
         android:orientation="vertical"
         android:visibility="visible"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintTop_toBottomOf="@id/etSearchBar"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintHeight_default="wrap"
+        app:layout_constraintBottom_toTopOf="@+id/submit_button"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/etSearchBar"
+        tools:itemCount="10"
+        tools:listitem="@layout/service_list_item" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/submit_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/DP20"
+        android:layout_marginTop="@dimen/DP20"
+        android:backgroundTint="@color/blue_common_button"
+        android:text="@string/submit"
+        android:textColor="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
-        tools:listitem="@layout/user_list_item"
-        tools:itemCount="10"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

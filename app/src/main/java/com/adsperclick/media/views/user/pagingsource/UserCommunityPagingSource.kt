@@ -1,4 +1,4 @@
-package com.adsperclick.media.data.pagingsource
+package com.adsperclick.media.views.user.pagingsource
 
 import android.util.Log
 import androidx.paging.PagingSource
@@ -31,8 +31,6 @@ class UserCommunityPagingSource @Inject constructor(
                     .endAt(searchQuery + "\uf8ff")  // Match up to the end of userName (for prefix search)
             }
 
-            Log.d("Harsh", "Query: $query")  // Log query details
-
             // Get the current page data
             val currentPage = params.key ?: query.get().await()
 
@@ -43,9 +41,6 @@ class UserCommunityPagingSource @Inject constructor(
                 query.startAfter(lastDocument).get().await()
             }
 
-            Log.d("Harsh", "Query executed, snapshot size: ${currentPage.size()}")  // Log snapshot size
-
-            // Log the user list
             val userList = currentPage.documents.map { document ->
                 CommonData(
                     id = document.getString("userId"),
@@ -55,17 +50,13 @@ class UserCommunityPagingSource @Inject constructor(
 
                 )
             }
-            Log.d("Harsh", "User List: ${userList.size}")
-            Log.d("Harsh", "Users: $userList")
 
-            // Return the loaded page
             LoadResult.Page(
                 data = userList,
                 prevKey = null,  // No previous page
                 nextKey = nextPage  // Load next page
             )
         } catch (e: Exception) {
-            Log.e("Harsh", "Error executing query: ${e.localizedMessage}", e)  // Log exception
             LoadResult.Error(e)  // Return error result
         }
     }
