@@ -63,31 +63,6 @@ class AuthRepository @Inject constructor() {
     // so in our Realtime DB we are also storing things other than "email" and "uid" right, so we'll create a "users" node in our
     // realtime db .. which will store the various other things related to the user... like user's name, email, profilePic, etc...
 
-
-    suspend fun register(data: User): NetworkResult<User> {
-        return try {
-            val result =
-                data.email?.let { data.password?.let { it1 ->
-                    firebaseAuth.createUserWithEmailAndPassword(it,
-                        it1
-                    ).await()
-                } }
-            val firebaseUser = result?.user ?: return NetworkResult.Error(null, "User authentication failed")
-
-            // create "user" object which will be stored in db and our shared-Preferences
-            val user = data.copy(userId = firebaseUser.uid, password = null)
-
-            // Wait for Firestore to save the user before returning success
-            firebaseDb.collection(Constants.DB.USERS).document(firebaseUser.uid).set(user).await()
-
-            tokenManager.saveUser(user)
-            NetworkResult.Success(user)
-
-        } catch (e: Exception) {
-            NetworkResult.Error(null, e.message ?: "Registration failed")
-        }
-    }
-
     fun isUserLoggedIn(): Boolean {
         return firebaseAuth.currentUser != null
     }

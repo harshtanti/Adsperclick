@@ -2,6 +2,7 @@ package com.adsperclick.media.views.user.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.adsperclick.media.data.dataModels.CommonData
@@ -11,7 +12,7 @@ import com.adsperclick.media.utils.UtilityFunctions
 import com.adsperclick.media.utils.gone
 import com.adsperclick.media.utils.visible
 
-class CommonAdapter:ListAdapter<CommonData,CommonAdapter.ViewHolder>(DiffUtil()) {
+class CommonAdapter: PagingDataAdapter<CommonData, CommonAdapter.ViewHolder>(DiffUtil()) {
 
     var bucketName:String?=null
     var listener:CommunityListener?=null
@@ -23,36 +24,39 @@ class CommonAdapter:ListAdapter<CommonData,CommonAdapter.ViewHolder>(DiffUtil())
 
     inner class ViewHolder(val binding: UserListItemBinding): RecyclerView.ViewHolder(binding.root)
     {
-        fun bind(data: CommonData)
+        fun bind(dataItem: CommonData?)
         {
             with(binding){
-                tvName.text = data.name
-                data.tagName?.let {
-                    tvTagName.visible()
-                    tvTagName.text=it
-                } ?: run { tvTagName.gone() }
-                data.imgUrl?.let {  }?: run{
-                    val drawable = UtilityFunctions.generateInitialsDrawable(
-                        imgProfileDp.context, data.name ?: "A")
-                    imgProfileDp.setImageDrawable(drawable)
-                }
-                when(bucketName){
-                    Constants.EMPLOYEES_SEMI_CAPS, Constants.CLIENTS_SEMI_CAPS -> {
-                        btnInfo.visible()
+                dataItem?.let { data ->
+                    tvName.text = data.name
+                    data.tagName?.let {
+                        tvTagName.visible()
+                        tvTagName.text=it
+                    } ?: run { tvTagName.gone() }
+                    data.imgUrl?.let {  }?: run{
+                        val drawable = UtilityFunctions.generateInitialsDrawable(
+                            imgProfileDp.context, data.name ?: "A")
+                        imgProfileDp.setImageDrawable(drawable)
                     }
-                    Constants.SERVICES_SEMI_CAPS, Constants.COMPANIES_SEMI_CAPS -> {
-                        btnDelete.visible()
+                    when(bucketName){
+                        Constants.EMPLOYEES_SEMI_CAPS, Constants.CLIENTS_SEMI_CAPS -> {
+                            btnInfo.visible()
+                        }
+                        Constants.SERVICES_SEMI_CAPS, Constants.COMPANIES_SEMI_CAPS -> {
+                            btnDelete.visible()
+                        }
+                        else ->{
+                            btnInfo.gone()
+                            btnDelete.gone()
+                        }
                     }
-                    else ->{
-                        btnInfo.gone()
-                        btnDelete.gone()
+                    btnDelete.setOnClickListener{
+                        listener?.btnDelete(bucketName.toString(),data.id.toString())
                     }
-                }
-                btnDelete.setOnClickListener{
-                    listener?.btnDelete(bucketName.toString(),data.id.toString())
-                }
-                btnInfo.setOnClickListener{
-                    listener?.btnInfo(bucketName.toString(),data.id.toString(),data.name.toString())
+                    btnInfo.setOnClickListener{
+                        listener?.btnInfo(bucketName.toString(),data.id.toString(),data.name.toString())
+                    }
+
                 }
             }
         }

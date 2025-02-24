@@ -19,6 +19,7 @@
         android:textColorHint="#3c3c43"
         android:textSize="@dimen/SP16"
         android:maxLines="1"
+        android:visibility="gone"
         android:drawableStart="@drawable/search_24px"
         android:drawablePadding="@dimen/DP4"
         android:background="@drawable/et_search_bar_bg"

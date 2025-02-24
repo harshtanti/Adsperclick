@@ -4,6 +4,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import com.adsperclick.media.data.dataModels.CommonData
 import com.adsperclick.media.data.dataModels.Company
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.Service
@@ -13,6 +16,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.scopes.ActivityScoped
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -58,5 +62,24 @@ class UserViewModel @Inject constructor(private val communityRepository: Communi
             val result = communityRepository.register(user)
             _registrationLiveData.postValue(result)
         }
+    }
+
+    fun getUserListData(searchTxt:String,role:Int): Flow<PagingData<CommonData>> {
+        return communityRepository.getUserListData(
+            searchTxt,
+            role
+        ).cachedIn(viewModelScope)
+    }
+
+    fun getCompanyListData(searchTxt:String): Flow<PagingData<CommonData>> {
+        return communityRepository.getCompanyListData(
+            searchTxt
+        ).cachedIn(viewModelScope)
+    }
+
+    fun getServiceListData(searchTxt:String): Flow<PagingData<CommonData>> {
+        return communityRepository.getServiceListData(
+            searchTxt
+        ).cachedIn(viewModelScope)
     }
 }
