@@ -64,7 +64,8 @@ class CommonFragment : Fragment(), View.OnClickListener {
 
     override fun onResume() {
         super.onResume()
-//        refreshPageList()
+        refreshPageList()
+        binding.etSearchBar.setText(Constants.EMPTY)
     }
 
     private fun refreshPageList(){
@@ -79,10 +80,6 @@ class CommonFragment : Fragment(), View.OnClickListener {
 
     private fun setUpAdapter(){
         adapter= CommonAdapter()
-//        adapter.addLoadStateListener {
-//            refreshPageList()
-//
-//        }
         listener = object :CommonAdapter.CommunityListener{
             override fun btnDelete(bucketName:String, id:String) {
                 if(!(bucketName == "null" || id == "null")){

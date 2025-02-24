@@ -25,10 +25,10 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <com.google.android.material.button.MaterialButton
+    <androidx.appcompat.widget.AppCompatImageButton
         android:id="@+id/addDetails"
-        android:layout_width="@dimen/DP20"
-        android:layout_height="@dimen/DP16"
+        android:layout_width="@dimen/DP22"
+        android:layout_height="@dimen/DP18"
         android:layout_marginEnd="@dimen/DP15"
         app:backgroundTint="@null"
         android:background="@drawable/add_user_blue"

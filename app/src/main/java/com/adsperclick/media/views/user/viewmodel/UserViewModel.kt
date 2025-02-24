@@ -33,6 +33,8 @@ class UserViewModel @Inject constructor(private val communityRepository: Communi
     var serviceName:String?=null
     var serviceList:List<CommonData> = listOf()
     var selectServiceList = arrayListOf<CommonData>()
+    var companyList:List<Company> = listOf()
+    var selectedCompany:Company?=null
 
     private val _registerCompanyLiveData = MutableLiveData<NetworkResult<Company>>()
     val registerCompanyLiveData: LiveData<NetworkResult<Company>> get() = _registerCompanyLiveData
@@ -77,6 +79,22 @@ class UserViewModel @Inject constructor(private val communityRepository: Communi
             }
         } catch (e : Exception){
             _listServiceLiveData.postValue(NetworkResult.Error(null, "Error ${e.message}"))
+        }
+    }
+
+    private val _listCompanyLiveData = MutableLiveData<NetworkResult<ArrayList<Company>>>()
+    val listCompanyLiveData: LiveData<NetworkResult<ArrayList<Company>>> get() = _listCompanyLiveData
+
+    fun getCompanyList(){
+        _listCompanyLiveData.postValue(NetworkResult.Loading())
+
+        try {
+            viewModelScope.launch(Dispatchers.IO){
+                val result = communityRepository.getCompanyList()
+                _listCompanyLiveData.postValue(result)
+            }
+        } catch (e : Exception){
+            _listCompanyLiveData.postValue(NetworkResult.Error(null, "Error ${e.message}"))
         }
     }
 

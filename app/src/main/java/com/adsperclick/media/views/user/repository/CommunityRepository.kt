@@ -56,4 +56,6 @@ class CommunityRepository @Inject constructor(
     }
 
     suspend fun getServiceList() = apiService.getServiceList()
+
+    suspend fun getCompanyList() = apiService.getCompanyList()
 }

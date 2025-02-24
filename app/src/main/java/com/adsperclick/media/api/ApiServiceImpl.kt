@@ -92,38 +92,6 @@ class ApiServiceImpl @Inject constructor(
 
     override suspend fun registerUser(data: User): NetworkResult<User> {
         return try {
-            var companyId: String? = null
-            val companyNameInDataBase: String?
-
-            // 1️⃣ Check if the company GST exists (only if a GST number is provided)
-            if (!data.selfCompanyGstNumber.isNullOrEmpty()) {
-                val companyQuery = db.collection(Constants.DB.COMPANY)
-                    .whereEqualTo("gstNumber", data.selfCompanyGstNumber)
-                    .get()
-                    .await()
-
-                if (!companyQuery.isEmpty) {
-                    // Company exists, fetch its ID
-                    companyId = companyQuery.documents.first().id
-                    companyNameInDataBase = companyQuery.documents.first().getString("companyName")
-                    if(companyNameInDataBase!=data.selfCompanyName){
-                        return NetworkResult.Error(null, "GST number is already registered with $companyNameInDataBase. Please Try Again")
-                    }
-                } else {
-                    // Company does not exist, create a new company
-                    val newCompanyRef = db.collection(Constants.DB.COMPANY).document()
-                    companyId = newCompanyRef.id
-
-                    val company = Company(
-                        companyId = companyId,
-                        companyName = data.selfCompanyName,
-                        gstNumber = data.selfCompanyGstNumber
-                    )
-
-                    newCompanyRef.set(company).await()
-                }
-            }
-
             // 2️⃣ Create the user in Firebase Auth
             val result = data.email?.let { email ->
                 data.password?.let { password ->
@@ -133,7 +101,7 @@ class ApiServiceImpl @Inject constructor(
 
             val firebaseUser = result?.user ?: return NetworkResult.Error(null, "User authentication failed")
 
-            val user = data.copy(userId = firebaseUser.uid, selfCompanyId = companyId)
+            val user = data.copy(userId = firebaseUser.uid)
 
             // 4️⃣ Save User in Firestore
             db.collection(Constants.DB.USERS).document(firebaseUser.uid).set(user).await()
@@ -197,6 +165,17 @@ class ApiServiceImpl @Inject constructor(
         } catch (e: Exception) {
             // Step 9: Handle any errors that occur
             NetworkResult.Error(null, e.message ?: "Group Creation failed")
+        }
+    }
+
+    override suspend fun getCompanyList(): NetworkResult<ArrayList<Company>> {
+        return try {
+            val querySnapshot = db.collection(Constants.DB.COMPANY).get().await()
+            val companyList = arrayListOf<Company>()
+            companyList.addAll(querySnapshot.toObjects(Company::class.java))
+            NetworkResult.Success(companyList)
+        } catch (e: Exception) {
+            NetworkResult.Error(null, e.message ?: "Service data fetching failed")
         }
     }
 

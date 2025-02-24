@@ -16,6 +16,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
+import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -65,6 +66,7 @@ class FormFragment : Fragment(),View.OnClickListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        collectUiData()
         setUpTitle()
         setUpHint()
         setUpPlaceholder()
@@ -73,7 +75,6 @@ class FormFragment : Fragment(),View.OnClickListener {
         setUpClickListener()
         setUpDrawable()
         setUpErrorPadding()
-        collectUiData()
         setUpObserver()
         setCustomTextWatchers()
         validateSubmitButton()
@@ -82,6 +83,9 @@ class FormFragment : Fragment(),View.OnClickListener {
         when(userType){
             Constants.COMPANIES_SEMI_CAPS -> {
                 viewModel.getServiceList()
+            }
+            Constants.CLIENTS_SEMI_CAPS -> {
+                viewModel.getCompanyList()
             }
         }
 
@@ -96,6 +100,7 @@ class FormFragment : Fragment(),View.OnClickListener {
             firstName.setHint(R.string.first_name)
             lastName.setHint(R.string.last_name)
             companyName.setHint(R.string.company_name)
+            selectCompany.setHint(R.string.select_company)
             gst.setHint(R.string.gst_number)
             email.setHint(R.string.email)
             aadharNumber.setHint(R.string.aadhar_card)
@@ -121,6 +126,10 @@ class FormFragment : Fragment(),View.OnClickListener {
                 }
                 Constants.CLIENTS_SEMI_CAPS ->{
                     clientGroup.visible()
+                    gst.getEditView().apply {
+                        isClickable = true
+                        isFocusable = false
+                    }
                 }
                 Constants.SERVICES_SEMI_CAPS ->{
                     serviceName.visible()
@@ -163,6 +172,7 @@ class FormFragment : Fragment(),View.OnClickListener {
 
     private fun setUpClickListener(){
         binding.submitButton.setOnClickListener(this)
+        binding.btnBack.setOnClickListener(this)
     }
 
     private fun setUpErrorPadding(){
@@ -218,7 +228,7 @@ class FormFragment : Fragment(),View.OnClickListener {
                 Constants.CLIENTS_SEMI_CAPS -> {
                     firstName.getText()?.isNotEmpty() == true &&
                             lastName.getText()?.isNotEmpty() == true &&
-                            companyName.getText()?.isNotEmpty() == true &&
+                            selectCompany.getSelectedItem()?.isNotEmpty() == true &&
                             gst.getText()?.isNotEmpty() == true &&
                             email.getText()?.isNotEmpty() == true &&
                             password.getText()?.isNotEmpty() == true &&
@@ -359,6 +369,14 @@ class FormFragment : Fragment(),View.OnClickListener {
                     regexPattern = Constants.EMPTY
                 )
             )
+            binding.selectCompany.getSpinnerView().doAfterTextChanged {
+                val enteredText = it.toString().trim()
+                viewModel.selectedCompany = viewModel.companyList.find { company ->
+                    company.companyName.equals(enteredText, ignoreCase = true)
+                }
+                viewModel.selectedCompany?.gstNumber?.let { it1 -> binding.gst.setText(it1) }
+                validateSubmitButton()
+            }
         }
     }
 
@@ -376,6 +394,8 @@ class FormFragment : Fragment(),View.OnClickListener {
             var gstNumber: String? = null
             var serviceName: String? = null
             var userRole: Int? = null
+            var selfCompanyName: String? = null
+            var selfCompanyId:String? = null
 
 
             // Assign values based on userType and visibility of Groups
@@ -387,7 +407,8 @@ class FormFragment : Fragment(),View.OnClickListener {
 
                 Constants.CLIENTS_SEMI_CAPS -> {
                     userRole=Constants.ROLE.CLIENT
-                    companyName = viewModel.companyName
+                    selfCompanyId = viewModel.selectedCompany?.companyId
+                    selfCompanyName = viewModel.selectedCompany?.companyName
                     gstNumber = viewModel.gstNumber
                 }
 
@@ -412,7 +433,8 @@ class FormFragment : Fragment(),View.OnClickListener {
                         password = password,
                         role = userRole,
                         userAdhaarNumber = aadharNumber,
-                        selfCompanyName = companyName,
+                        selfCompanyId = selfCompanyId,
+                        selfCompanyName = selfCompanyName,
                         selfCompanyGstNumber = gstNumber
                     )
                     viewModel.registerUser(user)
@@ -441,6 +463,7 @@ class FormFragment : Fragment(),View.OnClickListener {
     private fun setUpObserver(){
 
         viewModel.listServiceLiveData.observe(viewLifecycleOwner,serviceListObserver)
+        viewModel.listCompanyLiveData.observe(viewLifecycleOwner,companyListObserver)
 
         viewModel.registrationLiveData.observe(viewLifecycleOwner, Observer{response->
 
@@ -507,6 +530,23 @@ class FormFragment : Fragment(),View.OnClickListener {
         }
     }
 
+    private val companyListObserver = Observer<NetworkResult<ArrayList<Company>>> {
+        when(it){
+
+            is NetworkResult.Success ->{
+                it.data?.let { it1 -> viewModel.companyList = it1 }
+                binding.selectCompany.setDataItemList(viewModel.companyList.mapNotNull { it.companyName })
+            }
+
+            is NetworkResult.Error ->{
+                Toast.makeText(context, "Error: ${it.message}", Toast.LENGTH_SHORT).show()
+            }
+
+            is NetworkResult.Loading ->{}
+        }
+
+    }
+
     private fun convertServiceToCommonData(serviceList: List<Service>): List<CommonData> {
         return serviceList.map { service ->
             CommonData(
@@ -515,6 +555,7 @@ class FormFragment : Fragment(),View.OnClickListener {
             )
         }
     }
+
 
     private fun convertCommonDataToService(serviceList: List<CommonData>): List<Service> {
         return serviceList.map { service ->
@@ -581,12 +622,32 @@ class FormFragment : Fragment(),View.OnClickListener {
         bottomSheet.show(childFragmentManager, bottomSheet.tag)
     }
 
+    private fun validatePasswords(): Boolean {
+        val passwordText = binding.password.getText()
+        val confirmPasswordText = binding.confirmPassword.getText()
+
+        return if (passwordText == confirmPasswordText) {
+            binding.confirmPassword.removeErrorText()
+            true
+        } else {
+            binding.confirmPassword.setErrorText(getString(R.string.password_mismatch))
+            false
+        }
+    }
+
     override fun onClick(v: View?) {
         when(v){
             binding.submitButton -> {
                 if(areFixedDetailsValid(userType)){
-                    saveUserDetails(userType)
+                    if (areFixedDetailsValid(userType)) {
+                        if (validatePasswords() && ( userType == Constants.CLIENTS_SEMI_CAPS || userType == Constants.EMPLOYEES_SEMI_CAPS)) {
+                            saveUserDetails(userType)
+                        }
+                    }
                 }
+            }
+            binding.btnBack -> {
+                findNavController().popBackStack()
             }
         }
     }
