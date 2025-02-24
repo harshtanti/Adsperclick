@@ -27,7 +27,11 @@ class SelectServiceAdapter: ListAdapter<CommonData, SelectServiceAdapter.ViewHol
 
             with(binding) {
                 tvName.text = data.name
-                if (data.isSelected){binding.btnCheck.visible()}
+                if (data.isSelected){
+                    binding.btnCheck.visible()
+                } else{
+                    binding.btnCheck.invisible()
+                }
                 serviceItem.setOnClickListener {
                     data.isSelected = !data.isSelected
                     listener?.btnCheck(bucketName.toString(), data)

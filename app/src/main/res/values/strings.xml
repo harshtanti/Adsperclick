@@ -50,6 +50,11 @@
     <string name="failed">Failed</string>
     <string name="profile_photo">Profile photo</string>
     <string name="password_mismatch">Password Mis-match</string>
+    <string name="add_company">Add Company</string>
+    <string name="add_client">Add Client</string>
+    <string name="add_employee">Add Employee</string>>
+    <string name="add_service">Add Service</string>
+    <string name="error">Error</string>
 
 
 

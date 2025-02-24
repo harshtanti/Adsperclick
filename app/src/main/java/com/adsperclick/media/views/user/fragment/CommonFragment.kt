@@ -110,14 +110,7 @@ class CommonFragment : Fragment(), View.OnClickListener {
             override fun btnInfo(bucketName:String, id:String, name:String) {
                 if(!(bucketName == "null" || id == "null" || name == "null")){
                     when(tabName){
-                        Constants.EMPLOYEES_SEMI_CAPS->{
-                            val bundle = Bundle().apply {
-                                putString(Constants.USER_TYPE_SEMI_CAPS, tabName)
-                                putString(Constants.USER_NAME, name)
-                            }
-                            findNavController().navigate(R.id.action_navigation_user_to_userInfoFragment,bundle)
-                        }
-                        Constants.CLIENTS_SEMI_CAPS -> {
+                        Constants.EMPLOYEES_SEMI_CAPS, Constants.CLIENTS_SEMI_CAPS, Constants.COMPANIES_SEMI_CAPS->{
                             val bundle = Bundle().apply {
                                 putString(Constants.USER_TYPE_SEMI_CAPS, tabName)
                                 putString(Constants.USER_NAME, name)

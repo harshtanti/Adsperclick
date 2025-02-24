@@ -11,7 +11,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/close_blue"
-        android:visibility="gone"
+        android:visibility="visible"
         android:layout_marginHorizontal="@dimen/DP10"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/tvTitle"
@@ -25,7 +25,7 @@
         android:gravity="center"
         android:text="@string/select_service"
         android:textColor="@color/black"
-        android:textSize="@dimen/SP17"
+        android:textSize="@dimen/SP25"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
