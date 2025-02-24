@@ -15,6 +15,7 @@
     <string name="first_name">First Name</string>
     <string name="last_name">Surname</string>
     <string name="company_name">Company Name</string>
+    <string name="select_company">Select Company</string>
     <string name="gst_number">Gst Number</string>
     <string name="aadhar_card">Aadhar Card</string>
     <string name="confirm_password">Confirm Password</string>
@@ -47,6 +48,9 @@
     <string name="service_name_required">Service Name Required</string>
     <string name="success">Success</string>
     <string name="failed">Failed</string>
+    <string name="profile_photo">Profile photo</string>
+    <string name="password_mismatch">Password Mis-match</string>
+
 
 
 </resources>

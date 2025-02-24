@@ -1,17 +1,22 @@
 package com.adsperclick.media.views.user.fragment
 
+import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
+import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -19,6 +24,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.adsperclick.media.R
 import com.adsperclick.media.applicationCommonView.view.EditeTextWithError
+import com.adsperclick.media.data.dataModels.CommonData
 import com.adsperclick.media.data.dataModels.Company
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.Service
@@ -29,7 +35,9 @@ import com.adsperclick.media.utils.gone
 import com.adsperclick.media.utils.visible
 import com.adsperclick.media.views.homeActivity.HomeActivity
 import com.adsperclick.media.views.login.viewModels.AuthViewModel
+import com.adsperclick.media.views.user.bottomsheet.ServiceBottomSheetFragment
 import com.adsperclick.media.views.user.viewmodel.UserViewModel
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -58,6 +66,7 @@ class FormFragment : Fragment(),View.OnClickListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        collectUiData()
         setUpTitle()
         setUpHint()
         setUpPlaceholder()
@@ -70,6 +79,17 @@ class FormFragment : Fragment(),View.OnClickListener {
         setCustomTextWatchers()
         validateSubmitButton()
     }
+    private fun collectUiData(){
+        when(userType){
+            Constants.COMPANIES_SEMI_CAPS -> {
+                viewModel.getServiceList()
+            }
+            Constants.CLIENTS_SEMI_CAPS -> {
+                viewModel.getCompanyList()
+            }
+        }
+
+    }
 
     private fun setUpTitle(){
         binding.title.text=userType
@@ -80,12 +100,13 @@ class FormFragment : Fragment(),View.OnClickListener {
             firstName.setHint(R.string.first_name)
             lastName.setHint(R.string.last_name)
             companyName.setHint(R.string.company_name)
+            selectCompany.setHint(R.string.select_company)
             gst.setHint(R.string.gst_number)
             email.setHint(R.string.email)
             aadharNumber.setHint(R.string.aadhar_card)
             password.setHint(R.string.password)
             confirmPassword.setHint(R.string.confirm_password)
-            services.setHint(R.string.services_subscribed)
+            servicesSubscribed.setHint(R.string.services_subscribed)
             serviceName.setHint(R.string.services_name)
             email.setPlaceHolderText(getString(R.string.example_gmail))
         }
@@ -105,6 +126,10 @@ class FormFragment : Fragment(),View.OnClickListener {
                 }
                 Constants.CLIENTS_SEMI_CAPS ->{
                     clientGroup.visible()
+                    gst.getEditView().apply {
+                        isClickable = true
+                        isFocusable = false
+                    }
                 }
                 Constants.SERVICES_SEMI_CAPS ->{
                     serviceName.visible()
@@ -112,6 +137,16 @@ class FormFragment : Fragment(),View.OnClickListener {
                 Constants.COMPANIES_SEMI_CAPS ->{
                     companyName.visible()
                     gst.visible()
+                    servicesSubscribed.visible()
+                    servicesSubscribed.getEditView().apply {
+                        isClickable = true
+                        isFocusable = false
+                        setOnClickListener {
+                            gst.getEditView().clearFocus()
+                            companyName.getEditView().clearFocus()
+                            it.post { openSelectServiceBottomSheet() }
+                        }
+                    }
                 }
                 else -> {
 
@@ -130,13 +165,14 @@ class FormFragment : Fragment(),View.OnClickListener {
             aadharNumber.setInputType(InputType.TYPE_CLASS_NUMBER)
             password.setInputType(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD)
             confirmPassword.setInputType(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD)
-            services.setInputType(InputType.TYPE_CLASS_TEXT)
+            servicesSubscribed.setInputType(InputType.TYPE_CLASS_TEXT)
             serviceName.setInputType(InputType.TYPE_CLASS_TEXT)
         }
     }
 
     private fun setUpClickListener(){
         binding.submitButton.setOnClickListener(this)
+        binding.btnBack.setOnClickListener(this)
     }
 
     private fun setUpErrorPadding(){
@@ -149,7 +185,7 @@ class FormFragment : Fragment(),View.OnClickListener {
             aadharNumber.setErrorText(Constants.SPACE)
             password.setErrorText(Constants.SPACE)
             confirmPassword.setErrorText(Constants.SPACE)
-            services.setErrorText(Constants.SPACE)
+            servicesSubscribed.setErrorText(Constants.SPACE)
             serviceName.setErrorText(Constants.SPACE)
 
             firstName.removeErrorText()
@@ -160,7 +196,7 @@ class FormFragment : Fragment(),View.OnClickListener {
             aadharNumber.removeErrorText()
             password.removeErrorText()
             confirmPassword.removeErrorText()
-            services.removeErrorText()
+            servicesSubscribed.removeErrorText()
             serviceName.removeErrorText()
         }
     }
@@ -192,7 +228,7 @@ class FormFragment : Fragment(),View.OnClickListener {
                 Constants.CLIENTS_SEMI_CAPS -> {
                     firstName.getText()?.isNotEmpty() == true &&
                             lastName.getText()?.isNotEmpty() == true &&
-                            companyName.getText()?.isNotEmpty() == true &&
+                            selectCompany.getSelectedItem()?.isNotEmpty() == true &&
                             gst.getText()?.isNotEmpty() == true &&
                             email.getText()?.isNotEmpty() == true &&
                             password.getText()?.isNotEmpty() == true &&
@@ -205,7 +241,8 @@ class FormFragment : Fragment(),View.OnClickListener {
 
                 Constants.COMPANIES_SEMI_CAPS -> {
                     companyName.getText()?.isNotEmpty() == true &&
-                            gst.getText()?.isNotEmpty() == true
+                            gst.getText()?.isNotEmpty() == true &&
+                            servicesSubscribed.getText()?.isNotEmpty() == true
                 }
 
                 else -> false
@@ -314,11 +351,11 @@ class FormFragment : Fragment(),View.OnClickListener {
                     regexPattern = Constants.EMPTY
                 )
             )
-            services.getEditView().addTextChangedListener(
+            servicesSubscribed.getEditView().addTextChangedListener(
                 FormTextWatcher(
                     this@FormFragment,
                     viewModel = viewModel,
-                    view = services,
+                    view = servicesSubscribed,
                     errorMessage = getString(R.string.services_required),
                     regexPattern = Constants.EMPTY
                 )
@@ -332,6 +369,14 @@ class FormFragment : Fragment(),View.OnClickListener {
                     regexPattern = Constants.EMPTY
                 )
             )
+            binding.selectCompany.getSpinnerView().doAfterTextChanged {
+                val enteredText = it.toString().trim()
+                viewModel.selectedCompany = viewModel.companyList.find { company ->
+                    company.companyName.equals(enteredText, ignoreCase = true)
+                }
+                viewModel.selectedCompany?.gstNumber?.let { it1 -> binding.gst.setText(it1) }
+                validateSubmitButton()
+            }
         }
     }
 
@@ -349,6 +394,9 @@ class FormFragment : Fragment(),View.OnClickListener {
             var gstNumber: String? = null
             var serviceName: String? = null
             var userRole: Int? = null
+            var selfCompanyName: String? = null
+            var selfCompanyId:String? = null
+
 
             // Assign values based on userType and visibility of Groups
             when (userType) {
@@ -359,7 +407,8 @@ class FormFragment : Fragment(),View.OnClickListener {
 
                 Constants.CLIENTS_SEMI_CAPS -> {
                     userRole=Constants.ROLE.CLIENT
-                    companyName = viewModel.companyName
+                    selfCompanyId = viewModel.selectedCompany?.companyId
+                    selfCompanyName = viewModel.selectedCompany?.companyName
                     gstNumber = viewModel.gstNumber
                 }
 
@@ -384,10 +433,11 @@ class FormFragment : Fragment(),View.OnClickListener {
                         password = password,
                         role = userRole,
                         userAdhaarNumber = aadharNumber,
-                        selfCompanyName = companyName,
+                        selfCompanyId = selfCompanyId,
+                        selfCompanyName = selfCompanyName,
                         selfCompanyGstNumber = gstNumber
                     )
-                    viewModel.register(user)
+                    viewModel.registerUser(user)
                 }
 
                 Constants.SERVICES_SEMI_CAPS -> {
@@ -401,7 +451,8 @@ class FormFragment : Fragment(),View.OnClickListener {
                 Constants.COMPANIES_SEMI_CAPS -> {
                     val company = Company(
                         companyName = companyName,
-                        gstNumber = gstNumber
+                        gstNumber = gstNumber,
+                        listOfServices = convertCommonDataToService(viewModel.selectServiceList)
                     )
                     viewModel.registerCompany(company)
                 }
@@ -410,6 +461,9 @@ class FormFragment : Fragment(),View.OnClickListener {
     }
 
     private fun setUpObserver(){
+
+        viewModel.listServiceLiveData.observe(viewLifecycleOwner,serviceListObserver)
+        viewModel.listCompanyLiveData.observe(viewLifecycleOwner,companyListObserver)
 
         viewModel.registrationLiveData.observe(viewLifecycleOwner, Observer{response->
 
@@ -461,6 +515,57 @@ class FormFragment : Fragment(),View.OnClickListener {
         })
     }
 
+    private val serviceListObserver = Observer<NetworkResult<ArrayList<Service>>> {
+        when(it){
+
+            is NetworkResult.Success ->{
+                it.data?.let { it1 -> viewModel.serviceList = convertServiceToCommonData(it1) }
+            }
+
+            is NetworkResult.Error ->{
+                Toast.makeText(context, "Error: ${it.message}", Toast.LENGTH_SHORT).show()
+            }
+
+            is NetworkResult.Loading ->{}
+        }
+    }
+
+    private val companyListObserver = Observer<NetworkResult<ArrayList<Company>>> {
+        when(it){
+
+            is NetworkResult.Success ->{
+                it.data?.let { it1 -> viewModel.companyList = it1 }
+                binding.selectCompany.setDataItemList(viewModel.companyList.mapNotNull { it.companyName })
+            }
+
+            is NetworkResult.Error ->{
+                Toast.makeText(context, "Error: ${it.message}", Toast.LENGTH_SHORT).show()
+            }
+
+            is NetworkResult.Loading ->{}
+        }
+
+    }
+
+    private fun convertServiceToCommonData(serviceList: List<Service>): List<CommonData> {
+        return serviceList.map { service ->
+            CommonData(
+                id = service.serviceId ?: "",
+                name = service.serviceName ?: ""
+            )
+        }
+    }
+
+
+    private fun convertCommonDataToService(serviceList: List<CommonData>): List<Service> {
+        return serviceList.map { service ->
+            Service(
+                serviceId = service.id ?: "",
+                serviceName = service.name ?: ""
+            )
+        }
+    }
+
     private fun successMessage(){
         binding.submitButton.apply {
             text = getString(R.string.success)
@@ -469,7 +574,7 @@ class FormFragment : Fragment(),View.OnClickListener {
         }
 
         lifecycleScope.launch {
-            delay(2000)
+            delay(1000)
             findNavController().popBackStack()
         }
     }
@@ -491,12 +596,58 @@ class FormFragment : Fragment(),View.OnClickListener {
         }
     }
 
+    private val listener = object : ServiceBottomSheetFragment.MultiSelectListener{
+        override fun onMultiSelect(
+            bucketName: String,
+            selectedList: ArrayList<CommonData>
+        ) {
+            var valueData = Constants.EMPTY
+            selectedList.forEachIndexed { index, value ->
+                if(value.name?.isNotEmpty() == true){
+                    valueData += if (index!=selectedList.size -1){
+                        "${value.name}, "
+                    }else{
+                        value.name
+                    }
+                }
+            }
+            viewModel.selectServiceList = selectedList
+            binding.servicesSubscribed.setText(valueData)
+            binding.servicesSubscribed.getEditView().setSelection(valueData.length)
+        }
+    }
+
+    private fun openSelectServiceBottomSheet(){
+        val bottomSheet = ServiceBottomSheetFragment.newInstance(userType,listener,viewModel.serviceList,viewModel.selectServiceList)
+        bottomSheet.show(childFragmentManager, bottomSheet.tag)
+    }
+
+    private fun validatePasswords(): Boolean {
+        val passwordText = binding.password.getText()
+        val confirmPasswordText = binding.confirmPassword.getText()
+
+        return if (passwordText == confirmPasswordText) {
+            binding.confirmPassword.removeErrorText()
+            true
+        } else {
+            binding.confirmPassword.setErrorText(getString(R.string.password_mismatch))
+            false
+        }
+    }
+
     override fun onClick(v: View?) {
         when(v){
             binding.submitButton -> {
                 if(areFixedDetailsValid(userType)){
-                    saveUserDetails(userType)
+                    if (areFixedDetailsValid(userType)) {
+                        if (validatePasswords() && ( userType == Constants.CLIENTS_SEMI_CAPS || userType == Constants.EMPLOYEES_SEMI_CAPS)) {
+                            saveUserDetails(userType)
+                        }
+                    }
                 }
+            }
+            binding.btnBack -> {
+                findNavController().popBackStack()
             }
         }
     }
@@ -518,16 +669,16 @@ class FormTextWatcher(
         val inputLayout = view.getEditView()
 
         when (view.id) {
-            R.id.first_name -> handleValidation(inputText, regexPattern, R.string.first_name_required) { viewModel.firstName = it }
-            R.id.last_name -> handleValidation(inputText, regexPattern, R.string.last_name_required) { viewModel.lastName = it }
-            R.id.company_name -> handleValidation(inputText, regexPattern, R.string.company_name_required) { viewModel.companyName = it }
-            R.id.gst -> handleValidation(inputText, regexPattern, R.string.gst_number_is_incorrect) { viewModel.gstNumber = it }
-            R.id.aadhar_number -> handleValidation(inputText, regexPattern, R.string.aadhar_number_is_incorrect) { viewModel.aadharNumber = it }
-            R.id.email -> handleValidation(inputText, regexPattern, R.string.email_is_incorrect) { viewModel.email = it }
-            R.id.password -> handleValidation(inputText, regexPattern, R.string.password_required) { viewModel.password = it }
-            R.id.confirm_password -> handleValidation(inputText, regexPattern, R.string.confirm_password_required) { viewModel.confirmPassword = it }
-            R.id.services -> handleValidation(inputText, regexPattern, R.string.services_required) { viewModel.services = it }
-            R.id.service_name -> handleValidation(inputText, regexPattern, R.string.service_name_required) { viewModel.serviceName = it }
+            R.id.first_name -> handleValidation(inputText, regexPattern, errorMessage) { viewModel.firstName = it }
+            R.id.last_name -> handleValidation(inputText, regexPattern, errorMessage) { viewModel.lastName = it }
+            R.id.company_name -> handleValidation(inputText, regexPattern, errorMessage) { viewModel.companyName = it }
+            R.id.gst -> handleValidation(inputText, regexPattern, errorMessage) { viewModel.gstNumber = it }
+            R.id.aadhar_number -> handleValidation(inputText, regexPattern, errorMessage) { viewModel.aadharNumber = it }
+            R.id.email -> handleValidation(inputText, regexPattern, errorMessage) { viewModel.email = it }
+            R.id.password -> handleValidation(inputText, regexPattern, errorMessage) { viewModel.password = it }
+            R.id.confirm_password -> handleValidation(inputText, regexPattern, errorMessage) { viewModel.confirmPassword = it }
+            R.id.services_subscribed -> handleValidation(inputText, regexPattern, errorMessage) { viewModel.services = it }
+            R.id.service_name -> handleValidation(inputText, regexPattern, errorMessage) { viewModel.serviceName = it }
         }
         fragment.validateSubmitButton()
     }
@@ -535,13 +686,13 @@ class FormTextWatcher(
     private fun handleValidation(
         inputText: String,
         regexPattern: String,
-        errorResId: Int,
+        errorMessage: String,
         updateViewModel: (String) -> Unit
     ) {
         val context = view.context
         when {
             inputText.isEmpty() -> {
-                view.setErrorText(context.getString(errorResId))
+                view.setErrorText(errorMessage)
             }
             else -> {
                 view.removeErrorText()

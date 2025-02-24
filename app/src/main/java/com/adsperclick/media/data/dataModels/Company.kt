@@ -8,8 +8,10 @@ data class Company(
     val companyId : String? = null,
     val companyName : String? = null,
     val gstNumber : String? = null,
+    val listOfServices : List<Service>? = null
     /*val listOfCompanyMembers : List<String>? = null,*/        // "id" of people who are member of this company
-    val listOfServices : List<String>? = null
+
 ){
     constructor() : this(null, null,null,null)
 }
+

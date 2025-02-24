@@ -62,6 +62,18 @@ class CommonFragment : Fragment(), View.OnClickListener {
 
     }
 
+    override fun onResume() {
+        super.onResume()
+        refreshPageList()
+        binding.etSearchBar.setText(Constants.EMPTY)
+    }
+
+    private fun refreshPageList(){
+        if (isAdded && isVisible){
+            collectUiData(searchTxt,tabName)
+        }
+    }
+
     private fun setOnClickListener(){
         binding.addDetails.setOnClickListener(this)
     }
