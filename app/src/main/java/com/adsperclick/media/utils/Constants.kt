@@ -51,4 +51,11 @@ object Constants {
         const val COMPANY = "companies"
         const val SERVICE = "services"
     }
+
+    object TXT_MSG_TYPE{
+        const val SINGLE_MSG = 1
+        const val FIRST_MSG = 2
+        const val MIDDLE_MSG = 3
+        const val LAST_MSG = 4
+    }
 }
