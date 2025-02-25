@@ -1,5 +1,6 @@
 package com.adsperclick.media.data.repositories
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.paging.Pager
@@ -18,6 +19,7 @@ import com.adsperclick.media.utils.Constants
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
+import com.google.firebase.firestore.Source
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -51,13 +53,14 @@ class ChatRepository @Inject constructor(private val apiService: ApiService,priv
             val updatedNotification = notification.copy(notificationId = documentRef.id)
 
 
-            val notificationMap = hashMapOf(
+            val notificationMap = updatedNotification.mapifyForFirestoreTimestamp()
+            /*hashMapOf(
                 "notificationId" to documentRef.id,
                 "notificationTitle" to notification.notificationTitle,
                 "notificationDescription" to notification.notificationDescription,
                 "sentTo" to notification.sentTo,
                 "timestamp" to FieldValue.serverTimestamp() // Setting server-side timestamp, it will populate the field with "time" at that time
-            )
+            )*/
 
             // Sending our notification object to backend
             // Firestore supports offline persistence! even if internet is not there and user made below
@@ -79,7 +82,7 @@ class ChatRepository @Inject constructor(private val apiService: ApiService,priv
         _listNotificationLiveData.postValue(NetworkResult.Loading())
 
         try {
-            val querySnapshot = db.collection(Constants.DB.NOTIFICATIONS).get().await()
+            val querySnapshot = db.collection(Constants.DB.NOTIFICATIONS).get(Source.SERVER).await()
             val notificationList = arrayListOf<NotificationMsg>()
 
             for(document in querySnapshot.documents){
@@ -102,16 +105,17 @@ class ChatRepository @Inject constructor(private val apiService: ApiService,priv
         _userLiveData.postValue(NetworkResult.Loading())
         try{
             val userId = tokenManager.getUser()?.userId
-            val result = db.collection(Constants.DB.USERS).whereEqualTo("userId", userId).get().await()
+            val result = db.collection(Constants.DB.USERS).document(userId!!).get(Source.SERVER).await()
 
-            if (result.isEmpty) {
+            if (result.exists().not()) {
                 _userLiveData.postValue(NetworkResult.Error(null, "User not found in database"))
                 return
             }
 
-            val user = result.documents[0].toObject(User::class.java) // Convert Firestore doc to User object
+            val user = result.toObject(User::class.java) // Convert Firestore doc to User object
 
             user?.let {
+                // Write code for when new "User" object obtained from backend successfully
                 tokenManager.saveUser(it) // Update SharedPreferences
                 _userLiveData.postValue(NetworkResult.Success(it)) // Notify UI with updated user
             } ?: _userLiveData.postValue(NetworkResult.Error(null, "Failed to parse user data"))
@@ -120,6 +124,63 @@ class ChatRepository @Inject constructor(private val apiService: ApiService,priv
             _userLiveData.postValue(NetworkResult.Error(null, "Error: ${e.message}"))
         }
     }
+
+    private val _listOfGroupChatLiveData = MutableLiveData<NetworkResult<List<GroupChatListingData>>>()
+    val listOfGroupChatLiveData: LiveData<NetworkResult<List<GroupChatListingData>>> get() = _listOfGroupChatLiveData
+
+    suspend fun listenToGroupChatUpdates(listOfGroupChatId: List<String>) {
+        _listOfGroupChatLiveData.postValue(NetworkResult.Loading())
+
+        // Firestore listener (Real-time updates)
+        val query = db.collection(Constants.DB.GROUPS)
+            .whereIn("groupId", listOfGroupChatId)
+
+        query.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                _listOfGroupChatLiveData.postValue(NetworkResult.Error(null, "Error: ${error.message}"))
+                return@addSnapshotListener
+            }
+
+            if (snapshot != null && !snapshot.isEmpty) {
+                val listOfGroups = arrayListOf<GroupChatListingData>()
+
+                for (document in snapshot.documents) {
+                    val group = document.toObject(GroupChatListingData::class.java)
+                    group?.let { listOfGroups.add(it) }
+                }
+
+                // Sort by lastSentMsg timestamp in descending order (latest message first)
+                val sortedGroups = listOfGroups.sortedByDescending { it.lastSentMsg?.timestamp ?: 0L }
+
+                _listOfGroupChatLiveData.postValue(NetworkResult.Success(sortedGroups))
+            }
+        }
+    }
+
+    suspend fun updateLastNotificationSeenTime() {
+        try {
+            val userId = tokenManager.getUser()?.userId
+            if (userId.isNullOrEmpty()) {
+                Log.d("skt", "User ID is null or empty, cannot update")
+                return
+            }
+
+            val userRef = db.collection(Constants.DB.USERS).document(userId)
+
+            userRef.update("lastNotificationSeenTime", System.currentTimeMillis())
+                .addOnSuccessListener {
+                    Log.d("skt", "Successfully updated lastNotificationSeenTime")
+                }
+                .addOnFailureListener { e ->
+                    Log.d("skt", "Failed to update lastNotificationSeenTime: ${e.message}")
+                }
+
+        } catch (e: Exception) {
+            Log.d("skt", "updateLastNotificationSeenTime() function encountered an error: ${e.message}")
+        }
+    }
+
+
 
     // Note in our "NotificationsPagingSource" or any other PagingSource file, we can't
     // directly apply dependency injection! So we need to send the FirebaseFirestore instance

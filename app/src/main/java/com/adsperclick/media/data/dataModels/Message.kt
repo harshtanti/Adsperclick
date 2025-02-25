@@ -11,10 +11,10 @@ data class Message(
     val senderName: String? = null,
     val senderRole: Int? = null,
     val msgType :Int ?= null,
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long ?= null,
 ){
     constructor() : this(
         null, null, null, null,
-        null, null, System.currentTimeMillis()
+        null, null, null
     )
 }

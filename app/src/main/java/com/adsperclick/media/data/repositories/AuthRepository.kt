@@ -48,6 +48,8 @@ class AuthRepository @Inject constructor() {
 
             val user = snapshot.toObject(User::class.java) ?: return NetworkResult.Error(null, "User data missing")
 
+            if(user.isBlocked == true) return NetworkResult.Error(null, "You have been blocked!")
+
             tokenManager.saveUser(user)
             NetworkResult.Success(user)
 
