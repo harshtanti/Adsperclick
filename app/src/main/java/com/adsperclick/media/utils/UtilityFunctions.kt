@@ -12,6 +12,7 @@ import com.adsperclick.media.utils.Validate.toInitials
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 import kotlin.math.abs
 
@@ -138,5 +139,16 @@ object UtilityFunctions {
     fun isWithinLastWeek(cal1: Calendar, cal2: Calendar): Boolean {
         cal2.add(Calendar.DAY_OF_YEAR, 7)  // Move back to original
         return cal1.after(cal2.apply { add(Calendar.DAY_OF_YEAR, -7) })  // Compare within last 7 days
+    }
+
+
+    // Convert Long (milliseconds) to Firestore Timestamp
+    fun longToTimestamp(timeInMillis: Long): Timestamp {
+        return Timestamp(Date(timeInMillis))
+    }
+
+    // Convert Firestore Timestamp to Long (milliseconds)
+    fun timestampToLong(timestamp: Timestamp?): Long {
+        return timestamp?.toDate()?.time ?: 0L
     }
 }

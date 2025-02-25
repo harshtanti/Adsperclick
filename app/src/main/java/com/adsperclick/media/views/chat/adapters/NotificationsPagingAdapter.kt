@@ -2,20 +2,31 @@ package com.adsperclick.media.views.chat.adapters
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.fragment.app.viewModels
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.adsperclick.media.data.dataModels.NotificationMsg
 import com.adsperclick.media.databinding.NotificationListItemBinding
 import com.adsperclick.media.utils.UtilityFunctions
+import com.adsperclick.media.utils.gone
+import com.adsperclick.media.utils.visible
+import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
+import javax.inject.Inject
 
-class NotificationsPagingAdapter : PagingDataAdapter<NotificationMsg, NotificationsPagingAdapter.NotificationViewHolder>(DIFF_CALLBACK) {
+class NotificationsPagingAdapter (private val lastNotificationSeenTime : Long): PagingDataAdapter<NotificationMsg, NotificationsPagingAdapter.NotificationViewHolder>(DIFF_CALLBACK) {
 
     inner class NotificationViewHolder(private val binding: NotificationListItemBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(notif: NotificationMsg) {
             binding.tvTitle.text = notif.notificationTitle
             binding.tvDescription.text = notif.notificationDescription
             binding.tvDateTime.text = UtilityFunctions.formatNotificationTimestamp(notif.timestamp)
+
+            if(UtilityFunctions.timestampToLong(notif.timestamp) > lastNotificationSeenTime){
+                binding.tvNewIcon.visible()
+            } else {
+                binding.tvNewIcon.gone()
+            }
         }
     }
 
