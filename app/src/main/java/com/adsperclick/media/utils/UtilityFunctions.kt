@@ -1,6 +1,8 @@
 package com.adsperclick.media.utils
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.ColorFilter
@@ -8,12 +10,26 @@ import android.graphics.Paint
 import android.graphics.PixelFormat
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
+import android.graphics.pdf.PdfRenderer
+import android.net.Uri
+import android.os.Environment
+import android.os.ParcelFileDescriptor
+import android.widget.ImageView
+import androidx.documentfile.provider.DocumentFile
+import com.adsperclick.media.R
 import com.adsperclick.media.utils.Validate.toInitials
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.model.GlideUrl
 import com.google.firebase.Timestamp
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.UUID
 import kotlin.math.abs
 import kotlin.math.absoluteValue
 
@@ -170,5 +186,115 @@ object UtilityFunctions {
         val date = Date(timestamp)
         val formatter = SimpleDateFormat("hh:mm a", Locale.getDefault()) // Example: 01:45 PM
         return formatter.format(date)
+    }
+
+    private const val MAX_IMAGE_SIZE = 200 * 1024
+    const val CURRENT_DATE_FORMAT: String = Constants.yyyyMMdd_HHmmss
+    const val NA = "NA"
+
+    fun compressFile(context: Context, file: File): File {
+        if (file.length() > MAX_IMAGE_SIZE) {
+            val newFile = createImageFile(context)
+            var streamLength = MAX_IMAGE_SIZE
+            var compressQuality = 105
+            val bmpStream = ByteArrayOutputStream()
+            try {
+                while (streamLength >= MAX_IMAGE_SIZE && compressQuality > 5) {
+                    bmpStream.use {
+                        it.flush()
+                        it.reset()
+                    }
+                    compressQuality -= 5
+                    BitmapFactory.decodeFile(file.absolutePath, BitmapFactory.Options())?.let {
+                        it.compress(Bitmap.CompressFormat.JPEG, compressQuality, bmpStream)
+                        val bmpPicByteArray = bmpStream.toByteArray()
+                        streamLength = bmpPicByteArray.size
+                    }
+                }
+                FileOutputStream(newFile).use {
+                    it.write(bmpStream.toByteArray())
+                }
+                return newFile
+            } catch (e: Exception) {
+
+                return file
+            }
+        }
+        return file
+    }
+
+    fun createImageFile(context: Context): File {
+        val timeStamp: String =
+            SimpleDateFormat(CURRENT_DATE_FORMAT, Locale.getDefault()).format(
+                Date()
+            )
+        val storageDir: File? = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return File.createTempFile(
+            "JPG_${timeStamp}_",
+            Constants.JPG,
+            storageDir
+        )
+    }
+
+
+    fun saveFileFromUri(context: Context, uri: Uri): File? {
+        val initialStream = context.contentResolver.openInputStream(uri) ?: return null
+        val docFile = DocumentFile.fromSingleUri(context, uri)
+        val buffer = ByteArray(initialStream.available())
+        initialStream.read(buffer)
+        val targetFile = createTempFile(context, docFile?.name)
+        val outStream = FileOutputStream(targetFile)
+        outStream.write(buffer)
+        return targetFile
+    }
+
+    private fun createTempFile(context: Context, name: String?): File {
+        val storageDir =
+            context.externalCacheDir ?: context.getExternalFilesDir(null) ?: context.cacheDir
+        val fileName: String = if (name != null && name.isNotEmpty()) {
+            "${Date().time}-$name".replace(Constants.BACK_SLASH, Constants.DASH)
+        } else {
+            "${UUID.randomUUID()}"
+        }
+        val path = "$storageDir/$fileName"
+        val targetFile = File(path)
+        if (!targetFile.exists()) {
+            targetFile.createNewFile()
+        }
+        return targetFile
+    }
+
+    fun setImageOnImageViewWithGlide(context: Context, glideUrl: GlideUrl, imageView: ImageView, errorImage : Int =  R.drawable.baseline_person_24, placeHolder:Int= R.drawable.baseline_person_24){
+        Glide.with(context)
+            .load(glideUrl)
+            .error(errorImage)
+            .placeholder(placeHolder)
+            .fitCenter()
+            .into(imageView)
+    }
+
+
+    fun pdfToBitmap(file: File): Bitmap? {
+        var bitmap: Bitmap? = null
+        var fileDescriptor: ParcelFileDescriptor? = null
+        var renderer: PdfRenderer? = null
+
+        try {
+            fileDescriptor =
+                ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
+            renderer = PdfRenderer(fileDescriptor)
+
+            if (renderer.pageCount >= 0) {
+                val page = renderer.openPage(0)
+                bitmap = Bitmap.createBitmap(page.width, page.height, Bitmap.Config.ARGB_8888)
+                page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                page.close()
+                renderer.close()
+                fileDescriptor?.close()
+            }
+        } catch (e: IOException) {
+            return null
+        }
+        return bitmap
     }
 }

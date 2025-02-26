@@ -71,6 +71,7 @@ dependencies {
     implementation(libs.dagger.hilt.android) // Hilt runtime
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.core.splashscreen)
+    implementation(libs.glide)
 
     // room-db
     implementation(libs.room.runtime)
