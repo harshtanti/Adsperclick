@@ -17,10 +17,12 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.navGraphViewModels
 import com.adsperclick.media.R
 import com.adsperclick.media.applicationCommonView.TokenManager
+import com.adsperclick.media.applicationCommonView.bottomsheet.UploadImageDocsBottomSheet
 import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.GroupUser
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.databinding.FragmentNewGroupBinding
+import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.UtilityFunctions
 import com.adsperclick.media.utils.gone
 import com.adsperclick.media.views.chat.viewmodel.NewGroupViewModel
@@ -34,6 +36,8 @@ import javax.inject.Inject
 class NewGroupFragment : Fragment(),View.OnClickListener {
 
     private lateinit var binding: FragmentNewGroupBinding
+    private val uploadSelectListener:UploadImageDocsBottomSheet.OnSelectListener? = null
+    private val selectedTypeList = arrayListOf<String>(Constants.IMAGE)
 
     @Inject
     lateinit var tokenManager : TokenManager
@@ -86,6 +90,7 @@ class NewGroupFragment : Fragment(),View.OnClickListener {
 
     private fun setUpClickListener(){
         binding.submitButton.setOnClickListener(this)
+        binding.btnImage.setOnClickListener(this)
     }
     private fun setUpOnChangeListener(){
         binding.groupName.getEditView().doAfterTextChanged{
@@ -223,6 +228,10 @@ class NewGroupFragment : Fragment(),View.OnClickListener {
                 if (areFixedDetailsValid()) {
                     saveUserDetails()
                 }
+            }
+            binding.btnImage -> {
+                val bottomSheet = UploadImageDocsBottomSheet().newInstance(uploadSelectListener,selectedTypeList)
+                bottomSheet.show(childFragmentManager, bottomSheet.tag)
             }
         }
     }

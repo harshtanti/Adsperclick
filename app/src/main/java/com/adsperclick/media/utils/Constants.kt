@@ -1,5 +1,8 @@
 package com.adsperclick.media.utils
 
+import android.Manifest
+import android.os.Build
+
 object Constants {
 
     const val TOKEN_FOR_PREFS = "token_prefs"
@@ -41,6 +44,55 @@ object Constants {
 
 
     const val CLICKED_GROUP = "Jis group ko click kia"
+
+    const val APPLICATION_PDF = "application/pdf"
+    const val IMAGE = "image/*"
+    const val JPG = ".jpg"
+    const val FILES = "files"
+    const val yyyyMMdd_HHmmss = "yyyyMMdd_HHmmss"
+    const val BACK_SLASH = "/"
+    const val DASH = "-"
+
+    val REQUIRED_PERMISSIONS_CAMERA  = when {
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> {
+            arrayListOf(
+                Manifest.permission.CAMERA
+            )
+        }
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
+            arrayListOf(
+                Manifest.permission.CAMERA,
+                Manifest.permission.READ_MEDIA_IMAGES
+            )
+        }
+        else -> {
+            arrayListOf(
+                Manifest.permission.CAMERA,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            )
+        }
+    }
+
+    val REQUIRED_PERMISSIONS_GALLERY_PERMISSION  = when {
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> {
+            arrayListOf(
+                Manifest.permission.READ_MEDIA_IMAGES,
+                Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED
+            )
+        }
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
+            arrayListOf(
+                Manifest.permission.READ_MEDIA_IMAGES
+            )
+        }
+        else -> {
+            arrayListOf(
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            )
+        }
+    }
 
 
     object DB{
