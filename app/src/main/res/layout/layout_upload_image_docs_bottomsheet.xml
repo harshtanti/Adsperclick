@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="@dimen/DP10"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/btn_close"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/close_blue"
+        android:layout_marginHorizontal="@dimen/DP10"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/tvTitle"
+        app:layout_constraintBottom_toBottomOf="@id/tvTitle"/>
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tvTitle"
+        android:layout_width="@dimen/DP0"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/DP10"
+        android:textSize="@dimen/SP16"
+        android:gravity="center"
+        android:textColor="@color/black"
+        android:text="@string/profile_photo"
+        app:layout_constraintStart_toEndOf="@id/btn_close"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btn_delete"/>
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/btn_delete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/DP10"
+        android:background="@drawable/delete_blue"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/tvTitle"
+        app:layout_constraintBottom_toBottomOf="@id/tvTitle"/>
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/btn_camera"
+        android:layout_width="@dimen/DP50"
+        android:layout_height="@dimen/DP50"
+        android:layout_marginTop="@dimen/DP20"
+        android:background="@drawable/blue_border"
+        android:src="@drawable/blue_photo_camera"
+        android:scaleType="centerInside"
+        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize50Percent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_close"
+        app:layout_constraintEnd_toStartOf="@id/btn_gallery"/>
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/btn_gallery"
+        android:layout_width="@dimen/DP50"
+        android:layout_height="@dimen/DP50"
+        android:layout_marginTop="@dimen/DP20"
+        android:background="@drawable/blue_border"
+        android:src="@drawable/blue_image"
+        android:scaleType="centerInside"
+        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize50Percent"
+        app:layout_constraintStart_toEndOf="@id/btn_camera"
+        app:layout_constraintTop_toBottomOf="@id/btn_close"
+        app:layout_constraintEnd_toStartOf="@id/btn_doc"/>
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/btn_doc"
+        android:layout_width="@dimen/DP50"
+        android:layout_height="@dimen/DP50"
+        android:layout_marginTop="@dimen/DP20"
+        android:background="@drawable/blue_border"
+        android:src="@drawable/blue_pdf"
+        android:scaleType="centerInside"
+        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize50Percent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/btn_gallery"
+        app:layout_constraintTop_toBottomOf="@id/btn_close" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

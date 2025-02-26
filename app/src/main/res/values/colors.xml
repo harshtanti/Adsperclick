@@ -179,5 +179,6 @@
     <color name="blue_call">#0084FE</color>
     <color name="red_email">#FE294D</color>
     <color name="green_info">#5AD439</color>
+    <color name="blue_button_close">#007AFF</color>
 
 </resources>

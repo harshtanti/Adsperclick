@@ -39,10 +39,10 @@ class CommonAdapter: PagingDataAdapter<CommonData, CommonAdapter.ViewHolder>(Dif
                         imgProfileDp.setImageDrawable(drawable)
                     }
                     when(bucketName){
-                        Constants.EMPLOYEES_SEMI_CAPS, Constants.CLIENTS_SEMI_CAPS -> {
+                        Constants.EMPLOYEES_SEMI_CAPS, Constants.CLIENTS_SEMI_CAPS, Constants.COMPANIES_SEMI_CAPS -> {
                             btnInfo.visible()
                         }
-                        Constants.SERVICES_SEMI_CAPS, Constants.COMPANIES_SEMI_CAPS -> {
+                        Constants.SERVICES_SEMI_CAPS -> {
                             btnDelete.visible()
                         }
                         else ->{

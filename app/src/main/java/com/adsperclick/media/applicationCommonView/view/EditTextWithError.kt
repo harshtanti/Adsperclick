@@ -56,6 +56,10 @@ class EditeTextWithError : ConstraintLayout {
         return binding.edittext
     }
 
+    fun getInputView(): TextInputLayout {
+        return binding.inputLayout
+    }
+
     fun setInputType(inputType: Int) {
         binding.edittext.inputType = inputType
     }

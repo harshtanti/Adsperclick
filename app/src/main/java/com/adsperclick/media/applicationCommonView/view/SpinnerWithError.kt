@@ -33,7 +33,7 @@ class SpinnerWithError : ConstraintLayout {
     private fun setOnClickListener() {
         with(binding){
             spinnerLayout.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
-                setVisibilityOfError(View.GONE)
+                setVisibilityOfError(View.INVISIBLE)
             }
 
             spinnerLayout.threshold = 0

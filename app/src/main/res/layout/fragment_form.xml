@@ -7,6 +7,17 @@
     tools:context=".views.user.fragment.CommonFragment"
     android:backgroundTint="@color/white">
 
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="40dp"
+        android:layout_height="50dp"
+        android:layout_marginEnd="@dimen/DP10"
+        android:backgroundTint="@color/transparent"
+        android:src="@drawable/ic_arrow_back_blue"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/title"
+        app:layout_constraintBottom_toBottomOf="@id/title"/>
+
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/title"
         android:layout_width="wrap_content"
@@ -61,13 +72,22 @@
                 app:layout_constraintTop_toBottomOf="@id/first_name"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
+            <com.adsperclick.media.applicationCommonView.view.SpinnerWithError
+                android:id="@+id/select_company"
+                android:layout_width="@dimen/DP0"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/DP10"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/company_name"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
             <com.adsperclick.media.applicationCommonView.view.EditeTextWithError
                 android:id="@+id/gst"
                 android:layout_width="@dimen/DP0"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/DP10"
                 android:visibility="gone"
-                app:layout_constraintTop_toBottomOf="@id/company_name"
+                app:layout_constraintTop_toBottomOf="@id/select_company"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
             <com.adsperclick.media.applicationCommonView.view.EditeTextWithError
@@ -107,7 +127,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
             <com.adsperclick.media.applicationCommonView.view.EditeTextWithError
-                android:id="@+id/services"
+                android:id="@+id/services_subscribed"
                 android:layout_width="@dimen/DP0"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/DP10"
@@ -121,7 +141,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/DP10"
                 android:visibility="gone"
-                app:layout_constraintTop_toBottomOf="@id/services"
+                app:layout_constraintTop_toBottomOf="@id/services_subscribed"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
 
@@ -136,7 +156,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:visibility="gone"
-                app:constraint_referenced_ids="first_name,last_name,company_name,gst,email,password,confirm_password"/>
+                app:constraint_referenced_ids="first_name,last_name,select_company,gst,email,password,confirm_password"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.core.widget.NestedScrollView>
