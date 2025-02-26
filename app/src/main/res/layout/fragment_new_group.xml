@@ -24,6 +24,19 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize50Percent" />
 
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/btnImage"
+        android:layout_width="@dimen/DP40"
+        android:layout_height="@dimen/DP40"
+        android:background="@color/blue_call"
+        android:layout_marginBottom="@dimen/DP5"
+        android:layout_marginEnd="@dimen/DP5"
+        android:src="@drawable/white_photo_camera"
+        android:scaleType="centerInside"
+        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize50Percent"
+        app:layout_constraintEnd_toEndOf="@id/imgProfileDp"
+        app:layout_constraintBottom_toBottomOf="@id/imgProfileDp"/>
+
     <com.adsperclick.media.applicationCommonView.view.EditeTextWithError
         android:id="@+id/group_name"
         android:layout_width="@dimen/DP0"

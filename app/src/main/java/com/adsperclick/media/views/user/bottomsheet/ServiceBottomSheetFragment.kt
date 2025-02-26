@@ -1,19 +1,14 @@
 package com.adsperclick.media.views.user.bottomsheet
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.adsperclick.media.data.dataModels.CommonData
-import com.adsperclick.media.data.dataModels.NetworkResult
-import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.databinding.FragmentServiceBottomSheetBinding
 import com.adsperclick.media.views.user.adapter.SelectServiceAdapter
-import com.adsperclick.media.views.user.viewmodel.UserViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 
@@ -47,9 +42,22 @@ class ServiceBottomSheetFragment : BottomSheetDialogFragment(),View.OnClickListe
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setUpBottomSheetState()
         setUpClickListener()
         markAlreadySelected()
         setUpAdapter()
+        setupSearch()
+    }
+
+    private fun setUpBottomSheetState(){
+        dialog?.let { dialog ->
+            val bottomSheet = dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+            bottomSheet?.let {
+                val behavior = com.google.android.material.bottomsheet.BottomSheetBehavior.from(it)
+                behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
+                behavior.peekHeight = resources.displayMetrics.heightPixels
+            }
+        }
     }
 
     private fun setUpClickListener(){
@@ -82,9 +90,32 @@ class ServiceBottomSheetFragment : BottomSheetDialogFragment(),View.OnClickListe
         }
     }
 
+    private fun setupSearch() {
+        binding.etSearchBar.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                filterList(s.toString()) // Call filter function
+            }
+
+            override fun afterTextChanged(s: Editable?) {}
+        })
+    }
+
+    private fun filterList(query: String) {
+        val newFilteredList = if (query.length<3) {
+            dataList
+        } else {
+            dataList.filter { it.name?.contains(query, ignoreCase = true) == true }
+        }
+
+        adapter.submitList(newFilteredList.toList())
+    }
+
     override fun onClick(v: View?) {
         when(v){
             binding.btnClose ->{
+                multiSelectListener.onMultiSelect(bucketName,selectedDataList)
                 this.dismiss()
             }
             binding.submitButton -> {
