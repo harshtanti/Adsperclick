@@ -89,14 +89,6 @@ class ChatFragment : Fragment(),View.OnClickListener {
         binding.rvHorizontalForServiceList.adapter = horizontalServiceListAdapter
 
 
-
-        val groupChatList = listOf(GroupChatListingData("1", "Harsh Company"),
-            GroupChatListingData("2", "Sigma Bois and Furnitures", null, null, null,listOf(GroupUser("1", 2)), lastSentMsg = Message("69", "Hello Harsh", "1")),
-            GroupChatListingData("3", "Saumya Coffee", null, null,null, listOf(GroupUser("1", 2)), lastSentMsg = Message("68", "Hello Wet ass pussy", "1")),
-            GroupChatListingData("4", "Jay", null, null,null, listOf(GroupUser("1", 2)), lastSentMsg = Message("68", "Nigger Man", "1")),
-            GroupChatListingData("5", "BholeShopper", null, null,null, listOf(GroupUser("1", 2)), lastSentMsg = Message("68", "DumbFuck", "1"))
-        )
-
         chatGroupListAdapter = ChatGroupListAdapter(object : ChatGroupListAdapter.OnGroupChatClickListener{
             override fun onItemClick(groupChat : GroupChatListingData) {
                 Toast.makeText(context, "You clicked ${groupChat.groupName}!", Toast.LENGTH_SHORT).show()
@@ -110,7 +102,6 @@ class ChatFragment : Fragment(),View.OnClickListener {
                 findNavController().navigate(R.id.action_navigation_chat_to_messagingFragment, bundle)
             }
         })
-        chatGroupListAdapter.submitList(groupChatList)
         binding.rvGroupChatList.adapter = chatGroupListAdapter
     }
 
@@ -158,9 +149,6 @@ class ChatFragment : Fragment(),View.OnClickListener {
         chatViewModel.listOfGroupChatLiveData.observe(viewLifecycleOwner){response->
             when(response){
                 is NetworkResult.Success ->{
-//                    if(response.data?.isNotEmpty()){
-//                        chatGroupListAdapter.submitList(response.data)
-//                    }
                     response.data?.let {
                         if(it.isNotEmpty()) chatGroupListAdapter.submitList(it)
                     }

@@ -15,6 +15,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import kotlin.math.abs
+import kotlin.math.absoluteValue
 
 object UtilityFunctions {
 
@@ -150,5 +151,24 @@ object UtilityFunctions {
     // Convert Firestore Timestamp to Long (milliseconds)
     fun timestampToLong(timestamp: Timestamp?): Long {
         return timestamp?.toDate()?.time ?: 0L
+    }
+
+    val senderColors = listOf(
+        Color.parseColor("#137333"), // Dark Green
+        Color.parseColor("#174EA6"), // Dark Blue
+        Color.parseColor("#B06000"), // Dark Orange
+        Color.parseColor("#5E35B1"), // Dark Purple
+        Color.parseColor("#C5221F")  // Dark Red
+    )
+
+    fun getSenderColor(userId: String?): Int {
+        val index = userId.hashCode().absoluteValue % senderColors.size
+        return senderColors[index]
+    }
+
+    fun formatMessageTimestamp(timestamp: Long): String {
+        val date = Date(timestamp)
+        val formatter = SimpleDateFormat("hh:mm a", Locale.getDefault()) // Example: 01:45 PM
+        return formatter.format(date)
     }
 }

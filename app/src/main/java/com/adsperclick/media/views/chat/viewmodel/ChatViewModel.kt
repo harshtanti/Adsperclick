@@ -1,13 +1,13 @@
 package com.adsperclick.media.views.chat.viewmodel
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.adsperclick.media.data.dataModels.GroupChatListingData
+import com.adsperclick.media.data.dataModels.Message
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.NotificationMsg
 import com.adsperclick.media.data.dataModels.User
@@ -15,12 +15,6 @@ import com.adsperclick.media.data.repositories.AuthRepository
 import com.adsperclick.media.data.repositories.ChatRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -68,6 +62,38 @@ class ChatViewModel@Inject constructor(private val chatRepository: ChatRepositor
         }
     }
 
+    private val _groupId = MutableLiveData<String>()
+
+    val messages: LiveData<List<Message>> = _groupId.switchMap { roomId ->
+        chatRepository.getChatsForRoom(roomId)
+    }
+
+    fun setGroupId(roomId: String) {
+        _groupId.value = roomId
+    }
+
+
+    fun fetchAllNewMessages(groupId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            chatRepository.fetchAllNewMessages(groupId)
+        }
+    }
+
+    fun stopRealtimeListening(){
+        viewModelScope.launch(Dispatchers.IO) {
+            chatRepository.stopRealtimeListening()
+        }
+    }
+
+    fun sendMessage(text: String, groupId: String, currentUser: User) {
+        viewModelScope.launch(Dispatchers.IO) {
+            chatRepository.sendMessage(
+                msgText = text,
+                groupId = groupId,
+                user = currentUser
+            )
+        }
+    }
 
     val notificationsPager = chatRepository.getNotificationPager().flow.cachedIn(viewModelScope)
 
