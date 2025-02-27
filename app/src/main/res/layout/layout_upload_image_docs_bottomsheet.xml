@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
     android:padding="@dimen/DP10"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
@@ -13,7 +14,8 @@
         android:layout_marginHorizontal="@dimen/DP10"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/tvTitle"
-        app:layout_constraintBottom_toBottomOf="@id/tvTitle"/>
+        app:layout_constraintBottom_toBottomOf="@id/tvTitle"
+        tools:visibility="visible"/>
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/tvTitle"
@@ -26,7 +28,8 @@
         android:text="@string/profile_photo"
         app:layout_constraintStart_toEndOf="@id/btn_close"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/btn_delete"/>
+        app:layout_constraintEnd_toStartOf="@id/btn_delete"
+        tools:visibility="visible"/>
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/btn_delete"
@@ -34,9 +37,11 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/DP10"
         android:background="@drawable/delete_blue"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/tvTitle"
-        app:layout_constraintBottom_toBottomOf="@id/tvTitle"/>
+        app:layout_constraintBottom_toBottomOf="@id/tvTitle"
+        tools:visibility="visible"/>
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/btn_camera"
@@ -45,11 +50,13 @@
         android:layout_marginTop="@dimen/DP20"
         android:background="@drawable/blue_border"
         android:src="@drawable/blue_photo_camera"
+        android:visibility="gone"
         android:scaleType="centerInside"
         app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize50Percent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/btn_close"
-        app:layout_constraintEnd_toStartOf="@id/btn_gallery"/>
+        app:layout_constraintEnd_toStartOf="@id/btn_gallery"
+        tools:visibility="visible"/>
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/btn_gallery"
@@ -57,12 +64,14 @@
         android:layout_height="@dimen/DP50"
         android:layout_marginTop="@dimen/DP20"
         android:background="@drawable/blue_border"
+        android:visibility="gone"
         android:src="@drawable/blue_image"
         android:scaleType="centerInside"
         app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize50Percent"
         app:layout_constraintStart_toEndOf="@id/btn_camera"
         app:layout_constraintTop_toBottomOf="@id/btn_close"
-        app:layout_constraintEnd_toStartOf="@id/btn_doc"/>
+        app:layout_constraintEnd_toStartOf="@id/btn_doc"
+        tools:visibility="visible"/>
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/btn_doc"
@@ -70,11 +79,28 @@
         android:layout_height="@dimen/DP50"
         android:layout_marginTop="@dimen/DP20"
         android:background="@drawable/blue_border"
+        android:visibility="gone"
         android:src="@drawable/blue_pdf"
         android:scaleType="centerInside"
         app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize50Percent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/btn_gallery"
-        app:layout_constraintTop_toBottomOf="@id/btn_close" />
+        app:layout_constraintTop_toBottomOf="@id/btn_close"
+        tools:visibility="visible"/>
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/btn_video"
+        android:layout_width="@dimen/DP50"
+        android:layout_height="@dimen/DP50"
+        android:layout_marginTop="@dimen/DP20"
+        android:visibility="gone"
+        android:background="@drawable/blue_border"
+        android:src="@drawable/blue_video"
+        android:scaleType="centerInside"
+        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize50Percent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_camera"
+        app:layout_constraintEnd_toStartOf="@id/btn_gallery"
+        tools:visibility="visible"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

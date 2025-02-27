@@ -31,6 +31,12 @@ import java.util.Date
 import java.util.Locale
 import java.util.UUID
 import kotlin.math.abs
+import android.media.MediaMetadataRetriever
+import android.media.ThumbnailUtils
+import android.provider.MediaStore
+import android.webkit.MimeTypeMap
+import java.nio.file.Files
+import java.nio.file.Paths
 import kotlin.math.absoluteValue
 
 object UtilityFunctions {
@@ -237,65 +243,142 @@ object UtilityFunctions {
     }
 
 
-    fun saveFileFromUri(context: Context, uri: Uri): File? {
-        val initialStream = context.contentResolver.openInputStream(uri) ?: return null
-        val docFile = DocumentFile.fromSingleUri(context, uri)
-        val buffer = ByteArray(initialStream.available())
-        initialStream.read(buffer)
-        val targetFile = createTempFile(context, docFile?.name)
-        val outStream = FileOutputStream(targetFile)
-        outStream.write(buffer)
-        return targetFile
+// Inside the UtilityFunctions object, add these methods:
+
+    /**
+     * Checks if the file is a video based on its extension
+     */
+    fun isVideoFile(file: File): Boolean {
+        val extension = file.extension.lowercase(Locale.ROOT)
+        return extension in listOf("mp4", "avi", "mov", "mkv", "3gp", "webm")
+    }
+
+    /**
+     * Gets the MIME type of a file
+     */
+    fun getMimeType(file: File): String? {
+        val extension = MimeTypeMap.getFileExtensionFromUrl(file.path)
+        return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+    }
+
+    /**
+     * Creates a video file
+     */
+    fun createVideoFile(context: Context): File {
+        val timeStamp: String = SimpleDateFormat(CURRENT_DATE_FORMAT, Locale.getDefault()).format(Date())
+        val storageDir: File? = context.getExternalFilesDir(Environment.DIRECTORY_MOVIES)
+        return File.createTempFile(
+            "VID_${timeStamp}_",
+            ".mp4",
+            storageDir
+        )
     }
 
     private fun createTempFile(context: Context, name: String?): File {
         val storageDir =
             context.externalCacheDir ?: context.getExternalFilesDir(null) ?: context.cacheDir
+
         val fileName: String = if (name != null && name.isNotEmpty()) {
             "${Date().time}-$name".replace(Constants.BACK_SLASH, Constants.DASH)
         } else {
             "${UUID.randomUUID()}"
         }
-        val path = "$storageDir/$fileName"
-        val targetFile = File(path)
-        if (!targetFile.exists()) {
-            targetFile.createNewFile()
+
+        // Using Java's File.createTempFile instead of Kotlin's deprecated function
+        return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            // For Android O and above, use the nio Files API
+            val prefix = "temp_${Date().time}_"
+            val suffix = if (name != null) "_$name" else null
+            val path = Files.createTempFile(Paths.get(storageDir.path), prefix, suffix)
+            path.toFile()
+        } else {
+            // For older Android versions, use Java's File.createTempFile with appropriate permissions
+            val tempFile = java.io.File.createTempFile("temp_${Date().time}_",
+                if (name != null) "_$name" else null,
+                storageDir)
+
+            // Set permissions to be more restrictive (readable/writable only by the app)
+            tempFile.setReadable(true, true)  // Readable only by owner
+            tempFile.setWritable(true, true)  // Writable only by owner
+            tempFile
         }
-        return targetFile
     }
 
-    fun setImageOnImageViewWithGlide(context: Context, glideUrl: GlideUrl, imageView: ImageView, errorImage : Int =  R.drawable.baseline_person_24, placeHolder:Int= R.drawable.baseline_person_24){
-        Glide.with(context)
-            .load(glideUrl)
-            .error(errorImage)
-            .placeholder(placeHolder)
-            .fitCenter()
-            .into(imageView)
-    }
-
-
-    fun pdfToBitmap(file: File): Bitmap? {
-        var bitmap: Bitmap? = null
-        var fileDescriptor: ParcelFileDescriptor? = null
-        var renderer: PdfRenderer? = null
-
-        try {
-            fileDescriptor =
-                ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
-            renderer = PdfRenderer(fileDescriptor)
-
-            if (renderer.pageCount >= 0) {
-                val page = renderer.openPage(0)
-                bitmap = Bitmap.createBitmap(page.width, page.height, Bitmap.Config.ARGB_8888)
-                page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
-                page.close()
-                renderer.close()
-                fileDescriptor?.close()
+    /**
+     * Gets a thumbnail from a video file
+     */
+    fun getVideoThumbnail(context: Context, videoFile: File): Bitmap? {
+        return try {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                ThumbnailUtils.createVideoThumbnail(videoFile, android.util.Size(320, 240), null)
+            } else {
+                val retriever = MediaMetadataRetriever()
+                retriever.setDataSource(videoFile.path)
+                val frame = retriever.getFrameAtTime(1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                retriever.release()
+                frame
             }
-        } catch (e: IOException) {
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    /**
+     * Updated saveFileFromUri method to handle both images and videos
+     */
+    fun saveFileFromUri(context: Context, uri: Uri): File? {
+        try {
+            val initialStream = context.contentResolver.openInputStream(uri) ?: return null
+            val docFile = DocumentFile.fromSingleUri(context, uri)
+            val mimeType = context.contentResolver.getType(uri)
+
+            // Create appropriate file based on type
+            val targetFile = if (mimeType?.startsWith("video/") == true) {
+                createVideoFile(context)
+            } else if (mimeType?.startsWith("image/") == true) {
+                createImageFile(context)
+            } else {
+                // For PDFs and other files
+                createTempFile(context, docFile?.name)
+            }
+
+            // Copy the file data
+            val buffer = ByteArray(initialStream.available())
+            initialStream.read(buffer)
+            val outStream = FileOutputStream(targetFile)
+            outStream.write(buffer)
+            outStream.close()
+            initialStream.close()
+
+            // Compress if it's an image (don't compress videos)
+            return if (mimeType?.startsWith("image/") == true) {
+                compressFile(context, targetFile)
+            } else {
+                targetFile
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
             return null
         }
-        return bitmap
+    }
+
+    /**
+     * Add a method to load video thumbnails with Glide
+     */
+    fun setVideoThumbnailOnImageView(context: Context, videoFile: File, imageView: ImageView) {
+        val thumbnail = getVideoThumbnail(context, videoFile)
+        if (thumbnail != null) {
+            Glide.with(context)
+                .load(thumbnail)
+                .error(R.drawable.baseline_person_24)
+                .placeholder(R.drawable.baseline_person_24)
+                .fitCenter()
+                .into(imageView)
+        } else {
+            // If thumbnail extraction fails, load a video placeholder
+            imageView.setImageResource(R.drawable.baseline_person_24)  // Consider using a video-specific placeholder
+        }
     }
 
 
