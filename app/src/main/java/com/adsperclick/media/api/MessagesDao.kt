@@ -11,10 +11,10 @@ import com.adsperclick.media.data.dataModels.Message
 interface MessagesDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertMessage(message: Message)
+    /*suspend */fun insertMessage(message: Message)/* :Int*/
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertMessageList(messages: List<Message>)
+    /*suspend */fun insertMessageList(messages: List<Message>)/* :Int*/
 
     @Query("SELECT * FROM messages WHERE groupId = :roomId ORDER BY timestamp ASC")
     fun getChatsForThisRoom(roomId: String) : LiveData<List<Message>>
@@ -25,12 +25,12 @@ interface MessagesDao {
 
     // Below function is used when user enters a group-chat, it checks timestamp of last message
     // in Room-db from this group, if no message from this group is in room-db, it returns "0" using "COALESCE"
-    @Query("SELECT COALESCE(MAX(timestamp), 0) FROM messages WHERE groupId = :roomId")
-    fun getLatestMsgTimestampOrZero(roomId: String): Long
+    @Query("SELECT COALESCE(MAX(timestamp), 0) FROM messages WHERE groupId = :groupId")
+    /*suspend */fun getLatestMsgTimestampOrZero(groupId: String): Long?
 
-    @Query("SELECT * FROM messages WHERE groupId = :roomId ORDER BY timestamp DESC")
-    fun getPagedChatsForRoom(roomId: String): List<Message>
+    @Query("SELECT * FROM messages WHERE groupId = :groupId ORDER BY timestamp DESC")
+    /*suspend */fun getPagedChatsForRoom(groupId: String): List<Message>
 
-    @Query("SELECT COUNT(*) FROM messages WHERE groupId = :roomId")
-    fun getMessageCount(roomId: String): Int
+    @Query("SELECT COUNT(*) FROM messages WHERE groupId = :groupId")
+    /*suspend */fun getMessageCount(groupId: String): Int
 }

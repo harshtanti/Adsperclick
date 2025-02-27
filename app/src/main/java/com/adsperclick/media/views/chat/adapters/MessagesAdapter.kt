@@ -3,7 +3,6 @@ package com.adsperclick.media.views.chat.adapters
 import android.annotation.SuppressLint
 import android.graphics.Color
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -12,14 +11,24 @@ import com.adsperclick.media.R
 import com.adsperclick.media.data.dataModels.Message
 import com.adsperclick.media.databinding.ChatMsgItemIncomingBinding
 import com.adsperclick.media.databinding.ChatMsgItemOutgoingBinding
-import com.adsperclick.media.utils.Constants.TXT_MSG_TYPE.FIRST_MSG
-import com.adsperclick.media.utils.Constants.TXT_MSG_TYPE.LAST_MSG
-import com.adsperclick.media.utils.Constants.TXT_MSG_TYPE.MIDDLE_MSG
-import com.adsperclick.media.utils.Constants.TXT_MSG_TYPE.SINGLE_MSG
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import kotlin.math.absoluteValue
+import com.adsperclick.media.utils.Constants.ROLE.CLIENT
+import com.adsperclick.media.utils.Constants.TXT_MSG_TYPE.FIRST_MSG_BY_CURRENT_USER
+import com.adsperclick.media.utils.Constants.TXT_MSG_TYPE.FIRST_MSG_LEFT
+import com.adsperclick.media.utils.Constants.TXT_MSG_TYPE.FIRST_MSG_RIGHT
+import com.adsperclick.media.utils.Constants.TXT_MSG_TYPE.LAST_MSG_BY_CURRENT_USER
+import com.adsperclick.media.utils.Constants.TXT_MSG_TYPE.LAST_MSG_LEFT
+import com.adsperclick.media.utils.Constants.TXT_MSG_TYPE.LAST_MSG_RIGHT
+import com.adsperclick.media.utils.Constants.TXT_MSG_TYPE.MIDDLE_MSG_BY_CURRENT_USER
+import com.adsperclick.media.utils.Constants.TXT_MSG_TYPE.MIDDLE_MSG_LEFT
+import com.adsperclick.media.utils.Constants.TXT_MSG_TYPE.MIDDLE_MSG_RIGHT
+import com.adsperclick.media.utils.Constants.TXT_MSG_TYPE.SINGLE_MSG_BY_CURRENT_USER
+import com.adsperclick.media.utils.Constants.TXT_MSG_TYPE.SINGLE_MSG_LEFT
+import com.adsperclick.media.utils.Constants.TXT_MSG_TYPE.SINGLE_MSG_RIGHT
+import com.adsperclick.media.utils.UtilityFunctions
+import com.adsperclick.media.utils.UtilityFunctions.formatMessageTimestamp
+import com.adsperclick.media.utils.gone
+import com.adsperclick.media.utils.visible
+
 
 
 // Nomenclature of XML :
@@ -31,7 +40,13 @@ import kotlin.math.absoluteValue
 
 // For employee or admin it is the opposite :)
 
-class MessagesAdapter(private val currentUserId: String) :
+// So if the sender is an employee, all msgs sent by sender or other fellow employees will be displayed on the right
+// If sender is a client, then all msgs sent by him and other fellow client will be displayed on the right
+// So whoever you are , your's and your community member's messages will always be displyed on right.. Just like whatsapp!
+
+// Am using a variable "isClientOnRight" to decide on which side client should be and on other side rest others will be
+
+class MessagesAdapter(private val currentUserId: String, private val isClientOnRight: Boolean) :
     ListAdapter<Message, MessagesAdapter.ChatAdapterViewHolder>(DiffUtil()) {
 
     inner class ChatAdapterViewHolder(private val binding: ViewBinding) :
@@ -40,7 +55,7 @@ class MessagesAdapter(private val currentUserId: String) :
         @SuppressLint("SetTextI18n")
         fun bind(message: Message, msgRelativePosition: Int) {
 
-            val formattedDate = formatTimestamp(message.timestamp!!)
+            val formattedDate = formatMessageTimestamp(message.timestamp!!)
 
             when (binding) {
                 is ChatMsgItemIncomingBinding -> {
@@ -49,12 +64,12 @@ class MessagesAdapter(private val currentUserId: String) :
                         textMessageIncoming.text = message.message
                         tvTime.text = formattedDate
 
-                        if(msgRelativePosition == SINGLE_MSG || msgRelativePosition == FIRST_MSG){
+                        if(msgRelativePosition == SINGLE_MSG_LEFT || msgRelativePosition == FIRST_MSG_LEFT){
                             tvSenderName.text = message.senderName
-                            tvSenderName.visibility = View.VISIBLE
-                            tvSenderName.setTextColor(getSenderColor(message.senderId))
+                            tvSenderName.visible()
+                            tvSenderName.setTextColor(UtilityFunctions.getSenderColor(message.senderId))
                         } else {
-                            tvSenderName.visibility = View.GONE
+                            tvSenderName.gone()
                         }
 
                         val rootLayoutParams = root.layoutParams as ViewGroup.MarginLayoutParams
@@ -65,20 +80,20 @@ class MessagesAdapter(private val currentUserId: String) :
                         }
 
                         when(msgRelativePosition){
-                            FIRST_MSG -> {
+                            FIRST_MSG_LEFT -> {
                                 viewIncomingMsgs.setBackgroundResource(R.drawable.bubble_first_msg_grey_left)
                                 rootLayoutParams.topMargin = dpToPx(8)  // Extra margin for entire item
                             }
-                            MIDDLE_MSG -> {
+                            MIDDLE_MSG_LEFT -> {
                                 viewIncomingMsgs.setBackgroundResource(R.drawable.bubble_middle_msg_grey_left)
                                 rootLayoutParams.topMargin = dpToPx(0)  // Extra margin for entire item
 
                             }
-                            LAST_MSG -> {
+                            LAST_MSG_LEFT -> {
                                 viewIncomingMsgs.setBackgroundResource(R.drawable.bubble_last_msg_grey_left)
                                 rootLayoutParams.topMargin = dpToPx(0)  // Extra margin for entire item
                             }
-                            SINGLE_MSG -> {
+                            SINGLE_MSG_LEFT -> {
                                 viewIncomingMsgs.setBackgroundResource(R.drawable.bubble_single_msg_grey)
                                 rootLayoutParams.topMargin = dpToPx(8)  // Extra margin for entire item
                             }
@@ -91,12 +106,22 @@ class MessagesAdapter(private val currentUserId: String) :
                         textMessageOutgoing.text = message.message
                         tvTimeOutgoing.text = formattedDate
 
-                        if(msgRelativePosition == SINGLE_MSG || msgRelativePosition == FIRST_MSG){
+                        if(msgRelativePosition == SINGLE_MSG_RIGHT || msgRelativePosition == FIRST_MSG_RIGHT){
                             tvSenderNameOutgoing.text = message.senderName
-                            tvSenderNameOutgoing.visibility = View.VISIBLE
+                            tvSenderNameOutgoing.setTextColor(UtilityFunctions.getSenderColor(message.senderId))
+                            tvSenderNameOutgoing.visible()
                         } else {
-                            tvSenderNameOutgoing.visibility = View.GONE
+                            tvSenderNameOutgoing.gone()
                         }
+
+                        val textColor = when(msgRelativePosition){
+                            SINGLE_MSG_RIGHT, FIRST_MSG_RIGHT, MIDDLE_MSG_RIGHT, LAST_MSG_RIGHT -> Color.parseColor("#000000")
+                            else -> Color.parseColor("#ffffff")
+                        }
+
+                        textMessageOutgoing.setTextColor(textColor)
+                        tvTimeOutgoing.setTextColor(textColor)
+
 
                         val rootLayoutParams = root.layoutParams as ViewGroup.MarginLayoutParams
 
@@ -106,20 +131,37 @@ class MessagesAdapter(private val currentUserId: String) :
                         }
 
                         when (msgRelativePosition) {
-                            FIRST_MSG -> {
+                            FIRST_MSG_BY_CURRENT_USER -> {
                                 viewOutgoingMsgs.setBackgroundResource(R.drawable.bubble_first_msg_blue)
                                 rootLayoutParams.topMargin = dpToPx(8)  // Extra margin for entire item
                             }
-                            MIDDLE_MSG -> {
+                            MIDDLE_MSG_BY_CURRENT_USER -> {
                                 viewOutgoingMsgs.setBackgroundResource(R.drawable.bubble_middle_msg_blue)
                                 rootLayoutParams.topMargin = dpToPx(0)  // Extra margin for entire item
                             }
-                            LAST_MSG -> {
+                            LAST_MSG_BY_CURRENT_USER -> {
                                 viewOutgoingMsgs.setBackgroundResource(R.drawable.bubble_last_msg_blue)
                                 rootLayoutParams.topMargin = dpToPx(0)  // Extra margin for entire item
                             }
-                            SINGLE_MSG -> {
+                            SINGLE_MSG_BY_CURRENT_USER -> {
                                 viewOutgoingMsgs.setBackgroundResource(R.drawable.bubble_single_msg_blue)
+                                rootLayoutParams.topMargin = dpToPx(8)  // Extra margin for entire item
+                            }
+
+                            FIRST_MSG_RIGHT -> {
+                                viewOutgoingMsgs.setBackgroundResource(R.drawable.bubble_first_msg_dark_grey_right)
+                                rootLayoutParams.topMargin = dpToPx(8)  // Extra margin for entire item
+                            }
+                            MIDDLE_MSG_RIGHT-> {
+                                viewOutgoingMsgs.setBackgroundResource(R.drawable.bubble_middle_msg_dark_grey_right)
+                                rootLayoutParams.topMargin = dpToPx(0)  // Extra margin for entire item
+                            }
+                            LAST_MSG_RIGHT-> {
+                                viewOutgoingMsgs.setBackgroundResource(R.drawable.bubble_last_msg_dark_grey_right)
+                                rootLayoutParams.topMargin = dpToPx(0)  // Extra margin for entire item
+                            }
+                            SINGLE_MSG_RIGHT -> {
+                                viewOutgoingMsgs.setBackgroundResource(R.drawable.bubble_single_msg_dark_grey)
                                 rootLayoutParams.topMargin = dpToPx(8)  // Extra margin for entire item
                             }
                         }
@@ -149,9 +191,11 @@ class MessagesAdapter(private val currentUserId: String) :
     override fun getItemViewType(position: Int): Int {
         val message = getItem(position)
 
-        return if (message.senderId == currentUserId) {
-            VIEW_TYPE_OUTGOING
-        } else {
+        return if (message.senderId == currentUserId                // Current user should be on right
+            || (isClientOnRight && message.senderRole == CLIENT)    // client should be on right and current user is client
+            || (!isClientOnRight && message.senderRole != CLIENT)) {        // only client should be on left and current
+            VIEW_TYPE_OUTGOING                                      // user is not client, so current on right
+        } else{
             VIEW_TYPE_INCOMING
         }
     }
@@ -169,19 +213,40 @@ class MessagesAdapter(private val currentUserId: String) :
             false
         }
 
+        val keepThisMessageOnRight = (isClientOnRight && message.senderRole == CLIENT) || ((isClientOnRight.not() && message.senderRole != CLIENT))
+
         return when{
-            isPrevMsgBySameSender && isNextMsgBySameSender -> MIDDLE_MSG
-            isPrevMsgBySameSender -> /*LAST_MSG*/FIRST_MSG
-            isNextMsgBySameSender -> /*FIRST_MSG*/LAST_MSG
-            else -> SINGLE_MSG
+            isPrevMsgBySameSender && isNextMsgBySameSender -> {
+                when{
+                    message.senderId == currentUserId -> MIDDLE_MSG_BY_CURRENT_USER
+                    keepThisMessageOnRight -> MIDDLE_MSG_RIGHT
+                    else -> MIDDLE_MSG_LEFT
+                }
+            }
+            isPrevMsgBySameSender -> {
+                when{
+                    message.senderId == currentUserId -> LAST_MSG_BY_CURRENT_USER
+                    keepThisMessageOnRight -> LAST_MSG_RIGHT
+                    else -> LAST_MSG_LEFT
+                }
+            }
+            isNextMsgBySameSender -> {
+                when{
+                    message.senderId == currentUserId -> FIRST_MSG_BY_CURRENT_USER
+                    keepThisMessageOnRight -> FIRST_MSG_RIGHT
+                    else -> FIRST_MSG_LEFT
+                }
+            }
+            else -> {
+                when{
+                    message.senderId == currentUserId -> SINGLE_MSG_BY_CURRENT_USER
+                    keepThisMessageOnRight -> SINGLE_MSG_RIGHT
+                    else -> SINGLE_MSG_LEFT
+                }
+            }
         }
     }
 
-    fun formatTimestamp(timestamp: Long): String {
-        val date = Date(timestamp)
-        val formatter = SimpleDateFormat("hh:mm a", Locale.getDefault()) // Example: 01:45 PM
-        return formatter.format(date)
-    }
 
     class DiffUtil : androidx.recyclerview.widget.DiffUtil.ItemCallback<Message>() {
         override fun areItemsTheSame(oldItem: Message, newItem: Message): Boolean {
@@ -196,18 +261,5 @@ class MessagesAdapter(private val currentUserId: String) :
     companion object {
         private const val VIEW_TYPE_INCOMING = 1
         private const val VIEW_TYPE_OUTGOING = 2
-    }
-
-    val senderColors = listOf(
-        Color.parseColor("#137333"), // Dark Green
-        Color.parseColor("#174EA6"), // Dark Blue
-        Color.parseColor("#B06000"), // Dark Orange
-        Color.parseColor("#5E35B1"), // Dark Purple
-        Color.parseColor("#C5221F")  // Dark Red
-    )
-
-    fun getSenderColor(userId: String?): Int {
-        val index = userId.hashCode().absoluteValue % senderColors.size
-        return senderColors[index]
     }
 }

@@ -4,12 +4,16 @@ import android.util.Log
 import androidx.core.util.TimeUtils
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.adsperclick.media.api.MessagesDao
 import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.utils.Constants
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -23,6 +27,9 @@ class AuthRepository @Inject constructor() {
 
     @Inject
     lateinit var tokenManager : TokenManager
+
+    @Inject
+    lateinit var messagesDao : MessagesDao
 
 
     private val _loginLiveData = MutableLiveData<NetworkResult<User>>()
@@ -72,6 +79,10 @@ class AuthRepository @Inject constructor() {
 
     suspend fun signoutUser() {
         tokenManager.signOut()
+        CoroutineScope(Dispatchers.IO).launch{
+            messagesDao.clearAllMessages()
+        }
+
         clearFirestoreCache()
         firebaseAuth.signOut()
     }
