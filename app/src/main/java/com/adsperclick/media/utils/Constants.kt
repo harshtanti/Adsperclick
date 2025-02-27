@@ -2,6 +2,7 @@ package com.adsperclick.media.utils
 
 import android.Manifest
 import android.os.Build
+import android.provider.MediaStore.Video
 
 object Constants {
 
@@ -52,6 +53,11 @@ object Constants {
     const val yyyyMMdd_HHmmss = "yyyyMMdd_HHmmss"
     const val BACK_SLASH = "/"
     const val DASH = "-"
+    const val CAMERA_VISIBLE = "camera"
+    const val PDF_VISIBLE = "Doc"
+    const val GALLERY_VISIBLE = "gallery"
+    const val VIDEO_VISIBLE = "video"
+    const val DELETE_VISIBLE = "delete"
 
     val REQUIRED_PERMISSIONS_CAMERA  = when {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> {
