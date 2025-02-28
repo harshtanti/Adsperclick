@@ -25,7 +25,10 @@ import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.databinding.FragmentNewGroupBinding
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.UtilityFunctions
+import com.adsperclick.media.utils.disableSubmitButton
+import com.adsperclick.media.utils.enableSubmitButton
 import com.adsperclick.media.utils.gone
+import com.adsperclick.media.utils.visible
 import com.adsperclick.media.views.chat.viewmodel.NewGroupViewModel
 import com.bumptech.glide.Glide
 import dagger.hilt.android.AndroidEntryPoint
@@ -39,7 +42,7 @@ import javax.inject.Inject
 class NewGroupFragment : Fragment(),View.OnClickListener {
 
     private lateinit var binding: FragmentNewGroupBinding
-    private val selectedTypeList = arrayListOf(Constants.CAMERA_VISIBLE,Constants.GALLERY_VISIBLE,Constants.DELETE_VISIBLE,Constants.VIDEO_VISIBLE,Constants.PDF_VISIBLE)
+    private val selectedTypeList = arrayListOf(Constants.CAMERA_VISIBLE,Constants.GALLERY_VISIBLE,Constants.DELETE_VISIBLE)
 
     @Inject
     lateinit var tokenManager : TokenManager
@@ -93,6 +96,7 @@ class NewGroupFragment : Fragment(),View.OnClickListener {
     private fun setUpClickListener(){
         binding.submitButton.setOnClickListener(this)
         binding.btnImage.setOnClickListener(this)
+        binding.header.btnBack.setOnClickListener(this)
     }
     private fun setUpOnChangeListener(){
         binding.groupName.getEditView().doAfterTextChanged{
@@ -110,25 +114,12 @@ class NewGroupFragment : Fragment(),View.OnClickListener {
 
     private fun validateSubmitButton() {
         if (areFixedDetailsValid()) {
-            enableSubmitButton()
+            binding.submitButton.enableSubmitButton()
         } else {
-            disableSubmitButton()
+            binding.submitButton.disableSubmitButton()
         }
     }
 
-    private fun disableSubmitButton() {
-        binding.submitButton.backgroundTintList = ContextCompat.getColorStateList(
-            requireContext(), R.color.disabled_color
-        )
-        binding.submitButton.isEnabled = false
-    }
-
-    private fun enableSubmitButton() {
-        binding.submitButton.backgroundTintList = ContextCompat.getColorStateList(
-            requireContext(), R.color.blue_common_button
-        )
-        binding.submitButton.isEnabled = true
-    }
 
     private fun areFixedDetailsValid(): Boolean {
         with(binding) {
@@ -164,26 +155,31 @@ class NewGroupFragment : Fragment(),View.OnClickListener {
             listOfUsers = userListWithRoles,
             lastSentMsg = null
         )
-        viewModel.createGroup(groupData)
+        viewModel.selectedImageFile?.let { viewModel.createGroup(groupData, it) }
     }
 
     private fun setUpObserver(){
         viewModel.createGroupLiveData.observe(viewLifecycleOwner,createGroupObserver)
     }
 
-    private val createGroupObserver = Observer<NetworkResult<GroupChatListingData>> {
+    private val createGroupObserver = Observer<NetworkResult<Boolean>> {
         when(it){
 
             is NetworkResult.Success ->{
                 successMessage()
+                binding.progressBar.gone()
             }
 
             is NetworkResult.Error ->{
                 failedMessage()
                 Toast.makeText(context, "Error: ${it.message}", Toast.LENGTH_SHORT).show()
+                binding.progressBar.gone()
             }
 
-            is NetworkResult.Loading ->{}
+            is NetworkResult.Loading ->{
+                binding.progressBar.visible()
+
+            }
         }
     }
 
@@ -232,15 +228,13 @@ class NewGroupFragment : Fragment(),View.OnClickListener {
                     if (option.isNotEmpty()) {
                         val imageFile = File(option)
                         if (imageFile.exists()) {
-                            // Load image using the file path
+                            // Just store the file for later upload
+                            viewModel.selectedImageFile = imageFile
+
+                            // Load image preview
                             loadImageIntoView(imageFile)
                         }
                     }
-                }
-                UploadImageDocsBottomSheet.UploadMethod.PDF -> {
-                    // Handle PDF if needed
-                    // For example, you could show a PDF icon instead
-                    binding.imgProfileDp.setImageResource(R.drawable.baseline_person_24) // Replace with your PDF icon
                 }
                 else -> {
                     // Reset the image if NOTSELECTED or for error cases
@@ -300,6 +294,9 @@ class NewGroupFragment : Fragment(),View.OnClickListener {
                 val bottomSheet = UploadImageDocsBottomSheet.createBottomsheet(
                     uploadOnSelectListener,selectedTypeList)
                 bottomSheet.show(childFragmentManager, bottomSheet.tag)
+            }
+            binding.header.btnBack ->{
+                findNavController().popBackStack()
             }
         }
     }

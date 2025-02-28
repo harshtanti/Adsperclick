@@ -24,6 +24,8 @@ import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.databinding.FragmentFormBinding
 import com.adsperclick.media.utils.Constants
+import com.adsperclick.media.utils.disableSubmitButton
+import com.adsperclick.media.utils.enableSubmitButton
 import com.adsperclick.media.utils.visible
 import com.adsperclick.media.views.user.bottomsheet.ServiceBottomSheetFragment
 import com.adsperclick.media.views.user.viewmodel.UserViewModel
@@ -247,24 +249,10 @@ class FormFragment : Fragment(),View.OnClickListener {
 
     fun validateSubmitButton() {
         if (areFixedDetailsValid(userType)) {
-            enableSubmitButton()
+            binding.submitButton.enableSubmitButton()
         } else {
-            disableSubmitButton()
+            binding.submitButton.disableSubmitButton()
         }
-    }
-
-    private fun disableSubmitButton() {
-        binding.submitButton.backgroundTintList = ContextCompat.getColorStateList(
-            requireContext(), R.color.disabled_color
-        )
-        binding.submitButton.isEnabled = false
-    }
-
-    private fun enableSubmitButton() {
-        binding.submitButton.backgroundTintList = ContextCompat.getColorStateList(
-            requireContext(), R.color.blue_common_button
-        )
-        binding.submitButton.isEnabled = true
     }
 
     private fun regexMatch(text:String,regexPattern:String): Boolean {
@@ -635,10 +623,8 @@ class FormFragment : Fragment(),View.OnClickListener {
         when(v){
             binding.submitButton -> {
                 if(areFixedDetailsValid(userType)){
-                    if (areFixedDetailsValid(userType)) {
-                        if (validatePasswords() && ( userType == Constants.CLIENTS_SEMI_CAPS || userType == Constants.EMPLOYEES_SEMI_CAPS)) {
-                            saveUserDetails(userType)
-                        }
+                    if (validatePasswords() && ( userType == Constants.CLIENTS_SEMI_CAPS || userType == Constants.EMPLOYEES_SEMI_CAPS)) {
+                        saveUserDetails(userType)
                     }
                 }
             }

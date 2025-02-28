@@ -35,6 +35,7 @@ import android.media.MediaMetadataRetriever
 import android.media.ThumbnailUtils
 import android.provider.MediaStore
 import android.webkit.MimeTypeMap
+import com.adsperclick.media.data.dataModels.GroupChatListingData
 import java.nio.file.Files
 import java.nio.file.Paths
 import kotlin.math.absoluteValue
@@ -379,5 +380,35 @@ object UtilityFunctions {
             // If thumbnail extraction fails, load a video placeholder
             imageView.setImageResource(R.drawable.baseline_person_24)  // Consider using a video-specific placeholder
         }
+    }
+
+    fun loadImageWithGlide(
+        context: Context,
+        imageView: ImageView,
+        imageUrl: String?,
+        placeholderId: Int = R.drawable.baseline_person_24,
+        errorId: Int = R.drawable.baseline_person_24
+    ) {
+        if (imageUrl.isNullOrEmpty()) {
+            imageView.setImageResource(placeholderId)
+            return
+        }
+
+        Glide.with(context)
+            .load(imageUrl)
+            .placeholder(placeholderId)
+            .error(errorId)
+            .centerCrop()
+            .into(imageView)
+    }
+
+    fun setInitialsDrawable(imageView: ImageView, name:String?) {
+        if (name.isNullOrEmpty()) {
+            imageView.setImageResource(R.drawable.baseline_person_24)
+            return
+        }
+        val drawable = generateInitialsDrawable(
+            imageView.context, name ?: "NA")
+        imageView.setImageDrawable(drawable)
     }
 }

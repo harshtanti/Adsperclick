@@ -12,6 +12,16 @@
         android:id="@+id/header"
         layout="@layout/toolbar_layout" />
 
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/imgProfileDp"
         android:layout_width="@dimen/DP150"
@@ -69,6 +79,16 @@
         app:layout_constraintTop_toBottomOf="@id/service_name"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <ProgressBar
+        android:id="@+id/progressImageUpload"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="@+id/imgProfileDp"
+        app:layout_constraintBottom_toBottomOf="@+id/imgProfileDp"
+        app:layout_constraintStart_toStartOf="@+id/imgProfileDp"
+        app:layout_constraintEnd_toEndOf="@+id/imgProfileDp" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

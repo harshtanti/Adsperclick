@@ -21,6 +21,9 @@ import com.adsperclick.media.views.user.viewmodel.UserViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import android.app.AlertDialog
+import android.widget.Toast
+import com.adsperclick.media.data.dataModels.NetworkResult
 
 private const val ARG_PARAM1 = "param1"
 
@@ -81,24 +84,11 @@ class CommonFragment : Fragment(), View.OnClickListener {
     private fun setUpAdapter(){
         adapter= CommonAdapter()
         listener = object :CommonAdapter.CommunityListener{
-            override fun btnDelete(bucketName:String, id:String) {
+            override fun btnDelete(bucketName:String, id:String, name:String) {
                 if(!(bucketName == "null" || id == "null")){
                     when(tabName){
                         Constants.SERVICES_SEMI_CAPS -> {
-                            // Remove item from serviceList
-//                            serviceList = serviceList.filter { it.id != id }
-//                            adapter.submitList(serviceList)
-                        }
-                        Constants.COMPANIES_SEMI_CAPS -> {
-                            // Remove item from companyList
-//                            companyList = companyList.filter { it.id != id }
-//                            adapter.submitList(companyList)
-                        }
-                        Constants.EMPLOYEES_SEMI_CAPS->{
-
-                        }
-                        Constants.CLIENTS_SEMI_CAPS -> {
-
+                            showDeleteConfirmationDialog(name, id)
                         }
                         else -> {
                             // Handle other cases if needed
@@ -128,6 +118,45 @@ class CommonFragment : Fragment(), View.OnClickListener {
         adapter.setData(tabName,listener)
         binding.rvUser.adapter=adapter
         collectUiData(searchTxt,tabName)
+    }
+
+    private fun showDeleteConfirmationDialog(serviceName: String, serviceId: String) {
+        val alertDialog = AlertDialog.Builder(requireContext())
+            .setTitle("Delete Service")
+            .setMessage("Are you sure you want to delete $serviceName?")
+            .setPositiveButton("Delete") { dialog, _ ->
+                // Call your ViewModel method to delete the service
+                userViewModel.deleteService(serviceId).observe(viewLifecycleOwner) { result ->
+                    when (result) {
+                        is NetworkResult.Success -> {
+                            Toast.makeText(
+                                requireContext(),
+                                "Service deleted successfully",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            // Refresh the list
+                            collectUiData(searchTxt, tabName)
+                        }
+                        is NetworkResult.Error -> {
+                            Toast.makeText(
+                                requireContext(),
+                                "Error deleting service: ${result.message}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        is NetworkResult.Loading -> {
+                            // Show loading if needed
+                        }
+                    }
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .create()
+
+        alertDialog.show()
     }
 
     private fun setUpSearching(){
