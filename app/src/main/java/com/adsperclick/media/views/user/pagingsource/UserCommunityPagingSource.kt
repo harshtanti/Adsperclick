@@ -42,13 +42,21 @@ class UserCommunityPagingSource @Inject constructor(
             }
 
             val userList = currentPage.documents.map { document ->
-                CommonData(
-                    id = document.getString("userId"),
-                    name = document.getString("userName"),
-                    tagName = document.getString("gstNumber"),
-                    imgUrl = document.getString("userProfileImgUrl")
-
-                )
+                if (userRole==1){
+                    CommonData(
+                        id = document.getString("userId"),
+                        name = document.getString("userName"),
+                        tagName = document.getString("selfCompanyName"),
+                        imgUrl = document.getString("userProfileImgUrl")
+                    )
+                }else {
+                    CommonData(
+                        id = document.getString("userId"),
+                        name = document.getString("userName"),
+                        tagName = "Employee",
+                        imgUrl = document.getString("userProfileImgUrl")
+                    )
+                }
             }
 
             LoadResult.Page(

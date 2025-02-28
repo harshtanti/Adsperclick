@@ -98,6 +98,23 @@ class UserViewModel @Inject constructor(private val communityRepository: Communi
         }
     }
 
+    private val _deleteServiceLiveData = MutableLiveData<NetworkResult<Boolean>>()
+
+    fun deleteService(serviceId: String): LiveData<NetworkResult<Boolean>> {
+        _deleteServiceLiveData.value = NetworkResult.Loading()
+
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val result = communityRepository.deleteService(serviceId)
+                _deleteServiceLiveData.postValue(result)
+            } catch (e: Exception) {
+                _deleteServiceLiveData.postValue(NetworkResult.Error(false, e.message ?: "Error deleting service"))
+            }
+        }
+
+        return _deleteServiceLiveData
+    }
+
     fun getUserListData(searchTxt:String = "",role:Int): Flow<PagingData<CommonData>> {
         return communityRepository.getUserListData(
             searchTxt,

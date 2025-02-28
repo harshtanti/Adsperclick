@@ -5,16 +5,22 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import com.adsperclick.media.R
 import com.adsperclick.media.databinding.FragmentSettingBinding
 import com.adsperclick.media.databinding.FragmentUserInfoBinding
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.UtilityFunctions
+import com.adsperclick.media.utils.gone
+import com.adsperclick.media.views.user.viewmodel.UserViewModel
 
 class UserInfoFragment : Fragment(), View.OnClickListener {
     private lateinit var binding: FragmentUserInfoBinding
     private lateinit var userType:String
     private lateinit var userName:String
+
+    private val viewModel: UserViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,17 +46,35 @@ class UserInfoFragment : Fragment(), View.OnClickListener {
             binding.imgProfileDp.context,  userName)
         binding.imgProfileDp.setImageDrawable(drawable)
         binding.tvName.text=userName
+        setUpVisibility()
         setUpClickListener()
+    }
+
+    private fun setUpVisibility(){
+        when(userType){
+            Constants.EMPLOYEES_SEMI_CAPS,Constants.CLIENTS_SEMI_CAPS->{
+                binding.cvServices.gone()
+            }
+            Constants.COMPANIES_SEMI_CAPS->{
+                binding.cvEmail.gone()
+                binding.btnBlock.gone()
+                binding.cvPhone.gone()
+            }
+        }
     }
 
     private fun setUpClickListener(){
         binding.header.btnBack.setOnClickListener(this)
+        binding.cvServices.setOnClickListener(this)
     }
 
     override fun onClick(v: View?) {
         when(v){
             binding.header.btnBack -> {
-                requireActivity().onBackPressedDispatcher.onBackPressed()
+                findNavController().popBackStack()
+            }
+            binding.cvServices -> {
+
             }
         }
     }

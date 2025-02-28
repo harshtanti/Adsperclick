@@ -168,10 +168,18 @@ class SelectUserFragment : Fragment(), View.OnClickListener {
         }
     }
 
+    private fun singleCompany():Boolean{
+        return viewModel.selectedUserSetTotal.size<=1
+    }
+
     override fun onClick(v: View?) {
         when(v){
             binding.header.btnSave -> {
-                findNavController().navigate(R.id.action_selectUserFragment_to_newGroupFragment)
+                if(singleCompany()){
+                    findNavController().navigate(R.id.action_selectUserFragment_to_newGroupFragment)
+                }else{
+                    Toast.makeText(context,"Select Clients can be of only one company",Toast.LENGTH_SHORT).show()
+                }
             }
             binding.header.btnBack ->{
                 findNavController().popBackStack()

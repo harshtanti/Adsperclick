@@ -1,5 +1,6 @@
 package com.adsperclick.media.data.repositories
 
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -25,11 +26,15 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
+import com.google.firebase.firestore.Source
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.io.File
+import java.sql.Time
 import javax.inject.Inject
 
 class ChatRepository @Inject constructor(private val apiService: ApiService, private val firestore:FirebaseFirestore) {
@@ -379,6 +384,27 @@ class ChatRepository @Inject constructor(private val apiService: ApiService, pri
 
     suspend fun getServiceList() = apiService.getServiceList()
 
-    suspend fun createGroup(data: GroupChatListingData) = apiService.createGroup(data)
+    suspend fun createGroup(data: GroupChatListingData,file: File) = apiService.createGroup(data,file)
+
+    suspend fun uploadGroupImage(imageFile: File): NetworkResult<String> {
+        return try {
+            // Create a storage reference
+            val storageRef = FirebaseStorage.getInstance().reference
+            val imageRef = storageRef.child("group_profile_images/${System.currentTimeMillis()}_${imageFile.name}")
+
+            // Upload the file
+            val uploadTask = imageRef.putFile(Uri.fromFile(imageFile))
+
+            // Wait for the upload to complete
+            val taskSnapshot = uploadTask.await()
+
+            // Get the download URL
+            val downloadUrl = imageRef.downloadUrl.await().toString()
+
+            NetworkResult.Success(downloadUrl)
+        } catch (e: Exception) {
+            NetworkResult.Error(null, "Failed to upload image: ${e.message}")
+        }
+    }
 }
 

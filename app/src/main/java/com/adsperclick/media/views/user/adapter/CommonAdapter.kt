@@ -51,7 +51,7 @@ class CommonAdapter: PagingDataAdapter<CommonData, CommonAdapter.ViewHolder>(Dif
                         }
                     }
                     btnDelete.setOnClickListener{
-                        listener?.btnDelete(bucketName.toString(),data.id.toString())
+                        listener?.btnDelete(bucketName.toString(),data.id.toString(),data.name.toString())
                     }
                     btnInfo.setOnClickListener{
                         listener?.btnInfo(bucketName.toString(),data.id.toString(),data.name.toString())
@@ -83,7 +83,7 @@ class CommonAdapter: PagingDataAdapter<CommonData, CommonAdapter.ViewHolder>(Dif
     }
 
     interface CommunityListener{
-        fun btnDelete(bucketName: String,id:String)
+        fun btnDelete(bucketName: String,id:String,name: String)
         fun btnInfo(bucketName: String, id: String, name: String)
     }
 }

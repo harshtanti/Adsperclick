@@ -34,11 +34,17 @@ class ChatGroupListAdapter(val onGroupChatClickListener: OnGroupChatClickListene
             binding.tvLastMsg.text= lastMessage
             binding.tvLastMsgDateTime.text = lastMsgTime
 
-            chatGroup.groupImgUrl?.let {  }?: run{
-                val drawable = UtilityFunctions.generateInitialsDrawable(
-                    binding.imgProfileDp.context, chatGroup.groupName ?: "A")
-
-                binding.imgProfileDp.setImageDrawable(drawable)
+            chatGroup.groupImgUrl?.let { imageUrl ->
+                UtilityFunctions.loadImageWithGlide(
+                    binding.imgProfileDp.context,
+                    binding.imgProfileDp,
+                    imageUrl
+                )
+            } ?: run {
+                UtilityFunctions.setInitialsDrawable(
+                    binding.imgProfileDp,
+                    chatGroup.groupName
+                )
             }
 
             binding.root.setOnClickListener {
@@ -46,6 +52,8 @@ class ChatGroupListAdapter(val onGroupChatClickListener: OnGroupChatClickListene
             }
         }
     }
+
+
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GroupChatListViewHolder {
