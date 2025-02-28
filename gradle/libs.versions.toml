@@ -16,12 +16,11 @@ kotlinx-serialization = "1.6.3"
 databindingRuntime = "8.7.3"
 core-splashscreen = "1.0.1"
 googleGmsGoogleServices = "4.4.2"
-firebaseFirestore = "25.1.1"
-firebaseAuth = "23.2.0"
 firebaseBom = "33.7.0"
 pagingVersion = "3.2.1"
 pagingCommonAndroid = "3.3.6"
 firebaseDatabaseKtx = "21.0.0"
+room = "2.5.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -45,6 +44,9 @@ firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.r
 androidx-paging = { group = "androidx.paging", name = "paging-runtime", version.ref = "pagingVersion" }
 androidx-paging-common-android = { group = "androidx.paging", name = "paging-common-android", version.ref = "pagingCommonAndroid" }
 firebase-database-ktx = { group = "com.google.firebase", name = "firebase-database-ktx", version.ref = "firebaseDatabaseKtx" }
+room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

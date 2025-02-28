@@ -43,7 +43,8 @@ class AuthViewModel @Inject constructor(private val authRepository: AuthReposito
     }
 
     fun signOut(){
-        tokenManager.signOut()
-        authRepository.signoutUser()
+        viewModelScope.launch(Dispatchers.IO) {
+            authRepository.signoutUser()
+        }
     }
 }

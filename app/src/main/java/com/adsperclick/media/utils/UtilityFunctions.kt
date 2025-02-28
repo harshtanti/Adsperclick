@@ -12,8 +12,10 @@ import com.adsperclick.media.utils.Validate.toInitials
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 import kotlin.math.abs
+import kotlin.math.absoluteValue
 
 object UtilityFunctions {
 
@@ -88,7 +90,7 @@ object UtilityFunctions {
     }
 
     fun formatTimestamp(timestamp: Timestamp?): String {
-        if (timestamp == null) return "N/A"
+        if (timestamp == null) return "Syncing... (check n/w connection)"
 
         val date = timestamp.toDate() // Convert Firestore Timestamp to Java Date
         val sdf = SimpleDateFormat("dd MMM, yyyy  hh:mm a", Locale.getDefault()) // Format
@@ -138,5 +140,35 @@ object UtilityFunctions {
     fun isWithinLastWeek(cal1: Calendar, cal2: Calendar): Boolean {
         cal2.add(Calendar.DAY_OF_YEAR, 7)  // Move back to original
         return cal1.after(cal2.apply { add(Calendar.DAY_OF_YEAR, -7) })  // Compare within last 7 days
+    }
+
+
+    // Convert Long (milliseconds) to Firestore Timestamp
+    fun longToTimestamp(timeInMillis: Long): Timestamp {
+        return Timestamp(Date(timeInMillis))
+    }
+
+    // Convert Firestore Timestamp to Long (milliseconds)
+    fun timestampToLong(timestamp: Timestamp?): Long {
+        return timestamp?.toDate()?.time ?: 0L
+    }
+
+    val senderColors = listOf(
+        Color.parseColor("#137333"), // Dark Green
+        Color.parseColor("#174EA6"), // Dark Blue
+        Color.parseColor("#B06000"), // Dark Orange
+        Color.parseColor("#5E35B1"), // Dark Purple
+        Color.parseColor("#C5221F")  // Dark Red
+    )
+
+    fun getSenderColor(userId: String?): Int {
+        val index = userId.hashCode().absoluteValue % senderColors.size
+        return senderColors[index]
+    }
+
+    fun formatMessageTimestamp(timestamp: Long): String {
+        val date = Date(timestamp)
+        val formatter = SimpleDateFormat("hh:mm a", Locale.getDefault()) // Example: 01:45 PM
+        return formatter.format(date)
     }
 }
