@@ -52,6 +52,10 @@ class EditeTextWithError : ConstraintLayout {
         binding.inputLayout.setHint(value)
     }
 
+    fun setHint(value: String) {
+        binding.inputLayout.hint = value
+    }
+
     fun getEditView(): TextInputEditText {
         return binding.edittext
     }

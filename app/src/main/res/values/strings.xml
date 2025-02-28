@@ -55,6 +55,12 @@
     <string name="add_employee">Add Employee</string>>
     <string name="add_service">Add Service</string>
     <string name="error">Error</string>
+    <string name="cancel">Cancel</string>
+    <string name="yes_change">Yes, change field</string>
+    <string name="product_field_change_title">Are you sure you want to change the %s?</string>
+    <string name="confirm_message_for_clear_details_dialog">%s will be deleted. Do you wish to proceed?</string>
+    <string name="confirm_delete">Yes, delete</string>
+    <string name="confirm_cancel_btn">No, cancel</string>
 
 
 

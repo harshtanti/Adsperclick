@@ -34,6 +34,7 @@ import kotlin.math.abs
 import android.media.MediaMetadataRetriever
 import android.media.ThumbnailUtils
 import android.provider.MediaStore
+import android.util.TypedValue
 import android.webkit.MimeTypeMap
 import com.adsperclick.media.data.dataModels.GroupChatListingData
 import java.nio.file.Files
@@ -410,5 +411,13 @@ object UtilityFunctions {
         val drawable = generateInitialsDrawable(
             imageView.context, name ?: "NA")
         imageView.setImageDrawable(drawable)
+    }
+
+    fun dp2px(context: Context, dp: Int): Int {
+        return TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            dp.toFloat(),
+            context.resources.displayMetrics
+        ).toInt()
     }
 }
