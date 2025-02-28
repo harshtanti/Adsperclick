@@ -33,10 +33,17 @@ class CommonAdapter: PagingDataAdapter<CommonData, CommonAdapter.ViewHolder>(Dif
                         tvTagName.visible()
                         tvTagName.text=it
                     } ?: run { tvTagName.gone() }
-                    data.imgUrl?.let {  }?: run{
-                        val drawable = UtilityFunctions.generateInitialsDrawable(
-                            imgProfileDp.context, data.name ?: "A")
-                        imgProfileDp.setImageDrawable(drawable)
+                    data.imgUrl?.let { imageUrl ->
+                        UtilityFunctions.loadImageWithGlide(
+                            binding.imgProfileDp.context,
+                            binding.imgProfileDp,
+                            imageUrl
+                        )
+                    } ?: run {
+                        UtilityFunctions.setInitialsDrawable(
+                            binding.imgProfileDp,
+                            data.name
+                        )
                     }
                     when(bucketName){
                         Constants.EMPLOYEES_SEMI_CAPS, Constants.CLIENTS_SEMI_CAPS, Constants.COMPANIES_SEMI_CAPS -> {
@@ -54,7 +61,7 @@ class CommonAdapter: PagingDataAdapter<CommonData, CommonAdapter.ViewHolder>(Dif
                         listener?.btnDelete(bucketName.toString(),data.id.toString(),data.name.toString())
                     }
                     btnInfo.setOnClickListener{
-                        listener?.btnInfo(bucketName.toString(),data.id.toString(),data.name.toString())
+                        listener?.btnInfo(bucketName.toString(),data.id.toString(),data.name.toString(),data.imgUrl)
                     }
 
                 }
@@ -84,6 +91,6 @@ class CommonAdapter: PagingDataAdapter<CommonData, CommonAdapter.ViewHolder>(Dif
 
     interface CommunityListener{
         fun btnDelete(bucketName: String,id:String,name: String)
-        fun btnInfo(bucketName: String, id: String, name: String)
+        fun btnInfo(bucketName: String, id: String, name: String, userImageUrl:String?)
     }
 }

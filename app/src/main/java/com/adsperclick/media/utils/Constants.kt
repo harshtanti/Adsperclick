@@ -29,6 +29,7 @@ object Constants {
 
     const val USER_TYPE_SEMI_CAPS="UserType"
     const val USER_NAME="UserName"
+    const val USER_IMAGE="UserImage"
     const val EMPLOYEES_SEMI_CAPS = "Employees"
     const val CLIENTS_SEMI_CAPS = "Clients"
     const val SERVICES_SEMI_CAPS = "Services"

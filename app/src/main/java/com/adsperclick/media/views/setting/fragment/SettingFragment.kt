@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -13,6 +14,7 @@ import androidx.navigation.fragment.findNavController
 import com.adsperclick.media.R
 import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.applicationCommonView.bottomsheet.UploadImageDocsBottomSheet
+import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.databinding.FragmentSettingBinding
 import com.adsperclick.media.utils.Constants
@@ -23,6 +25,7 @@ import com.adsperclick.media.utils.enableHeaderButton
 import com.adsperclick.media.utils.gone
 import com.adsperclick.media.views.login.MainActivity
 import com.adsperclick.media.views.login.viewModels.AuthViewModel
+import com.adsperclick.media.views.setting.viewmodel.SettingViewModel
 import com.bumptech.glide.Glide
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
@@ -39,6 +42,7 @@ class SettingFragment : Fragment(),View.OnClickListener {
 
 
     private val authViewModel: AuthViewModel by viewModels()
+    private val settingViewModel: SettingViewModel by viewModels()
 
     @Inject
     lateinit var tokenManager: TokenManager
@@ -64,6 +68,7 @@ class SettingFragment : Fragment(),View.OnClickListener {
         setUpVisibility()
         setUserDetails()
         validateSubmitButton()
+        observeViewModel()
         setUpListeners()
     }
 
@@ -95,6 +100,11 @@ class SettingFragment : Fragment(),View.OnClickListener {
 
     private fun setUserDetails(){
         user?.let {
+            it.userName?.let { name ->
+                binding.tvName.text = name
+            } ?: run {
+                binding.tvName.text = "N.A."
+            }
             it.userProfileImgUrl?.let { imageUrl ->
                 UtilityFunctions.loadImageWithGlide(
                     binding.imgProfileDp.context,
@@ -112,9 +122,17 @@ class SettingFragment : Fragment(),View.OnClickListener {
             } ?: run {
                 binding.tvAssociationDate.text = "N.A."
             }
+            it.userPhoneNumber?.let { data->
+                binding.tvPhone.text = data
+            } ?: run {
+                binding.tvPhone.text = "N.A."
+            }
+            it.email?.let { data->
+                binding.tvEmail.text = data
+            } ?: run {
+                binding.tvEmail.text = "N.A."
+            }
         }
-
-
     }
 
     private fun setUpListeners(){
@@ -190,15 +208,57 @@ class SettingFragment : Fragment(),View.OnClickListener {
     }
 
     private fun updateProfile(){
-//        val user = User(
-//            profileImagePath = selectedImageFile?.absolutePath,
-//        )
+        user?.userId?.let { settingViewModel.updateUser(it,phoneNumber,selectedImageFile) }
     }
+
+    private fun observeViewModel() {
+        // Observe the update user result
+        settingViewModel.updateUserLiveData.observe(viewLifecycleOwner) { result ->
+            when (result) {
+                is NetworkResult.Loading -> {
+                    // Show loading indicator
+                    binding.progressBar.visibility = View.VISIBLE
+                }
+                is NetworkResult.Success -> {
+                    // Hide loading indicator
+                    binding.progressBar.visibility = View.GONE
+
+                    // Update the UI to reflect changes
+                    if (result.data == true) {
+                        // Update was successful
+                        Toast.makeText(context, "Profile updated successfully",Toast.LENGTH_SHORT).show()
+
+                        // Update the stored user data with the new image URL
+                        val updatedUser = tokenManager.getUser()?.copy(
+                            // Update any fields that were changed
+                            userPhoneNumber = phoneNumber ?: tokenManager.getUser()?.userPhoneNumber
+                        )
+                        updatedUser?.let { tokenManager.saveUser(it) }
+
+                        // Reset the selectedImageFile since it's been uploaded
+                        selectedImageFile = null
+
+                        // Revalidate the submit button state
+                        validateSubmitButton()
+                    }
+                }
+                is NetworkResult.Error -> {
+                    // Hide loading indicator
+                    binding.progressBar.visibility = View.GONE
+
+                    // Show error message
+                    Toast.makeText(context, result.message ?: "Update failed",Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
 
     override fun onClick(v: View?) {
         when(v){
             binding.header.btnSave -> {
                 if(areFixedDetailsChanged()){
+                    binding.header.btnSave.disableHeaderButton()
                     updateProfile()
                 }
             }
@@ -209,13 +269,15 @@ class SettingFragment : Fragment(),View.OnClickListener {
             }
             binding.btnLogout -> {
                 authViewModel.signOut()
-
                 val intent = Intent(requireActivity(), MainActivity::class.java)
                 startActivity(intent)
                 requireActivity().finish()
             }
             binding.header.btnBack -> {
                 findNavController().popBackStack()
+            }
+            binding.cvPhone->{
+
             }
         }
     }

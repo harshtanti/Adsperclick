@@ -8,6 +8,7 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.adsperclick.media.data.dataModels.CommonData
 import com.adsperclick.media.data.dataModels.Company
+import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.data.dataModels.User
@@ -16,6 +17,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -113,6 +115,22 @@ class UserViewModel @Inject constructor(private val communityRepository: Communi
         }
 
         return _deleteServiceLiveData
+    }
+
+    private val _updateUserLiveData = MutableLiveData<NetworkResult<Boolean>>()
+    val updateUserLiveData: LiveData<NetworkResult<Boolean>> get() = _updateUserLiveData
+
+    fun updateUser(userId:String,phoneNumber:String?=null, file: File?=null){
+        _updateUserLiveData.postValue(NetworkResult.Loading())
+
+        try {
+            viewModelScope.launch(Dispatchers.IO){
+                val result = communityRepository.updateUser(userId,phoneNumber,file)
+                _updateUserLiveData.postValue(result)
+            }
+        } catch (e : Exception){
+            _updateUserLiveData.postValue(NetworkResult.Error(null, "Error ${e.message}"))
+        }
     }
 
     fun getUserListData(searchTxt:String = "",role:Int): Flow<PagingData<CommonData>> {
