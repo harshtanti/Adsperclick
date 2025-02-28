@@ -18,6 +18,7 @@ import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.databinding.FragmentSettingBinding
 import com.adsperclick.media.utils.Constants
+import com.adsperclick.media.utils.DialogUtils
 import com.adsperclick.media.utils.UtilityFunctions
 import com.adsperclick.media.utils.disableHeaderButton
 import com.adsperclick.media.utils.disableSubmitButton
@@ -38,7 +39,7 @@ class SettingFragment : Fragment(),View.OnClickListener {
     private var selectedImageFile: File? = null
     private val selectedTypeList = arrayListOf(Constants.CAMERA_VISIBLE,Constants.GALLERY_VISIBLE,Constants.DELETE_VISIBLE)
     private var user:User?=null
-    private val phoneNumber:String?=null
+    private var phoneNumber:String?=null
 
 
     private val authViewModel: AuthViewModel by viewModels()
@@ -253,6 +254,40 @@ class SettingFragment : Fragment(),View.OnClickListener {
         }
     }
 
+    private fun showPhoneNumberDialog() {
+        // Create a listener implementation for the dialog
+        val dialogListener = object : DialogUtils.DialogButtonClickListener {
+            override fun onPositiveButtonClickedData(data: String) {
+                // Save phone number and update UI
+                phoneNumber = data
+                binding.tvPhone.text = data
+                validateSubmitButton()
+            }
+
+            override fun onPositiveButtonClicked() {
+                TODO("Not yet implemented")
+            }
+
+            override fun onNegativeButtonClicked() {
+                // Do nothing on cancel
+            }
+
+            override fun onCloseButtonClicked() {
+                TODO("Not yet implemented")
+            }
+        }
+
+        // Use the modified utility function to show the dialog
+        DialogUtils.showPhoneTextDialog(
+            requireContext(),
+            dialogListener,
+            getString(R.string.update_phone_number),
+            getString(R.string.enter_ten_digit_phone_number),
+            getString(R.string.yes_change),
+            getString(R.string.cancel)
+        )
+    }
+
 
     override fun onClick(v: View?) {
         when(v){
@@ -277,6 +312,7 @@ class SettingFragment : Fragment(),View.OnClickListener {
                 findNavController().popBackStack()
             }
             binding.cvPhone->{
+                showPhoneNumberDialog()
 
             }
         }

@@ -96,3 +96,10 @@ fun View.enableHeaderButton() {
     }
     isEnabled = true
 }
+
+fun View.enableHeaderButton(value: Int) {
+    if (this is TextView) {
+        setTextColor(ContextCompat.getColor(context, value))
+    }
+    isEnabled = true
+}
