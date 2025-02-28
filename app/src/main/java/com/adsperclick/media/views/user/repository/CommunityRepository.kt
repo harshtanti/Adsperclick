@@ -13,6 +13,7 @@ import com.adsperclick.media.views.user.pagingsource.ServiceListPagingSource
 import com.adsperclick.media.views.user.pagingsource.UserCommunityPagingSource
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.Flow
+import java.io.File
 import javax.inject.Inject
 
 class CommunityRepository @Inject constructor(
@@ -60,4 +61,6 @@ class CommunityRepository @Inject constructor(
     suspend fun getCompanyList() = apiService.getCompanyList()
 
     suspend fun deleteService(serviceId: String) = apiService.deleteService(serviceId)
+
+    suspend fun updateUser(userId:String,phoneNumber:String?, file: File?) = apiService.updateUser(userId,phoneNumber,file)
 }

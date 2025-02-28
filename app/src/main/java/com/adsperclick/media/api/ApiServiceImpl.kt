@@ -187,7 +187,7 @@ class ApiServiceImpl @Inject constructor(
             if (query.isEmpty) {
                 // Step 2: If no such group exists, upload the image first
                 val storageRef = storageRef
-                val imagePath = "group_images/${System.currentTimeMillis()}_${file.name}"
+                val imagePath = "images/group_profile_images/${System.currentTimeMillis()}_${file.name}"
                 val imageRef = storageRef.child(imagePath)
 
                 // Upload the file
@@ -273,6 +273,51 @@ class ApiServiceImpl @Inject constructor(
         } catch (e: Exception) {
             NetworkResult.Error(false, e.message ?: "Error deleting service")
         }
+    }
+
+    override suspend fun updateUser(
+        userId: String,
+        phoneNumber: String?,
+        file: File?
+    ): NetworkResult<Boolean> {
+        return try {
+            val userCollection = FirebaseFirestore.getInstance().collection("users")
+            val userRef = userCollection.document(userId)
+
+            // Create a map to hold the fields to update
+            val updates = mutableMapOf<String, Any>()
+
+            // Add phone number to updates
+            if (phoneNumber != null){
+                updates["userPhoneNumber"] = phoneNumber
+            }
+
+
+            // If file is not null, upload it and get the URL
+            if (file != null) {
+                val storageRef = storageRef
+                val imagePath = "images/user_profile_images/${userId}_${System.currentTimeMillis()}_${file.name}"
+                val imageRef = storageRef.child(imagePath)
+
+                // Upload the file
+                val uploadTask = imageRef.putFile(Uri.fromFile(file))
+                uploadTask.await()
+
+                // Get the download URL
+                val imageUrl = imageRef.downloadUrl.await().toString()
+
+                // Add profile image URL to the updates
+                updates["userProfileImgUrl"] = imageUrl
+            }
+
+            // Update the user document with all the changes
+            userRef.update(updates).await()
+
+            NetworkResult.Success(true)
+        } catch (e: Exception) {
+            NetworkResult.Error(null, e.message ?: "User update failed")
+        }
+
     }
 
 }

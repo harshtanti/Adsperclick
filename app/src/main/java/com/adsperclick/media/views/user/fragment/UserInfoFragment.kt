@@ -19,6 +19,8 @@ class UserInfoFragment : Fragment(), View.OnClickListener {
     private lateinit var binding: FragmentUserInfoBinding
     private lateinit var userType:String
     private lateinit var userName:String
+    private var userImgUrl:String?=null
+    private var phoneNumber:String?=null
 
     private val viewModel: UserViewModel by viewModels()
 
@@ -27,6 +29,7 @@ class UserInfoFragment : Fragment(), View.OnClickListener {
         arguments?.let {
             userType = it.getString(Constants.USER_TYPE_SEMI_CAPS).toString()
             userName = it.getString(Constants.USER_NAME).toString()
+            userImgUrl = it.getString(Constants.USER_IMAGE)
         }
     }
 
@@ -42,9 +45,19 @@ class UserInfoFragment : Fragment(), View.OnClickListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.header.tvTitle.text=userType
-        val drawable = UtilityFunctions.generateInitialsDrawable(
-            binding.imgProfileDp.context,  userName)
-        binding.imgProfileDp.setImageDrawable(drawable)
+        binding.header.btnSave.gone()
+        userImgUrl?.let { imageUrl ->
+            UtilityFunctions.loadImageWithGlide(
+                binding.imgProfileDp.context,
+                binding.imgProfileDp,
+                imageUrl
+            )
+        } ?: run {
+            UtilityFunctions.setInitialsDrawable(
+                binding.imgProfileDp,
+                userName
+            )
+        }
         binding.tvName.text=userName
         setUpVisibility()
         setUpClickListener()

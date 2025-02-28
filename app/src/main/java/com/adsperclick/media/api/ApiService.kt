@@ -15,4 +15,5 @@ interface ApiService {
     suspend fun registerUser(data: User): NetworkResult<User>
     suspend fun createGroup(data: GroupChatListingData,file: File): NetworkResult<Boolean>
     suspend fun deleteService(serviceId: String): NetworkResult<Boolean>
+    suspend fun updateUser(userId:String,phoneNumber:String?, file: File?): NetworkResult<Boolean>
 }

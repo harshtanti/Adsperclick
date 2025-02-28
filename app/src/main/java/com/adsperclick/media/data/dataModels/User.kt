@@ -20,7 +20,9 @@ data class User(
     val associationDate : String? = null,
     val mobileNo : String? = null,
     val fcmTokenListOfDevices : List<String> ? = null,
-    val lastNotificationSeenTime : Long ?= null
+    val lastNotificationSeenTime : Long ?= null,
+    val userPhoneNumber : String ?= null,
+    val userAssociatedDate : String ?= null
 ){
-    constructor() : this(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,null,null)
+    constructor() : this(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,null,null,null,null)
 }
