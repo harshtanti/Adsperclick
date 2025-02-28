@@ -16,13 +16,14 @@
         android:lineSpacingExtra="@dimen/DP5"
         android:text="@string/product_field_change_title"
         android:textColor="@color/black"
+        android:textSize="@dimen/SP20"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.adsperclick.media.applicationCommonView.view.EditeTextWithError
         android:id="@+id/etMessage"
-        android:layout_width="wrap_content"
+        android:layout_width="@dimen/DP0"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/DP20"
         android:lineSpacingExtra="@dimen/DP5"
@@ -40,6 +41,7 @@
         android:padding="@dimen/DP5"
         android:text="@string/yes_change"
         android:textColor="@color/Red"
+        android:textSize="@dimen/SP14"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/btnCancel"
         app:layout_constraintTop_toBottomOf="@+id/etMessage" />
@@ -52,6 +54,7 @@
         android:lineSpacingExtra="@dimen/DP5"
         android:padding="@dimen/DP5"
         android:text="@string/cancel"
+        android:textSize="@dimen/SP14"
         android:textColor="@color/blue_button_close"
         app:layout_constraintEnd_toStartOf="@id/btnDelete"
         app:layout_constraintStart_toStartOf="parent"

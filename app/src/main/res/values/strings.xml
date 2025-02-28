@@ -61,6 +61,11 @@
     <string name="confirm_message_for_clear_details_dialog">%s will be deleted. Do you wish to proceed?</string>
     <string name="confirm_delete">Yes, delete</string>
     <string name="confirm_cancel_btn">No, cancel</string>
+    <string name="update_phone_number">Update Phone Number</string>
+    <string name="enter_ten_digit_phone_number">Enter 10-digit phone number</string>
+
+
+
 
 
 
