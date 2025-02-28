@@ -18,4 +18,6 @@ data class GroupChatListingData(
 data class GroupUser(
     val userId: String,
     val lastSeen: Long?
-)
+){
+    constructor() : this("", lastSeen = null)
+}

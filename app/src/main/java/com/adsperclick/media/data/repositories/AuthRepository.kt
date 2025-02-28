@@ -1,14 +1,19 @@
 package com.adsperclick.media.data.repositories
 
+import android.util.Log
 import androidx.core.util.TimeUtils
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.adsperclick.media.api.MessagesDao
 import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.utils.Constants
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -22,6 +27,9 @@ class AuthRepository @Inject constructor() {
 
     @Inject
     lateinit var tokenManager : TokenManager
+
+    @Inject
+    lateinit var messagesDao : MessagesDao
 
 
     private val _loginLiveData = MutableLiveData<NetworkResult<User>>()
@@ -47,6 +55,8 @@ class AuthRepository @Inject constructor() {
 
             val user = snapshot.toObject(User::class.java) ?: return NetworkResult.Error(null, "User data missing")
 
+            if(user.isBlocked == true) return NetworkResult.Error(null, "You have been blocked!")
+
             tokenManager.saveUser(user)
             NetworkResult.Success(user)
 
@@ -67,7 +77,21 @@ class AuthRepository @Inject constructor() {
         return firebaseAuth.currentUser != null
     }
 
-    fun signoutUser() {
+    suspend fun signoutUser() {
+        tokenManager.signOut()
+        CoroutineScope(Dispatchers.IO).launch{
+            messagesDao.clearAllMessages()
+        }
+
+        clearFirestoreCache()
         firebaseAuth.signOut()
+    }
+
+    private suspend fun clearFirestoreCache() {
+        try {
+            firebaseDb.clearPersistence().await()
+        } catch (e: Exception) {
+            Log.e("Firestore", "Error clearing cache: ${e.message}")
+        }
     }
 }

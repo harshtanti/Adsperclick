@@ -47,8 +47,25 @@ object Constants {
         const val USERS = "users"
         const val GROUPS = "groups"
         const val NOTIFICATIONS = "notifications"
-        const val MESSAGES = "groups"
+        const val MESSAGES = "Messages"
         const val COMPANY = "companies"
         const val SERVICE = "services"
+    }
+
+    object TXT_MSG_TYPE{
+        const val SINGLE_MSG_BY_CURRENT_USER = 11
+        const val FIRST_MSG_BY_CURRENT_USER = 22
+        const val MIDDLE_MSG_BY_CURRENT_USER = 33
+        const val LAST_MSG_BY_CURRENT_USER = 44
+
+        const val SINGLE_MSG_RIGHT = 189
+        const val FIRST_MSG_RIGHT = 289
+        const val MIDDLE_MSG_RIGHT = 389
+        const val LAST_MSG_RIGHT = 489
+
+        const val SINGLE_MSG_LEFT = 123
+        const val FIRST_MSG_LEFT = 223
+        const val MIDDLE_MSG_LEFT = 323
+        const val LAST_MSG_LEFT = 423
     }
 }

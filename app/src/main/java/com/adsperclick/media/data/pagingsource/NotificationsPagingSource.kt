@@ -51,4 +51,8 @@ class NotificationsPagingSource @Inject constructor(private val db: FirebaseFire
     override fun getRefreshKey(state: PagingState<QuerySnapshot, NotificationMsg>): QuerySnapshot? {
         return null  // Refresh starts from the beginning
     }
+
+    fun refreshSource() {
+        invalidate() // ✅ Force the PagingSource to refresh when new notifications arrive
+    }
 }

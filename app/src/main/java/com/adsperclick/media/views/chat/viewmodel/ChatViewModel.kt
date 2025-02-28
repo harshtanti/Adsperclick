@@ -3,29 +3,26 @@ package com.adsperclick.media.views.chat.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
-import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import com.adsperclick.media.data.dataModels.CommonData
 import com.adsperclick.media.data.dataModels.GroupChatListingData
+import com.adsperclick.media.data.dataModels.Message
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.NotificationMsg
-import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.data.dataModels.User
+import com.adsperclick.media.data.repositories.AuthRepository
 import com.adsperclick.media.data.repositories.ChatRepository
-import com.adsperclick.media.utils.Constants
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
-class ChatViewModel@Inject constructor(private val chatRepository: ChatRepository) :ViewModel() {
+class ChatViewModel@Inject constructor(private val chatRepository: ChatRepository,
+                                       private val authRepository: AuthRepository) :ViewModel() {
 
-//    private val _createNotificationLiveData = MutableLiveData<NetworkResult<NotificationMsg>>()
-//    val createNotificationLiveData: LiveData<NetworkResult<NotificationMsg>> get() = _createNotificationLiveData
+    var lastTimeWhenNotificationsWereLoaded:Long = 0L
 
     val createNotificationLiveData :
             LiveData<NetworkResult<NotificationMsg>> get()  = chatRepository.createNotificationLiveData
@@ -41,6 +38,60 @@ class ChatViewModel@Inject constructor(private val chatRepository: ChatRepositor
     fun syncUser(){
         viewModelScope.launch (Dispatchers.IO){
             chatRepository.syncUser()
+        }
+    }
+
+    fun updateLastNotificationSeenTime(){
+        viewModelScope.launch (Dispatchers.IO){
+            chatRepository.updateLastNotificationSeenTime()
+        }
+    }
+
+    fun signOut(){
+        viewModelScope.launch (Dispatchers.IO){
+            authRepository.signoutUser()
+        }
+    }
+
+    val listOfGroupChatLiveData: LiveData<NetworkResult<List<GroupChatListingData>>>
+        get() = chatRepository.listOfGroupChatLiveData
+
+    fun startListeningToGroups(groupIds: List<String>){
+        viewModelScope.launch (Dispatchers.IO){
+            chatRepository.listenToGroupChatUpdates(groupIds)
+        }
+    }
+
+    private val _groupId = MutableLiveData<String>()
+
+    val messages: LiveData<List<Message>> = _groupId.switchMap { roomId ->
+        chatRepository.getChatsForRoom(roomId)
+    }
+
+    fun setGroupId(roomId: String) {
+        _groupId.value = roomId
+    }
+
+
+    fun fetchAllNewMessages(groupId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            chatRepository.fetchAllNewMessages(groupId)
+        }
+    }
+
+    fun stopRealtimeListening(){
+        viewModelScope.launch(Dispatchers.IO) {
+            chatRepository.stopRealtimeListening()
+        }
+    }
+
+    fun sendMessage(text: String, groupId: String, currentUser: User) {
+        viewModelScope.launch(Dispatchers.IO) {
+            chatRepository.sendMessage(
+                msgText = text,
+                groupId = groupId,
+                user = currentUser
+            )
         }
     }
 
