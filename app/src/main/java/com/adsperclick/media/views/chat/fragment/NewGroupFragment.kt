@@ -1,5 +1,6 @@
 package com.adsperclick.media.views.chat.fragment
 
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.text.InputType
 import androidx.fragment.app.Fragment
@@ -17,16 +18,23 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.navGraphViewModels
 import com.adsperclick.media.R
 import com.adsperclick.media.applicationCommonView.TokenManager
+import com.adsperclick.media.applicationCommonView.bottomsheet.UploadImageDocsBottomSheet
 import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.GroupUser
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.databinding.FragmentNewGroupBinding
+import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.UtilityFunctions
+import com.adsperclick.media.utils.disableSubmitButton
+import com.adsperclick.media.utils.enableSubmitButton
 import com.adsperclick.media.utils.gone
+import com.adsperclick.media.utils.visible
 import com.adsperclick.media.views.chat.viewmodel.NewGroupViewModel
+import com.bumptech.glide.Glide
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
 
 
@@ -34,6 +42,7 @@ import javax.inject.Inject
 class NewGroupFragment : Fragment(),View.OnClickListener {
 
     private lateinit var binding: FragmentNewGroupBinding
+    private val selectedTypeList = arrayListOf(Constants.CAMERA_VISIBLE,Constants.GALLERY_VISIBLE,Constants.DELETE_VISIBLE)
 
     @Inject
     lateinit var tokenManager : TokenManager
@@ -86,6 +95,8 @@ class NewGroupFragment : Fragment(),View.OnClickListener {
 
     private fun setUpClickListener(){
         binding.submitButton.setOnClickListener(this)
+        binding.btnImage.setOnClickListener(this)
+        binding.header.btnBack.setOnClickListener(this)
     }
     private fun setUpOnChangeListener(){
         binding.groupName.getEditView().doAfterTextChanged{
@@ -103,25 +114,12 @@ class NewGroupFragment : Fragment(),View.OnClickListener {
 
     private fun validateSubmitButton() {
         if (areFixedDetailsValid()) {
-            enableSubmitButton()
+            binding.submitButton.enableSubmitButton()
         } else {
-            disableSubmitButton()
+            binding.submitButton.disableSubmitButton()
         }
     }
 
-    private fun disableSubmitButton() {
-        binding.submitButton.backgroundTintList = ContextCompat.getColorStateList(
-            requireContext(), R.color.disabled_color
-        )
-        binding.submitButton.isEnabled = false
-    }
-
-    private fun enableSubmitButton() {
-        binding.submitButton.backgroundTintList = ContextCompat.getColorStateList(
-            requireContext(), R.color.blue_common_button
-        )
-        binding.submitButton.isEnabled = true
-    }
 
     private fun areFixedDetailsValid(): Boolean {
         with(binding) {
@@ -157,26 +155,31 @@ class NewGroupFragment : Fragment(),View.OnClickListener {
             listOfUsers = userListWithRoles,
             lastSentMsg = null
         )
-        viewModel.createGroup(groupData)
+        viewModel.selectedImageFile?.let { viewModel.createGroup(groupData, it) }
     }
 
     private fun setUpObserver(){
         viewModel.createGroupLiveData.observe(viewLifecycleOwner,createGroupObserver)
     }
 
-    private val createGroupObserver = Observer<NetworkResult<GroupChatListingData>> {
+    private val createGroupObserver = Observer<NetworkResult<Boolean>> {
         when(it){
 
             is NetworkResult.Success ->{
                 successMessage()
+                binding.progressBar.gone()
             }
 
             is NetworkResult.Error ->{
                 failedMessage()
                 Toast.makeText(context, "Error: ${it.message}", Toast.LENGTH_SHORT).show()
+                binding.progressBar.gone()
             }
 
-            is NetworkResult.Loading ->{}
+            is NetworkResult.Loading ->{
+                binding.progressBar.visible()
+
+            }
         }
     }
 
@@ -216,6 +219,69 @@ class NewGroupFragment : Fragment(),View.OnClickListener {
         }
     }
 
+    private val uploadOnSelectListener = object : UploadImageDocsBottomSheet.OnSelectListener{
+        override fun onSelect(option: String, type: UploadImageDocsBottomSheet.UploadMethod) {
+            when (type) {
+                UploadImageDocsBottomSheet.UploadMethod.CAMERA,
+                UploadImageDocsBottomSheet.UploadMethod.GALLERY -> {
+                    // Check if the file path is valid
+                    if (option.isNotEmpty()) {
+                        val imageFile = File(option)
+                        if (imageFile.exists()) {
+                            // Just store the file for later upload
+                            viewModel.selectedImageFile = imageFile
+
+                            // Load image preview
+                            loadImageIntoView(imageFile)
+                        }
+                    }
+                }
+                else -> {
+                    // Reset the image if NOTSELECTED or for error cases
+                    binding.imgProfileDp.setImageResource(R.drawable.baseline_person_24) // Replace with your default image
+                }
+            }
+        }
+
+    }
+
+    // Helper method to load the image into the ShapeableImageView
+    private fun loadImageIntoView(imageFile: File) {
+        try {
+            // Option 1: Using Bitmap (simple but may cause OutOfMemoryError for large images)
+            /*val bitmap = BitmapFactory.decodeFile(imageFile.absolutePath)
+            binding.imgProfileDp.setImageBitmap(bitmap)*/
+
+            // Option 2: Using Glide (recommended for better memory management)
+            // Uncomment the below code if you're using Glide
+            Glide.with(requireContext())
+                .load(imageFile)
+                .centerCrop()
+                .placeholder(R.drawable.baseline_person_24) // Replace with your placeholder
+                .error(R.drawable.baseline_person_24) // Replace with your error image
+                .into(binding.imgProfileDp)
+            /*context?.let { UtilityFunctions.setImageOnImageViewWithGlide(it,imageFile,binding.imgProfileDp) }*/
+
+            // Option 3: Using Picasso
+            /*
+            Picasso.get()
+                .load(imageFile)
+                .centerCrop()
+                .fit()
+                .placeholder(R.drawable.default_profile) // Replace with your placeholder
+                .error(R.drawable.default_profile) // Replace with your error image
+                .into(binding.imgProfileDp)
+            */
+
+            // Save the image path to your data model or preferences if needed
+            // For example: viewModel.setProfileImagePath(imageFile.absolutePath)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            // Handle the error case
+            binding.imgProfileDp.setImageResource(R.drawable.baseline_person_24) // Replace with your default image
+        }
+    }
+
 
     override fun onClick(v: View?) {
         when(v){
@@ -223,6 +289,14 @@ class NewGroupFragment : Fragment(),View.OnClickListener {
                 if (areFixedDetailsValid()) {
                     saveUserDetails()
                 }
+            }
+            binding.btnImage -> {
+                val bottomSheet = UploadImageDocsBottomSheet.createBottomsheet(
+                    uploadOnSelectListener,selectedTypeList)
+                bottomSheet.show(childFragmentManager, bottomSheet.tag)
+            }
+            binding.header.btnBack ->{
+                findNavController().popBackStack()
             }
         }
     }

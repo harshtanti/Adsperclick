@@ -66,11 +66,17 @@ class MessagingFragment : Fragment() {
 
         binding.includeTopBar.tvGroupName.text = groupChat?.groupName ?: "Group-Name"
 
-        groupChat?.groupImgUrl?.let {  }?: run{
-            val drawable = UtilityFunctions.generateInitialsDrawable(
-                binding.includeTopBar.imgProfileDp.context, groupChat?.groupName ?: "A")
-
-            binding.includeTopBar.imgProfileDp.setImageDrawable(drawable)
+        groupChat?.groupImgUrl?.let { imageUrl ->
+            UtilityFunctions.loadImageWithGlide(
+                binding.includeTopBar.imgProfileDp.context,
+                binding.includeTopBar.imgProfileDp,
+                imageUrl
+            )
+        } ?: run {
+            UtilityFunctions.setInitialsDrawable(
+                binding.includeTopBar.imgProfileDp,
+                groupChat?.groupName
+            )
         }
 
         groupChat?.groupId?.let { groupId->

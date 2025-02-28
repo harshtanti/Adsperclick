@@ -1,5 +1,6 @@
 package com.adsperclick.media.api
 
+import android.net.Uri
 import com.adsperclick.media.data.dataModels.Company
 import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.NetworkResult
@@ -8,12 +9,15 @@ import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.utils.Constants
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.StorageReference
 import kotlinx.coroutines.tasks.await
+import java.io.File
 import javax.inject.Inject
 
 class ApiServiceImpl @Inject constructor(
     private val db: FirebaseFirestore,
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    private val storageRef: StorageReference
 ) : ApiService {
 
     override suspend fun getServiceList(): NetworkResult<ArrayList<Service>> {
@@ -113,7 +117,7 @@ class ApiServiceImpl @Inject constructor(
         }
     }
 
-    override suspend fun createGroup(data: GroupChatListingData): NetworkResult<GroupChatListingData> {
+    /*override suspend fun createGroup(data: GroupChatListingData): NetworkResult<GroupChatListingData> {
 
         return try {
             val groupCollection = FirebaseFirestore.getInstance().collection("groups")
@@ -166,6 +170,72 @@ class ApiServiceImpl @Inject constructor(
             // Step 9: Handle any errors that occur
             NetworkResult.Error(null, e.message ?: "Group Creation failed")
         }
+    }*/
+
+    override suspend fun createGroup(data: GroupChatListingData, file: File): NetworkResult<Boolean> {
+        return try {
+            val groupCollection = FirebaseFirestore.getInstance().collection("groups")
+
+            // Step 1: Check if a group with the same groupName, associatedServiceId, and associatedService exists
+            val query = groupCollection
+                .whereEqualTo("groupName", data.groupName)
+                .whereEqualTo("associatedServiceId", data.associatedServiceId)
+                .whereEqualTo("associatedService", data.associatedService)
+                .get()
+                .await()
+
+            if (query.isEmpty) {
+                // Step 2: If no such group exists, upload the image first
+                val storageRef = storageRef
+                val imagePath = "images/group_profile_images/${System.currentTimeMillis()}_${file.name}"
+                val imageRef = storageRef.child(imagePath)
+
+                // Upload the file
+                val uploadTask = imageRef.putFile(Uri.fromFile(file))
+                uploadTask.await()
+
+                // Get the download URL
+                val imageUrl = imageRef.downloadUrl.await().toString()
+
+                // Step 3: Create the group document with the image URL
+                val groupRef = groupCollection.document()  // Generates a new document ID
+                val groupId = groupRef.id  // Get the auto-generated group ID
+
+                // Step 4: Update the group data with the generated groupId and imageUrl
+                val groupData = data.copy(groupId = groupId, groupImgUrl = imageUrl)
+
+                // Step 5: Save the updated group data in Firestore
+                groupRef.set(groupData).await()
+
+                // Step 6: Update each user's listOfGroupsAssigned with the new groupId
+                val userCollection = FirebaseFirestore.getInstance().collection("users")
+
+                data.listOfUsers?.forEach { userPair ->
+                    val userId = userPair.userId  // Extract userId
+
+                    val userRef = userCollection.document(userId)
+                    userRef.get().await().toObject(User::class.java)?.let { user ->
+                        val updatedGroups = user.listOfGroupsAssigned?.toMutableList() ?: mutableListOf()
+                        if (!updatedGroups.contains(groupId)) {
+                            updatedGroups.add(groupId)
+                        }
+
+                        // Step 7: Update user document with new groupId
+                        userRef.update("listOfGroupsAssigned", updatedGroups).await()
+                    }
+                }
+
+                // Step 8: Return success if everything went well
+                NetworkResult.Success(true)
+            } else {
+                // Step 9: Return error if a group with the same name and service already exists
+                NetworkResult.Error(null, "A group with this name and service already exists.")
+            }
+
+        } catch (e: Exception) {
+            // Step 10: Handle any errors that occur
+            NetworkResult.Error(null, e.message ?: "Group Creation failed")
+        }
     }
 
     override suspend fun getCompanyList(): NetworkResult<ArrayList<Company>> {
@@ -177,6 +247,77 @@ class ApiServiceImpl @Inject constructor(
         } catch (e: Exception) {
             NetworkResult.Error(null, e.message ?: "Service data fetching failed")
         }
+    }
+
+    override suspend fun deleteService(serviceId: String): NetworkResult<Boolean> {
+        return try {
+            // First check if the service is used by any groups
+            val groupsWithService = FirebaseFirestore.getInstance()
+                .collection("groups")
+                .whereEqualTo("associatedServiceId", serviceId)
+                .get()
+                .await()
+
+            if (!groupsWithService.isEmpty) {
+                return NetworkResult.Error(false, "Cannot delete service: It is being used by one or more groups")
+            }
+
+            // If not used, delete the service
+            FirebaseFirestore.getInstance()
+                .collection("services")
+                .document(serviceId)
+                .delete()
+                .await()
+
+            NetworkResult.Success(true)
+        } catch (e: Exception) {
+            NetworkResult.Error(false, e.message ?: "Error deleting service")
+        }
+    }
+
+    override suspend fun updateUser(
+        userId: String,
+        phoneNumber: String?,
+        file: File?
+    ): NetworkResult<Boolean> {
+        return try {
+            val userCollection = FirebaseFirestore.getInstance().collection("users")
+            val userRef = userCollection.document(userId)
+
+            // Create a map to hold the fields to update
+            val updates = mutableMapOf<String, Any>()
+
+            // Add phone number to updates
+            if (phoneNumber != null){
+                updates["userPhoneNumber"] = phoneNumber
+            }
+
+
+            // If file is not null, upload it and get the URL
+            if (file != null) {
+                val storageRef = storageRef
+                val imagePath = "images/user_profile_images/${userId}_${System.currentTimeMillis()}_${file.name}"
+                val imageRef = storageRef.child(imagePath)
+
+                // Upload the file
+                val uploadTask = imageRef.putFile(Uri.fromFile(file))
+                uploadTask.await()
+
+                // Get the download URL
+                val imageUrl = imageRef.downloadUrl.await().toString()
+
+                // Add profile image URL to the updates
+                updates["userProfileImgUrl"] = imageUrl
+            }
+
+            // Update the user document with all the changes
+            userRef.update(updates).await()
+
+            NetworkResult.Success(true)
+        } catch (e: Exception) {
+            NetworkResult.Error(null, e.message ?: "User update failed")
+        }
+
     }
 
 }

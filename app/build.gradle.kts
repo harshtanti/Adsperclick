@@ -56,7 +56,8 @@ dependencies {
     implementation("androidx.paging:paging-runtime:3.2.1")
     implementation("androidx.paging:paging-common-ktx:3.2.1")
     implementation(libs.androidx.paging.common.android)
-    implementation(libs.firebase.database.ktx) // Required if using Paging in Repository with Flow
+    implementation(libs.firebase.database.ktx)
+    implementation(libs.firebase.storage.ktx) // Required if using Paging in Repository with Flow
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -71,6 +72,7 @@ dependencies {
     implementation(libs.dagger.hilt.android) // Hilt runtime
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.core.splashscreen)
+    implementation(libs.glide)
 
     // room-db
     implementation(libs.room.runtime)
