@@ -171,4 +171,29 @@ object UtilityFunctions {
         val formatter = SimpleDateFormat("hh:mm a", Locale.getDefault()) // Example: 01:45 PM
         return formatter.format(date)
     }
+
+
+    fun gcListDateFormat(timestamp: Long): String {
+        val date = Date(timestamp)
+        val calendar = Calendar.getInstance()
+        val today = Calendar.getInstance()
+
+        // Check if the date is today
+        if (calendar.apply { time = date }.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+            calendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)
+        ) {
+            return SimpleDateFormat("h:mm a", Locale.getDefault()).format(date) // Example: 9:26 AM
+        }
+
+        // Check if the date is yesterday
+        today.add(Calendar.DAY_OF_YEAR, -1)
+        if (calendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+            calendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)
+        ) {
+            return "Yesterday"
+        }
+
+        // Otherwise, return date in dd/MM/yy format
+        return SimpleDateFormat("dd/MM/yy", Locale.getDefault()).format(date) // Example: 23/02/25
+    }
 }

@@ -3,7 +3,6 @@ package com.adsperclick.media.data.repositories
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
@@ -22,18 +21,15 @@ import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.UtilityFunctions
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
-import com.google.firebase.firestore.Source
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.sql.Time
 import javax.inject.Inject
 
 class ChatRepository @Inject constructor(private val apiService: ApiService, private val firestore:FirebaseFirestore) {
@@ -360,10 +356,23 @@ class ChatRepository @Inject constructor(private val apiService: ApiService, pri
             .set(message.toMapForFirestore()) // Convert to Map to use server timestamp
             .addOnSuccessListener {
                 Log.d("Firestore", "Message sent successfully: $msgId")
+                // Now since our "Message" object is sent to server, it means the firestore
+                // timestamp is updated on it we'll get it back using the "msgId"
+                messagesRef.document(msgId).get()
+                    .addOnSuccessListener {
+                        val updatedMessage = it.toMessage()
+                        updatedMessage?.let { msg ->
+                            firestore.collection(Constants.DB.GROUPS)
+                                .document(groupId)
+                                .update("lastSentMsg", msg) // ✅ Save correct message with timestamp
+                        }
+                    }
             }
             .addOnFailureListener { e ->
                 Log.e("Firestore", "Error sending message: ${e.message}")
             }
+
+        // firestore.collection(Constants.DB.GROUPS).document(groupId).update("lastSentMsg", message)
     }
 
 
