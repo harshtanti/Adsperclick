@@ -18,6 +18,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,9 +26,11 @@ class NewGroupViewModel@Inject constructor(private val chatRepository: ChatRepos
     var selectedTabPosition = 0
 
     var selectedUserSet: MutableSet<String> = mutableSetOf()
+    var selectedUserSetTotal: MutableSet<String> = mutableSetOf()
     var serviceList:List<Service> = listOf()
     var selectedService: Service? = null
     var groupName: String? = null
+    var selectedImageFile: File? = null
 
 
     fun getUserListData(searchTxt:String="",role:Int): Flow<PagingData<CommonData>> {
@@ -53,15 +56,15 @@ class NewGroupViewModel@Inject constructor(private val chatRepository: ChatRepos
         }
     }
 
-    private val _createGroupLiveData = MutableLiveData<NetworkResult<GroupChatListingData>>()
-    val createGroupLiveData: LiveData<NetworkResult<GroupChatListingData>> get() = _createGroupLiveData
+    private val _createGroupLiveData = MutableLiveData<NetworkResult<Boolean>>()
+    val createGroupLiveData: LiveData<NetworkResult<Boolean>> get() = _createGroupLiveData
 
-    fun createGroup(groupData: GroupChatListingData){
+    fun createGroup(groupData: GroupChatListingData,file: File){
         _createGroupLiveData.postValue(NetworkResult.Loading())
 
         try {
             viewModelScope.launch(Dispatchers.IO){
-                val result = chatRepository.createGroup(groupData)
+                val result = chatRepository.createGroup(groupData,file)
                 _createGroupLiveData.postValue(result)
             }
         } catch (e : Exception){

@@ -1,6 +1,8 @@
 package com.adsperclick.media.utils
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.ColorFilter
@@ -8,13 +10,35 @@ import android.graphics.Paint
 import android.graphics.PixelFormat
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
+import android.graphics.pdf.PdfRenderer
+import android.net.Uri
+import android.os.Environment
+import android.os.ParcelFileDescriptor
+import android.widget.ImageView
+import androidx.documentfile.provider.DocumentFile
+import com.adsperclick.media.R
 import com.adsperclick.media.utils.Validate.toInitials
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.model.GlideUrl
 import com.google.firebase.Timestamp
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.UUID
 import kotlin.math.abs
+import android.media.MediaMetadataRetriever
+import android.media.ThumbnailUtils
+import android.provider.MediaStore
+import android.util.TypedValue
+import android.webkit.MimeTypeMap
+import com.adsperclick.media.data.dataModels.GroupChatListingData
+import java.nio.file.Files
+import java.nio.file.Paths
 import kotlin.math.absoluteValue
 
 object UtilityFunctions {
@@ -170,5 +194,230 @@ object UtilityFunctions {
         val date = Date(timestamp)
         val formatter = SimpleDateFormat("hh:mm a", Locale.getDefault()) // Example: 01:45 PM
         return formatter.format(date)
+    }
+
+    private const val MAX_IMAGE_SIZE = 200 * 1024
+    const val CURRENT_DATE_FORMAT: String = Constants.yyyyMMdd_HHmmss
+    const val NA = "NA"
+
+    fun compressFile(context: Context, file: File): File {
+        if (file.length() > MAX_IMAGE_SIZE) {
+            val newFile = createImageFile(context)
+            var streamLength = MAX_IMAGE_SIZE
+            var compressQuality = 105
+            val bmpStream = ByteArrayOutputStream()
+            try {
+                while (streamLength >= MAX_IMAGE_SIZE && compressQuality > 5) {
+                    bmpStream.use {
+                        it.flush()
+                        it.reset()
+                    }
+                    compressQuality -= 5
+                    BitmapFactory.decodeFile(file.absolutePath, BitmapFactory.Options())?.let {
+                        it.compress(Bitmap.CompressFormat.JPEG, compressQuality, bmpStream)
+                        val bmpPicByteArray = bmpStream.toByteArray()
+                        streamLength = bmpPicByteArray.size
+                    }
+                }
+                FileOutputStream(newFile).use {
+                    it.write(bmpStream.toByteArray())
+                }
+                return newFile
+            } catch (e: Exception) {
+
+                return file
+            }
+        }
+        return file
+    }
+
+    fun createImageFile(context: Context): File {
+        val timeStamp: String =
+            SimpleDateFormat(CURRENT_DATE_FORMAT, Locale.getDefault()).format(
+                Date()
+            )
+        val storageDir: File? = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return File.createTempFile(
+            "JPG_${timeStamp}_",
+            Constants.JPG,
+            storageDir
+        )
+    }
+
+
+// Inside the UtilityFunctions object, add these methods:
+
+    /**
+     * Checks if the file is a video based on its extension
+     */
+    fun isVideoFile(file: File): Boolean {
+        val extension = file.extension.lowercase(Locale.ROOT)
+        return extension in listOf("mp4", "avi", "mov", "mkv", "3gp", "webm")
+    }
+
+    /**
+     * Gets the MIME type of a file
+     */
+    fun getMimeType(file: File): String? {
+        val extension = MimeTypeMap.getFileExtensionFromUrl(file.path)
+        return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+    }
+
+    /**
+     * Creates a video file
+     */
+    fun createVideoFile(context: Context): File {
+        val timeStamp: String = SimpleDateFormat(CURRENT_DATE_FORMAT, Locale.getDefault()).format(Date())
+        val storageDir: File? = context.getExternalFilesDir(Environment.DIRECTORY_MOVIES)
+        return File.createTempFile(
+            "VID_${timeStamp}_",
+            ".mp4",
+            storageDir
+        )
+    }
+
+    private fun createTempFile(context: Context, name: String?): File {
+        val storageDir =
+            context.externalCacheDir ?: context.getExternalFilesDir(null) ?: context.cacheDir
+
+        val fileName: String = if (name != null && name.isNotEmpty()) {
+            "${Date().time}-$name".replace(Constants.BACK_SLASH, Constants.DASH)
+        } else {
+            "${UUID.randomUUID()}"
+        }
+
+        // Using Java's File.createTempFile instead of Kotlin's deprecated function
+        return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            // For Android O and above, use the nio Files API
+            val prefix = "temp_${Date().time}_"
+            val suffix = if (name != null) "_$name" else null
+            val path = Files.createTempFile(Paths.get(storageDir.path), prefix, suffix)
+            path.toFile()
+        } else {
+            // For older Android versions, use Java's File.createTempFile with appropriate permissions
+            val tempFile = java.io.File.createTempFile("temp_${Date().time}_",
+                if (name != null) "_$name" else null,
+                storageDir)
+
+            // Set permissions to be more restrictive (readable/writable only by the app)
+            tempFile.setReadable(true, true)  // Readable only by owner
+            tempFile.setWritable(true, true)  // Writable only by owner
+            tempFile
+        }
+    }
+
+    /**
+     * Gets a thumbnail from a video file
+     */
+    fun getVideoThumbnail(context: Context, videoFile: File): Bitmap? {
+        return try {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                ThumbnailUtils.createVideoThumbnail(videoFile, android.util.Size(320, 240), null)
+            } else {
+                val retriever = MediaMetadataRetriever()
+                retriever.setDataSource(videoFile.path)
+                val frame = retriever.getFrameAtTime(1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                retriever.release()
+                frame
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    /**
+     * Updated saveFileFromUri method to handle both images and videos
+     */
+    fun saveFileFromUri(context: Context, uri: Uri): File? {
+        try {
+            val initialStream = context.contentResolver.openInputStream(uri) ?: return null
+            val docFile = DocumentFile.fromSingleUri(context, uri)
+            val mimeType = context.contentResolver.getType(uri)
+
+            // Create appropriate file based on type
+            val targetFile = if (mimeType?.startsWith("video/") == true) {
+                createVideoFile(context)
+            } else if (mimeType?.startsWith("image/") == true) {
+                createImageFile(context)
+            } else {
+                // For PDFs and other files
+                createTempFile(context, docFile?.name)
+            }
+
+            // Copy the file data
+            val buffer = ByteArray(initialStream.available())
+            initialStream.read(buffer)
+            val outStream = FileOutputStream(targetFile)
+            outStream.write(buffer)
+            outStream.close()
+            initialStream.close()
+
+            // Compress if it's an image (don't compress videos)
+            return if (mimeType?.startsWith("image/") == true) {
+                compressFile(context, targetFile)
+            } else {
+                targetFile
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return null
+        }
+    }
+
+    /**
+     * Add a method to load video thumbnails with Glide
+     */
+    fun setVideoThumbnailOnImageView(context: Context, videoFile: File, imageView: ImageView) {
+        val thumbnail = getVideoThumbnail(context, videoFile)
+        if (thumbnail != null) {
+            Glide.with(context)
+                .load(thumbnail)
+                .error(R.drawable.baseline_person_24)
+                .placeholder(R.drawable.baseline_person_24)
+                .fitCenter()
+                .into(imageView)
+        } else {
+            // If thumbnail extraction fails, load a video placeholder
+            imageView.setImageResource(R.drawable.baseline_person_24)  // Consider using a video-specific placeholder
+        }
+    }
+
+    fun loadImageWithGlide(
+        context: Context,
+        imageView: ImageView,
+        imageUrl: String?,
+        placeholderId: Int = R.drawable.baseline_person_24,
+        errorId: Int = R.drawable.baseline_person_24
+    ) {
+        if (imageUrl.isNullOrEmpty()) {
+            imageView.setImageResource(placeholderId)
+            return
+        }
+
+        Glide.with(context)
+            .load(imageUrl)
+            .placeholder(placeholderId)
+            .error(errorId)
+            .centerCrop()
+            .into(imageView)
+    }
+
+    fun setInitialsDrawable(imageView: ImageView, name:String?) {
+        if (name.isNullOrEmpty()) {
+            imageView.setImageResource(R.drawable.baseline_person_24)
+            return
+        }
+        val drawable = generateInitialsDrawable(
+            imageView.context, name ?: "NA")
+        imageView.setImageDrawable(drawable)
+    }
+
+    fun dp2px(context: Context, dp: Int): Int {
+        return TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            dp.toFloat(),
+            context.resources.displayMetrics
+        ).toInt()
     }
 }

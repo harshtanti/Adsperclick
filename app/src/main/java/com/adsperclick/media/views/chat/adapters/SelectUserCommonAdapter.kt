@@ -37,13 +37,17 @@ class SelectUserCommonAdapter :
                 } ?: tvTagName.gone()
 
                 // Set image or default initials
-                data.imgUrl?.let {
-                    // Load image if available
-                } ?: run {
-                    val drawable = UtilityFunctions.generateInitialsDrawable(
-                        imgProfileDp.context, data.name ?: "A"
+                data.imgUrl?.let { imageUrl ->
+                    UtilityFunctions.loadImageWithGlide(
+                        binding.imgProfileDp.context,
+                        binding.imgProfileDp,
+                        imageUrl
                     )
-                    imgProfileDp.setImageDrawable(drawable)
+                } ?: run {
+                    UtilityFunctions.setInitialsDrawable(
+                        binding.imgProfileDp,
+                        data.name
+                    )
                 }
 
                 // Handle selection

@@ -113,8 +113,10 @@ class SelectUserCommonFragment : Fragment() {
         data.id?.let {
             if (data.isSelected) {
                 viewModel.selectedUserSet.add(it)
+                data.tagName?.let { it1 -> if(it1!="Employee"){viewModel.selectedUserSetTotal.add(it1)} }
             } else {
                 viewModel.selectedUserSet.remove(it)
+                viewModel.selectedUserSetTotal.remove(data.tagName)
             }
         }
     }

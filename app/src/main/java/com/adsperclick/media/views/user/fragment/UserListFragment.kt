@@ -139,12 +139,7 @@ class UserListFragment : Fragment(), View.OnClickListener {
 
     override fun onClick(v: View?) {
         when(v){
-//            binding.addDetails -> {
-//                val bundle = Bundle().apply {
-//                    putString(Constants.USER_TYPE_SEMI_CAPS, tabName) // Pass your data
-//                }
-//                findNavController().navigate(R.id.action_navigation_user_to_form_fragment, bundle)
-//            }
+
         }
     }
 }

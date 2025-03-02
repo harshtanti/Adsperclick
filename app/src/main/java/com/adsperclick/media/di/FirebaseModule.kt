@@ -6,6 +6,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.PersistentCacheSettings
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -58,10 +60,23 @@ object FirebaseModule {
 
     @Provides
     @Singleton
+    fun provideFirebaseStorage(): FirebaseStorage {
+        return FirebaseStorage.getInstance()
+    }
+
+    @Provides
+    @Singleton
+    fun provideStorageReference(storage: FirebaseStorage): StorageReference {
+        return storage.reference
+    }
+
+    @Provides
+    @Singleton
     fun provideApiService(
         db: FirebaseFirestore,
-        auth: FirebaseAuth
+        auth: FirebaseAuth,
+        storageRef: StorageReference
     ): ApiService {
-        return ApiServiceImpl(db, auth)
+        return ApiServiceImpl(db, auth,storageRef)
     }
 }
