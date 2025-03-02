@@ -377,5 +377,9 @@ class ChatRepository @Inject constructor(private val apiService: ApiService, pri
 
     suspend fun removeUserFromGroup(userId: String, groupId: String) = apiService.removeUserFromGroup(userId,groupId)
 
+    suspend fun getGroupDetails(groupId: String) = apiService.getGroupDetails(groupId)
+
+    suspend fun addGroupMember(groupId:String,userSet: MutableSet<String>) = apiService.addGroupMember(groupId,userSet)
+
 }
 

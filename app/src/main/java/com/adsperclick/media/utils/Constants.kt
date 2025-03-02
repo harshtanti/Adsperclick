@@ -36,6 +36,10 @@ object Constants {
     const val COMPANIES_SEMI_CAPS = "Companies"
     const val USER_TYPE="UserType"
     const val USER_ID="UserId"
+    const val GROUP_PROFILE = "GroupProfile"
+    const val EMPLOYEE_SINGULAR = "Employee"
+    const val COMPANY_SINGULAR = "Company"
+    const val GROUP_ID = "GroupId"
 
 
     object MSG_TYPE{

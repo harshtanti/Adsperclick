@@ -89,6 +89,22 @@ class NewGroupViewModel@Inject constructor(private val chatRepository: ChatRepos
         }
     }
 
+    private val _addGroupMemberLiveData = MutableLiveData<NetworkResult<Boolean>>()
+    val addGroupMemberLiveData: LiveData<NetworkResult<Boolean>> get() = _addGroupMemberLiveData
+
+    fun addGroupMember(groupId:String,userSet: MutableSet<String>){
+        _addGroupMemberLiveData.postValue(NetworkResult.Loading())
+
+        try {
+            viewModelScope.launch(Dispatchers.IO){
+                val result = chatRepository.addGroupMember(groupId,userSet)
+                _addGroupMemberLiveData.postValue(result)
+            }
+        } catch (e : Exception){
+            _addGroupMemberLiveData.postValue(NetworkResult.Error(null, "Error ${e.message}"))
+        }
+    }
+
     override fun onCleared() {
         super.onCleared()
         _createGroupLiveData.postValue(NetworkResult.Loading())

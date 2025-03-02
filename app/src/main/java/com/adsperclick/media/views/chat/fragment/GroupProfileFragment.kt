@@ -42,9 +42,11 @@ class GroupProfileFragment : Fragment(),View.OnClickListener {
     private lateinit var adapter: GroupMemberAdapter
     private var isAdmin:Boolean = false
     private lateinit var currentUser: User
+    private var groupId:String? = null
     private var groupChat : GroupChatListingData? = null
     private var userList = listOf<CommonData>()
     private var groupName:String?=null
+    private var groupCompanyName:String?=null
     private var selectedImageFile: File? = null
     private val selectedTypeList = arrayListOf(Constants.CAMERA_VISIBLE,Constants.GALLERY_VISIBLE,Constants.DELETE_VISIBLE)
 
@@ -55,10 +57,7 @@ class GroupProfileFragment : Fragment(),View.OnClickListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val groupChatObjAsString = arguments?.getString(CLICKED_GROUP)
-        groupChat = groupChatObjAsString?.let {
-            Json.decodeFromString(GroupChatListingData.serializer(), it)
-        }
+        groupId = arguments?.getString(CLICKED_GROUP)
         currentUser = tokenManager.getUser()!!
         isAdmin = currentUser.role == Constants.ROLE.ADMIN
     }
@@ -84,8 +83,8 @@ class GroupProfileFragment : Fragment(),View.OnClickListener {
     }
 
     private fun collectUiData(){
-        groupChat?.listOfUsers?.let {
-            viewModel.fetchGroupUsers(it)
+        groupId?.let {
+            viewModel.getGroupDetails(it)
         }
     }
     private fun setUpVisibility(){
@@ -139,6 +138,27 @@ class GroupProfileFragment : Fragment(),View.OnClickListener {
         viewModel.usersListLiveData.observe(viewLifecycleOwner,userListObserver)
         viewModel.updateGroupLiveData.observe(viewLifecycleOwner,groupUpdateObserver)
         viewModel.leaveGroupResult.observe(viewLifecycleOwner,leaveGroupObserver)
+        viewModel.groupDetailResult.observe(viewLifecycleOwner,groupDetailObserver)
+    }
+
+    private val groupDetailObserver = Observer<NetworkResult<GroupChatListingData>> { it ->
+        when(it){
+            is NetworkResult.Loading -> {
+                binding.progressBar.visible()
+            }
+            is NetworkResult.Success -> {
+                binding.progressBar.gone()
+                it.data?.let {
+                    groupChat = it
+                    setUpView()
+                    viewModel.fetchGroupUsers(it.listOfUsers)
+                }
+            }
+            is NetworkResult.Error -> {
+                binding.progressBar.gone()
+                Toast.makeText(context, it.message ?: "Group Fetch failed",Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private val leaveGroupObserver = Observer<NetworkResult<String>> { it ->
@@ -150,9 +170,8 @@ class GroupProfileFragment : Fragment(),View.OnClickListener {
                 binding.progressBar.gone()
 
                 if (!it.data.isNullOrEmpty()) {
-                    groupChat?.listOfUsers?.filter { user -> user.userId != it.data }
-                    groupChat?.listOfUsers?.let {
-                        viewModel.fetchGroupUsers(it)
+                    groupId?.let {
+                        viewModel.getGroupDetails(it)
                     }
                     Toast.makeText(context, "User removed successfully",Toast.LENGTH_SHORT).show()
                 }
@@ -203,12 +222,26 @@ class GroupProfileFragment : Fragment(),View.OnClickListener {
                 binding.rvUser.visible()
                 it.data?.let { users ->
                     userList = users.map { user ->
-                        CommonData(
-                            id = user.userId ?: "",
-                            name = user.userName ?: "",
-                            imgUrl = user.userProfileImgUrl
-                        )
+                        if (user.role == Constants.ROLE.EMPLOYEE){
+                            CommonData(
+                                id = user.userId ?: "",
+                                name = user.userName ?: "",
+                                tagName = Constants.EMPLOYEE_SINGULAR,
+                                imgUrl = user.userProfileImgUrl
+                            )
+                        }else{
+                                CommonData(
+                                    id = user.userId ?: "",
+                                    name = user.userName ?: "",
+                                    tagName = user.selfCompanyName,
+                                    imgUrl = user.userProfileImgUrl
+                                )
+                        }
                     }
+                    userList = userList.sortedBy { it.name }
+                    groupCompanyName = userList
+                        .firstOrNull { it.tagName != Constants.EMPLOYEE_SINGULAR }
+                        ?.tagName
                     adapter.submitList(userList)
                 }
             }
@@ -258,6 +291,7 @@ class GroupProfileFragment : Fragment(),View.OnClickListener {
         binding.header.btnSave.setOnClickListener(this)
         binding.btnImage.setOnClickListener(this)
         binding.tvName.setOnClickListener(this)
+        binding.imageAddUser.setOnClickListener(this)
     }
 
     private fun changeGroupName(){
@@ -402,6 +436,13 @@ class GroupProfileFragment : Fragment(),View.OnClickListener {
             }
             binding.header.btnBack ->{
                 findNavController().popBackStack()
+            }
+            binding.imageAddUser -> {
+                val bundle = Bundle()
+                bundle.putBoolean(Constants.GROUP_PROFILE, true)
+                bundle.putString(Constants.COMPANY_SINGULAR,groupCompanyName)
+                bundle.putString(Constants.GROUP_ID,groupId)
+                findNavController().navigate(R.id.action_groupProfileFragment_to_selectUserFragment, bundle)
             }
         }
     }

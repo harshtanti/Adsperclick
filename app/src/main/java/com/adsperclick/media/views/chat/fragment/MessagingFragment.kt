@@ -116,6 +116,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
             }
         }
         binding.includeTopBar.container.setOnClickListener(this)
+        binding.includeTopBar.btnBack.setOnClickListener(this)
     }
 
     private fun setupObservers(){
@@ -155,12 +156,14 @@ class MessagingFragment : Fragment(),View.OnClickListener {
     override fun onClick(v: View?) {
         when(v){
             binding.includeTopBar.container ->{
-                groupChat?.let { nonNullGroupChat ->
-                    val groupChatObjToString = Json.encodeToString(GroupChatListingData.serializer(), nonNullGroupChat)
+                groupChat?.let {
                     val bundle = Bundle()
-                    bundle.putString(CLICKED_GROUP, groupChatObjToString)
+                    bundle.putString(CLICKED_GROUP, it.groupId)
                     findNavController().navigate(R.id.action_messagingFragment_to_groupProfileFragment, bundle)
                 }
+            }
+            binding.includeTopBar.btnBack -> {
+                findNavController().popBackStack()
             }
         }
     }

@@ -3,6 +3,7 @@ package com.adsperclick.media.api
 import android.net.Uri
 import com.adsperclick.media.data.dataModels.Company
 import com.adsperclick.media.data.dataModels.GroupChatListingData
+import com.adsperclick.media.data.dataModels.GroupUser
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.data.dataModels.User
@@ -210,7 +211,7 @@ class ApiServiceImpl @Inject constructor(
                 groupRef.set(groupData).await()
 
                 // Step 6: Update each user's listOfGroupsAssigned with the new groupId
-                val userCollection = FirebaseFirestore.getInstance().collection("users")
+                val userCollection = db.collection("users")
 
                 data.listOfUsers?.forEach { userPair ->
                     val userId = userPair.userId  // Extract userId
@@ -493,6 +494,73 @@ class ApiServiceImpl @Inject constructor(
             NetworkResult.Success(userId)
         } catch (e: Exception) {
             NetworkResult.Error(null, e.message ?: "Failed to remove user from group")
+        }
+    }
+
+    override suspend fun getGroupDetails(groupId: String): NetworkResult<GroupChatListingData> {
+        return try {
+            val groupData = db.collection(Constants.DB.GROUPS).document(groupId).get().await()
+            val group = groupData.toObject(GroupChatListingData::class.java)
+                ?: return NetworkResult.Error(null, "Group not found")
+
+            NetworkResult.Success(group)
+
+        } catch (e:Exception) {
+            NetworkResult.Error(null, e.message ?: "Failed to fetch group data")
+        }
+
+    }
+
+    override suspend fun addGroupMember(
+        groupId: String,
+        userSet: MutableSet<String>
+    ): NetworkResult<Boolean> {
+        return try {
+            // 1. Update each user's listOfGroupsAssigned
+            val userCollection = db.collection("users")
+            val groupCollection = db.collection("groups")
+            val groupRef = groupCollection.document(groupId)
+
+            // Get the group data first
+            val groupSnapshot = groupRef.get().await()
+            val groupData = groupSnapshot.toObject(GroupChatListingData::class.java)
+
+            // Create a list to hold new group users
+            val currentUsers = groupData?.listOfUsers?.toMutableList() ?: mutableListOf()
+            val currentUserIds = currentUsers.map { it.userId }.toSet()
+            val newGroupUsers = mutableListOf<GroupUser>()
+
+            // Update each user document and build the list of new group users
+            userSet.forEach { userId ->
+                // Only add if user is not already in the group
+                if (!currentUserIds.contains(userId)) {
+                    // Update user's listOfGroupsAssigned
+                    val userRef = userCollection.document(userId)
+                    userRef.get().await().toObject(User::class.java)?.let { user ->
+                        val updatedGroups = user.listOfGroupsAssigned?.toMutableList() ?: mutableListOf()
+                        if (!updatedGroups.contains(groupId)) {
+                            updatedGroups.add(groupId)
+                        }
+                        userRef.update("listOfGroupsAssigned", updatedGroups).await()
+                    }
+
+                    // Add user to the list of new group users
+                    newGroupUsers.add(GroupUser(userId = userId, lastSeen = null))
+                }
+            }
+
+            // If there are new users to add to the group
+            if (newGroupUsers.isNotEmpty()) {
+                // Add all new users to the current users list
+                currentUsers.addAll(newGroupUsers)
+
+                // Update the group document
+                groupRef.update("listOfUsers", currentUsers).await()
+            }
+
+            NetworkResult.Success(true)
+        } catch (e: Exception) {
+            NetworkResult.Error(null, e.message ?: "Failed to add members to group")
         }
     }
 

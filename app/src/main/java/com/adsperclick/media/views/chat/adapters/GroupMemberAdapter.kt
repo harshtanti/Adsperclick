@@ -43,7 +43,13 @@ class GroupMemberAdapter:ListAdapter<CommonData, GroupMemberAdapter.ViewHolder>(
                             data.name
                         )
                     }
-                    if (isAdmin){btnDelete.visible()}
+                    if (isAdmin){
+                        btnDelete.visible()
+                        data.tagName?.let {
+                            tvTagName.visible()
+                            tvTagName.text=it
+                        }
+                    }
                     btnDelete.setOnClickListener{
                         listener?.btnDelete(data)
                     }

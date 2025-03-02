@@ -21,8 +21,9 @@ import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
-class ChatViewModel@Inject constructor(private val chatRepository: ChatRepository,
-                                       private val authRepository: AuthRepository
+class ChatViewModel@Inject constructor(
+    private val chatRepository: ChatRepository,
+    private val authRepository: AuthRepository
 ) :ViewModel() {
 
     var lastTimeWhenNotificationsWereLoaded:Long = 0L
@@ -146,6 +147,21 @@ class ChatViewModel@Inject constructor(private val chatRepository: ChatRepositor
             }
         } catch (e : Exception){
             _leaveGroupResult.postValue(NetworkResult.Error(null, "Error ${e.message}"))
+        }
+    }
+
+    private val _groupDetailResult = MutableLiveData<NetworkResult<GroupChatListingData>>()
+    val groupDetailResult: LiveData<NetworkResult<GroupChatListingData>> = _groupDetailResult
+
+    fun getGroupDetails(groupId: String) {
+        _groupDetailResult.postValue(NetworkResult.Loading())
+        try {
+            viewModelScope.launch(Dispatchers.IO){
+                val result = chatRepository.getGroupDetails(groupId)
+                _groupDetailResult.postValue(result)
+            }
+        } catch (e : Exception){
+            _groupDetailResult.postValue(NetworkResult.Error(null, "Error ${e.message}"))
         }
     }
 
