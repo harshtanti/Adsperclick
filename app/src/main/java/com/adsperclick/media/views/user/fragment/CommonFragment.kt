@@ -107,11 +107,13 @@ class CommonFragment : Fragment(), View.OnClickListener {
                                     putString(Constants.USER_TYPE_SEMI_CAPS, tabName)
                                     putString(Constants.USER_NAME, name)
                                     putString(Constants.USER_IMAGE, it)
+                                    putString(Constants.USER_ID,id)
                                 }
                             }?: run{
                                 bundle.apply {
                                     putString(Constants.USER_TYPE_SEMI_CAPS, tabName)
                                     putString(Constants.USER_NAME, name)
+                                    putString(Constants.USER_ID,id)
                                 }
                             }
 

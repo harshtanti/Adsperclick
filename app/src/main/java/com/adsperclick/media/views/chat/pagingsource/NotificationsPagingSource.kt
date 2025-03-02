@@ -1,4 +1,4 @@
-package com.adsperclick.media.data.pagingsource
+package com.adsperclick.media.views.chat.pagingsource
 
 
 import androidx.paging.PagingSource

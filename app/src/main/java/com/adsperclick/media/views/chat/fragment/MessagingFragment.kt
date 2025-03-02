@@ -6,7 +6,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.adsperclick.media.R
 import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.User
@@ -23,7 +25,7 @@ import javax.inject.Inject
 
 
 @AndroidEntryPoint
-class MessagingFragment : Fragment() {
+class MessagingFragment : Fragment(),View.OnClickListener {
 
     lateinit var binding: FragmentMessagingBinding
     private val chatViewModel: ChatViewModel by viewModels()
@@ -35,8 +37,17 @@ class MessagingFragment : Fragment() {
 
     private var messagesListener: ChildEventListener? = null
 
-    lateinit var currentUser: User
+    private lateinit var currentUser: User
     private var groupChat :GroupChatListingData? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val groupChatObjAsString = arguments?.getString(CLICKED_GROUP)
+        groupChat = groupChatObjAsString?.let {
+                Json.decodeFromString(GroupChatListingData.serializer(), it)
+            }
+        currentUser = tokenManager.getUser()!!
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -49,20 +60,16 @@ class MessagingFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        currentUser = tokenManager.getUser()!!
-        setupView()
+        setUpView()
         setupAdapter()
-        listener()
+        setUpListener()
         setupObservers()
     }
 
-    fun setupView(){
-        val groupChatObjAsString = arguments?.getString(CLICKED_GROUP)      // Passed from ChatFragment
+    private fun setUpView(){
+             // Passed from ChatFragment
 
-        groupChat =
-            groupChatObjAsString?.let {
-                Json.decodeFromString(GroupChatListingData.serializer(), it)
-            }
+
 
         binding.includeTopBar.tvGroupName.text = groupChat?.groupName ?: "Group-Name"
 
@@ -98,7 +105,7 @@ class MessagingFragment : Fragment() {
 
 
 
-    fun listener(){
+    private fun setUpListener(){
         binding.includeTextSender.btnSendMsg.setOnClickListener{
             val text = binding.includeTextSender.etTypeMessage.text.toString()      // here "text" will have the text msg
             if(text.isNotEmpty()){
@@ -108,6 +115,7 @@ class MessagingFragment : Fragment() {
                 }
             }
         }
+        binding.includeTopBar.container.setOnClickListener(this)
     }
 
     private fun setupObservers(){
@@ -142,6 +150,19 @@ class MessagingFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         chatViewModel.stopRealtimeListening()
+    }
+
+    override fun onClick(v: View?) {
+        when(v){
+            binding.includeTopBar.container ->{
+                groupChat?.let { nonNullGroupChat ->
+                    val groupChatObjToString = Json.encodeToString(GroupChatListingData.serializer(), nonNullGroupChat)
+                    val bundle = Bundle()
+                    bundle.putString(CLICKED_GROUP, groupChatObjToString)
+                    findNavController().navigate(R.id.action_messagingFragment_to_groupProfileFragment, bundle)
+                }
+            }
+        }
     }
 
 }

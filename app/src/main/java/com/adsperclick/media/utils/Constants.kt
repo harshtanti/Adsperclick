@@ -35,6 +35,7 @@ object Constants {
     const val SERVICES_SEMI_CAPS = "Services"
     const val COMPANIES_SEMI_CAPS = "Companies"
     const val USER_TYPE="UserType"
+    const val USER_ID="UserId"
 
 
     object MSG_TYPE{

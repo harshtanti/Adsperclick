@@ -1,6 +1,5 @@
 package com.adsperclick.media.views.chat.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -8,12 +7,11 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.adsperclick.media.data.dataModels.CommonData
+import com.adsperclick.media.data.dataModels.Company
 import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.NetworkResult
-import com.adsperclick.media.data.dataModels.NotificationMsg
 import com.adsperclick.media.data.dataModels.Service
-import com.adsperclick.media.data.dataModels.User
-import com.adsperclick.media.data.repositories.ChatRepository
+import com.adsperclick.media.views.chat.repository.ChatRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -72,10 +70,30 @@ class NewGroupViewModel@Inject constructor(private val chatRepository: ChatRepos
         }
     }
 
+    private val _companyDataLiveData = MutableLiveData<NetworkResult<Company>>()
+    val companyDataLiveData: LiveData<NetworkResult<Company>> get() = _companyDataLiveData
+
+    fun getCompanyNameData(companyId: String?=null) {
+        _companyDataLiveData.postValue(NetworkResult.Loading())
+
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                if (companyId.isNullOrEmpty()) {
+                    return@launch
+                }
+                val result = chatRepository.getCompanyNameData(companyId)
+                _companyDataLiveData.postValue(result)
+            } catch (e: Exception) {
+                _companyDataLiveData.postValue(NetworkResult.Error(null, "Error ${e.message}"))
+            }
+        }
+    }
+
     override fun onCleared() {
         super.onCleared()
         _createGroupLiveData.postValue(NetworkResult.Loading())
         _listServiceLiveData.postValue(NetworkResult.Loading())
+        _companyDataLiveData.postValue(NetworkResult.Loading())
 
         // Reset the variables
         selectedUserSet.clear()

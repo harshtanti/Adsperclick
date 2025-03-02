@@ -1,10 +1,8 @@
-package com.adsperclick.media.data.repositories
+package com.adsperclick.media.views.chat.repository
 
-import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
@@ -17,26 +15,22 @@ import com.adsperclick.media.data.dataModels.Message
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.NotificationMsg
 import com.adsperclick.media.data.dataModels.User
-import com.adsperclick.media.data.pagingsource.NotificationsPagingSource
+import com.adsperclick.media.views.chat.pagingsource.NotificationsPagingSource
 import com.adsperclick.media.views.user.pagingsource.UserCommunityPagingSource
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.UtilityFunctions
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
-import com.google.firebase.firestore.Source
-import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.io.File
-import java.sql.Time
 import javax.inject.Inject
 
 class ChatRepository @Inject constructor(private val apiService: ApiService, private val firestore:FirebaseFirestore) {
@@ -375,25 +369,13 @@ class ChatRepository @Inject constructor(private val apiService: ApiService, pri
 
     suspend fun createGroup(data: GroupChatListingData,file: File) = apiService.createGroup(data,file)
 
-    suspend fun uploadGroupImage(imageFile: File): NetworkResult<String> {
-        return try {
-            // Create a storage reference
-            val storageRef = FirebaseStorage.getInstance().reference
-            val imageRef = storageRef.child("group_profile_images/${System.currentTimeMillis()}_${imageFile.name}")
+    suspend fun getCompanyNameData(companyId: String) = apiService.getCompanyNameData(companyId)
 
-            // Upload the file
-            val uploadTask = imageRef.putFile(Uri.fromFile(imageFile))
+    suspend fun getMultipleUsers(userIds: List<String>) = apiService.getMultipleUsers(userIds)
 
-            // Wait for the upload to complete
-            val taskSnapshot = uploadTask.await()
+    suspend fun updateGroupProfile(groupId:String,groupName:String?, file: File?) = apiService.updateGroupProfile(groupId,groupName,file)
 
-            // Get the download URL
-            val downloadUrl = imageRef.downloadUrl.await().toString()
+    suspend fun removeUserFromGroup(userId: String, groupId: String) = apiService.removeUserFromGroup(userId,groupId)
 
-            NetworkResult.Success(downloadUrl)
-        } catch (e: Exception) {
-            NetworkResult.Error(null, "Failed to upload image: ${e.message}")
-        }
-    }
 }
 

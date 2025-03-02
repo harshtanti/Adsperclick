@@ -32,7 +32,7 @@ class SettingViewModel @Inject constructor(private val settingRepository: Settin
     }
 
     fun clearUpdateUserLiveData() {
-        _updateUserLiveData.value = null
+        _updateUserLiveData.value = NetworkResult.Loading()
     }
 
 }
