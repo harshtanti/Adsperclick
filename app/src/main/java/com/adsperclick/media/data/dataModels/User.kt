@@ -21,8 +21,7 @@ data class User(
     val mobileNo : String? = null,
     val fcmTokenListOfDevices : List<String> ? = null,
     val lastNotificationSeenTime : Long ?= null,
-    val userPhoneNumber : String ?= null,
-    val userAssociatedDate : String ?= null
+    val userPhoneNumber : String ?= null
 ){
-    constructor() : this(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,null,null,null,null)
+    constructor() : this(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,null,null,null)
 }

@@ -32,6 +32,10 @@ import com.adsperclick.media.views.user.viewmodel.UserViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.util.Date
+import java.util.Locale
 
 @AndroidEntryPoint
 class FormFragment : Fragment(),View.OnClickListener {
@@ -379,6 +383,9 @@ class FormFragment : Fragment(),View.OnClickListener {
             var userRole: Int? = null
             var selfCompanyName: String? = null
             var selfCompanyId:String? = null
+            val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val currentDate: String = simpleDateFormat.format(Date())
+
 
 
             // Assign values based on userType and visibility of Groups
@@ -408,6 +415,7 @@ class FormFragment : Fragment(),View.OnClickListener {
             // Construct the User object based on available details
 
 
+
             when (userType) {
                 Constants.EMPLOYEES_SEMI_CAPS, Constants.CLIENTS_SEMI_CAPS -> {
                     val user = User(
@@ -418,7 +426,8 @@ class FormFragment : Fragment(),View.OnClickListener {
                         userAdhaarNumber = aadharNumber,
                         selfCompanyId = selfCompanyId,
                         selfCompanyName = selfCompanyName,
-                        selfCompanyGstNumber = gstNumber
+                        selfCompanyGstNumber = gstNumber,
+                        associationDate = currentDate
                     )
                     viewModel.registerUser(user)
                 }
@@ -607,9 +616,21 @@ class FormFragment : Fragment(),View.OnClickListener {
     }
 
     private fun validatePasswords(): Boolean {
-        val passwordText = binding.password.getText()
-        val confirmPasswordText = binding.confirmPassword.getText()
+        val passwordText = binding.password.getText() ?:""
+        val confirmPasswordText = binding.confirmPassword.getText() ?: ""
 
+        // Check password length first
+        if (passwordText.length < 6) {
+            binding.password.setErrorText(getString(R.string.password_length))
+            return false
+        }
+
+        if (confirmPasswordText.length < 6) {
+            binding.confirmPassword.setErrorText(getString(R.string.password_length))
+            return false
+        }
+
+        // Then check if passwords match
         return if (passwordText == confirmPasswordText) {
             binding.confirmPassword.removeErrorText()
             true

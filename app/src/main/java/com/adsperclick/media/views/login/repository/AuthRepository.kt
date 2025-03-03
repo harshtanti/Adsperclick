@@ -1,7 +1,6 @@
-package com.adsperclick.media.data.repositories
+package com.adsperclick.media.views.login.repository
 
 import android.util.Log
-import androidx.core.util.TimeUtils
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.adsperclick.media.api.MessagesDao

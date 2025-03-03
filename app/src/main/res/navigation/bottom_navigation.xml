@@ -71,7 +71,11 @@
         android:id="@+id/messagingFragment"
         android:name="com.adsperclick.media.views.chat.fragment.MessagingFragment"
         android:label="fragment_messaging"
-        tools:layout="@layout/fragment_messaging" />
+        tools:layout="@layout/fragment_messaging" >
+        <action
+            android:id="@+id/action_messagingFragment_to_groupProfileFragment"
+            app:destination="@id/groupProfileFragment" />
+    </fragment>
 
     <navigation android:id="@+id/new_group_navigation"
         app:startDestination="@id/selectUserFragment">
@@ -94,4 +98,13 @@
                 app:destination="@id/newGroupFragment" />
         </fragment>
     </navigation>
+    <fragment
+        android:id="@+id/groupProfileFragment"
+        android:name="com.adsperclick.media.views.chat.fragment.GroupProfileFragment"
+        android:label="fragment_group_profile"
+        tools:layout="@layout/fragment_group_profile" >
+        <action
+            android:id="@+id/action_groupProfileFragment_to_selectUserFragment"
+            app:destination="@id/new_group_navigation" />
+    </fragment>
 </navigation>

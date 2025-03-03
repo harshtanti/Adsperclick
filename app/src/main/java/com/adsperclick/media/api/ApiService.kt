@@ -16,4 +16,14 @@ interface ApiService {
     suspend fun createGroup(data: GroupChatListingData,file: File): NetworkResult<Boolean>
     suspend fun deleteService(serviceId: String): NetworkResult<Boolean>
     suspend fun updateUser(userId:String,phoneNumber:String?, file: File?): NetworkResult<Boolean>
+    suspend fun getUserData(userId: String): NetworkResult<User>
+    suspend fun getCompanyData(companyId: String): NetworkResult<Company>
+    suspend fun updateCompanyServices(companyId: String, services: List<Service>): NetworkResult<Boolean>
+    suspend fun getCompanyNameData(companyName: String): NetworkResult<Company>
+    suspend fun getMultipleUsers(userIds: List<String>): NetworkResult<List<User>>
+    suspend fun updateGroupProfile(groupId:String,groupName:String?, file: File?): NetworkResult<Boolean>
+    suspend fun removeUserFromGroup(userId: String, groupId: String): NetworkResult<String>
+    suspend fun getGroupDetails(groupId: String): NetworkResult<GroupChatListingData>
+    suspend fun addGroupMember(groupId: String, userSet: MutableSet<String>): NetworkResult<Boolean>
+
 }

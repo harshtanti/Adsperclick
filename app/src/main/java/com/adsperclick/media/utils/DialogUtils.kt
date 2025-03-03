@@ -51,6 +51,26 @@ object DialogUtils {
             binding.btnCancel.text = it
         }
 
+        binding.etMessage.setInputType(InputType.TYPE_CLASS_TEXT)
+
+        binding.btnDelete.disableHeaderButton()
+
+        binding.etMessage.getEditView().addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+            override fun afterTextChanged(s: Editable?) {
+                // Enable button only if length is 10 and all characters are digits
+                val text = s.toString()
+                if (text.isNotEmpty()){
+                    binding.btnDelete.enableHeaderButton(R.color.Red)
+                }else{
+                    binding.btnDelete.disableHeaderButton()
+                }
+            }
+        })
+
         val dialog = builder?.show()
         dialog?.window?.setBackgroundDrawable(
             InsetDrawable(

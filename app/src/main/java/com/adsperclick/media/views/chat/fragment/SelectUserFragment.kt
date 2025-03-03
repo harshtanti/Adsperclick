@@ -39,6 +39,16 @@ class SelectUserFragment : Fragment(), View.OnClickListener {
     private val viewModel: NewGroupViewModel by navGraphViewModels(R.id.new_group_navigation) {
         defaultViewModelProviderFactory
     }
+    private var isFromGroupProfile = false
+    private var groupCompanyName:String?=null
+    private var groupId:String?=null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        isFromGroupProfile = arguments?.getBoolean(Constants.GROUP_PROFILE) == true
+        groupCompanyName = arguments?.getString(Constants.COMPANY_SINGULAR)
+        groupId = arguments?.getString(Constants.GROUP_ID)
+    }
 
 
     override fun onCreateView(
@@ -66,7 +76,11 @@ class SelectUserFragment : Fragment(), View.OnClickListener {
 
     private fun setUpHeader(){
         binding.header.tvTitle.text = getString(R.string.select_user)
-        binding.header.btnSave.text = getString(R.string.new_group)
+        if(isFromGroupProfile){
+            binding.header.btnSave.text = getString(R.string.add_members)
+        }else{
+            binding.header.btnSave.text = getString(R.string.new_group)
+        }
     }
 
     private fun setOnClickListener(){
@@ -151,6 +165,24 @@ class SelectUserFragment : Fragment(), View.OnClickListener {
 
     private fun setUpObservers(){
         viewModel.listServiceLiveData.observe(viewLifecycleOwner,serviceListObserver)
+        viewModel.addGroupMemberLiveData.observe(viewLifecycleOwner,addGroupMemberObserver)
+    }
+
+    private val addGroupMemberObserver = Observer<NetworkResult<Boolean>> {
+        when(it){
+
+            is NetworkResult.Success ->{
+                if (it.data==true){
+                    findNavController().popBackStack()
+                }
+            }
+
+            is NetworkResult.Error ->{
+                Toast.makeText(context, "Error: ${it.message}", Toast.LENGTH_SHORT).show()
+            }
+
+            is NetworkResult.Loading ->{}
+        }
     }
 
     private val serviceListObserver = Observer<NetworkResult<ArrayList<Service>>> {
@@ -172,13 +204,48 @@ class SelectUserFragment : Fragment(), View.OnClickListener {
         return viewModel.selectedUserSetTotal.size<=1
     }
 
+    private fun addMembersInGroup(){
+        groupId?.let { viewModel.addGroupMember(it,viewModel.selectedUserSet) }
+    }
+
     override fun onClick(v: View?) {
         when(v){
             binding.header.btnSave -> {
-                if(singleCompany()){
-                    findNavController().navigate(R.id.action_selectUserFragment_to_newGroupFragment)
+                /*if (isFromGroupProfile){
+                    if(viewModel.selectedUserSetTotal.size==1 && viewModel.selectedUserSetTotal.first()!=groupCompanyName){
+                        Toast.makeText(context,"Please! Select clients of only $groupCompanyName",Toast.LENGTH_SHORT).show()
+                    }else if (singleCompany()){
+                        addMembersInGroup()
+                        findNavController().popBackStack()
+                    }else{
+                        Toast.makeText(context,"Selected Clients can be of only one company",Toast.LENGTH_SHORT).show()
+                    }
                 }else{
-                    Toast.makeText(context,"Select Clients can be of only one company",Toast.LENGTH_SHORT).show()
+                    if(singleCompany()){
+                        findNavController().navigate(R.id.action_selectUserFragment_to_newGroupFragment)
+                    }else{
+                        Toast.makeText(context,"Selected Clients can be of only one company",Toast.LENGTH_SHORT).show()
+                    }
+                }*/
+                when {
+                    isFromGroupProfile && !groupCompanyName.isNullOrEmpty() && viewModel.selectedUserSetTotal.size == 1 && viewModel.selectedUserSetTotal.first() != groupCompanyName -> {
+                        Toast.makeText(context, "Please! Select clients of only $groupCompanyName", Toast.LENGTH_SHORT).show()
+                    }
+                    isFromGroupProfile && viewModel.selectedUserSet.size == 0 ->{
+                        Toast.makeText(context, "Please! Select Members", Toast.LENGTH_SHORT).show()
+                    }
+                    isFromGroupProfile && singleCompany() -> {
+                        addMembersInGroup()
+                    }
+                    isFromGroupProfile -> {
+                        Toast.makeText(context, "Selected Clients can be of only one company", Toast.LENGTH_SHORT).show()
+                    }
+                    singleCompany() -> {
+                        findNavController().navigate(R.id.action_selectUserFragment_to_newGroupFragment)
+                    }
+                    else -> {
+                        Toast.makeText(context, "Selected Clients can be of only one company", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
             binding.header.btnBack ->{

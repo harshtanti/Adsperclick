@@ -75,8 +75,9 @@ object FirebaseModule {
     fun provideApiService(
         db: FirebaseFirestore,
         auth: FirebaseAuth,
-        storageRef: StorageReference
+        storageRef: StorageReference,
+        fs: FirebaseStorage
     ): ApiService {
-        return ApiServiceImpl(db, auth,storageRef)
+        return ApiServiceImpl(db, auth,storageRef,fs)
     }
 }

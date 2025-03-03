@@ -7,8 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.User
-import com.adsperclick.media.data.repositories.AuthRepository
-import com.google.firebase.auth.FirebaseAuth
+import com.adsperclick.media.views.login.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

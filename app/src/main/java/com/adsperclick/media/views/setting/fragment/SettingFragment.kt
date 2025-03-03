@@ -18,6 +18,7 @@ import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.databinding.FragmentSettingBinding
 import com.adsperclick.media.utils.Constants
+import com.adsperclick.media.utils.ConsumableValue
 import com.adsperclick.media.utils.DialogUtils
 import com.adsperclick.media.utils.UtilityFunctions
 import com.adsperclick.media.utils.disableHeaderButton
@@ -214,43 +215,47 @@ class SettingFragment : Fragment(),View.OnClickListener {
 
     private fun observeViewModel() {
         // Observe the update user result
-        settingViewModel.updateUserLiveData.observe(viewLifecycleOwner) { result ->
-            when (result) {
-                is NetworkResult.Loading -> {
-                    // Show loading indicator
-                    binding.progressBar.visibility = View.VISIBLE
-                }
-                is NetworkResult.Success -> {
-                    // Hide loading indicator
-                    binding.progressBar.visibility = View.GONE
+        settingViewModel.updateUserLiveData.observe(viewLifecycleOwner,updateUserObserver)
+    }
 
-                    // Update the UI to reflect changes
-                    if (result.data == true) {
-                        // Update was successful
-                        Toast.makeText(context, "Profile updated successfully",Toast.LENGTH_SHORT).show()
+    private val updateUserObserver = androidx.lifecycle.Observer<ConsumableValue<NetworkResult<Boolean>>> {it1 ->
+        it1.handle {
+                when (it) {
+                    is NetworkResult.Loading -> {
+                        // Show loading indicator
+                        binding.progressBar.visibility = View.VISIBLE
+                    }
+                    is NetworkResult.Success -> {
+                        // Hide loading indicator
+                        binding.progressBar.visibility = View.GONE
 
-                        // Update the stored user data with the new image URL
-                        val updatedUser = tokenManager.getUser()?.copy(
-                            // Update any fields that were changed
-                            userPhoneNumber = phoneNumber ?: tokenManager.getUser()?.userPhoneNumber
-                        )
-                        updatedUser?.let { tokenManager.saveUser(it) }
+                        // Update the UI to reflect changes
+                        if (it.data == true) {
+                            // Update was successful
+                            Toast.makeText(context, "Profile updated successfully",Toast.LENGTH_SHORT).show()
 
-                        // Reset the selectedImageFile since it's been uploaded
-                        selectedImageFile = null
+                            // Update the stored user data with the new image URL
+                            val updatedUser = tokenManager.getUser()?.copy(
+                                // Update any fields that were changed
+                                userPhoneNumber = phoneNumber ?: tokenManager.getUser()?.userPhoneNumber
+                            )
+                            updatedUser?.let { tokenManager.saveUser(it) }
 
-                        // Revalidate the submit button state
-                        validateSubmitButton()
+                            // Reset the selectedImageFile since it's been uploaded
+                            selectedImageFile = null
+
+                            // Revalidate the submit button state
+                            validateSubmitButton()
+                        }
+                    }
+                    is NetworkResult.Error -> {
+                        // Hide loading indicator
+                        binding.progressBar.visibility = View.GONE
+
+                        // Show error message
+                        Toast.makeText(context, it.message ?: "Update failed",Toast.LENGTH_SHORT).show()
                     }
                 }
-                is NetworkResult.Error -> {
-                    // Hide loading indicator
-                    binding.progressBar.visibility = View.GONE
-
-                    // Show error message
-                    Toast.makeText(context, result.message ?: "Update failed",Toast.LENGTH_SHORT).show()
-                }
-            }
         }
     }
 

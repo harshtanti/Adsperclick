@@ -19,6 +19,7 @@ import androidx.navigation.navGraphViewModels
 import com.adsperclick.media.R
 import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.applicationCommonView.bottomsheet.UploadImageDocsBottomSheet
+import com.adsperclick.media.data.dataModels.Company
 import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.GroupUser
 import com.adsperclick.media.data.dataModels.NetworkResult
@@ -43,6 +44,7 @@ class NewGroupFragment : Fragment(),View.OnClickListener {
 
     private lateinit var binding: FragmentNewGroupBinding
     private val selectedTypeList = arrayListOf(Constants.CAMERA_VISIBLE,Constants.GALLERY_VISIBLE,Constants.DELETE_VISIBLE)
+    private var company:Company?=null
 
     @Inject
     lateinit var tokenManager : TokenManager
@@ -62,6 +64,7 @@ class NewGroupFragment : Fragment(),View.OnClickListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        uiDataCollect()
         setUpHeader()
         setUpHint()
         setUpInputType()
@@ -72,6 +75,14 @@ class NewGroupFragment : Fragment(),View.OnClickListener {
         val drawable = UtilityFunctions.generateInitialsDrawable(
             binding.imgProfileDp.context, "A")
         binding.imgProfileDp.setImageDrawable(drawable)
+    }
+
+    private fun uiDataCollect(){
+        if (viewModel.selectedUserSetTotal.isNotEmpty()) {
+            viewModel.getCompanyNameData(viewModel.selectedUserSetTotal.first())
+        }else{
+            binding.serviceName.setDataItemList(viewModel.serviceList.mapNotNull { it.serviceName })
+        }
     }
 
     private fun setUpHeader(){
@@ -89,7 +100,6 @@ class NewGroupFragment : Fragment(),View.OnClickListener {
     private fun setUpInputType(){
         with(binding){
             groupName.setInputType(InputType.TYPE_CLASS_TEXT)
-            serviceName.setDataItemList(viewModel.serviceList.mapNotNull { it.serviceName })
         }
     }
 
@@ -160,7 +170,35 @@ class NewGroupFragment : Fragment(),View.OnClickListener {
 
     private fun setUpObserver(){
         viewModel.createGroupLiveData.observe(viewLifecycleOwner,createGroupObserver)
+        viewModel.companyDataLiveData.observe(viewLifecycleOwner,companyDataObserver)
     }
+
+    private val companyDataObserver = Observer<NetworkResult<Company>> { it ->
+        when(it){
+
+            is NetworkResult.Success ->{
+                company = it.data
+                if (viewModel.selectedUserSetTotal.isNotEmpty()) {
+                    company?.listOfServices?.mapNotNull { it.serviceName }
+                        ?.let { it1 -> binding.serviceName.setDataItemList(it1) }
+                }else{
+                    binding.serviceName.setDataItemList(viewModel.serviceList.mapNotNull { it.serviceName })
+                }
+                binding.progressBar.gone()
+            }
+
+            is NetworkResult.Error ->{
+                Toast.makeText(context, "Error: ${it.message}", Toast.LENGTH_SHORT).show()
+                binding.progressBar.gone()
+            }
+
+            is NetworkResult.Loading ->{
+                binding.progressBar.visible()
+
+            }
+        }
+    }
+
 
     private val createGroupObserver = Observer<NetworkResult<Boolean>> {
         when(it){

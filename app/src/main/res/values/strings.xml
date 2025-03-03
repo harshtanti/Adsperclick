@@ -63,10 +63,15 @@
     <string name="confirm_cancel_btn">No, cancel</string>
     <string name="update_phone_number">Update Phone Number</string>
     <string name="enter_ten_digit_phone_number">Enter 10-digit phone number</string>
-
-
-
-
-
+    <string name="size">%d</string>
+    <string name="password_length">Password length should be greater than or equal to 6</string>
+    <string name="members">%d members</string>
+    <string name="update_group_name">Update Group Name</string>
+    <string name="group_profile">Group Profile</string>
+    <string name="yes_remove">Yes, remove</string>
+    <string name="no_cancel">No, cancel</string>
+    <string name="confirm_message_for_remove_details_dialog">%s will be removed. Do you wish to proceed?</string>
+    <string name="you_cannot_remove_yourself">You cannot remove yourself</string>
+    <string name="add_members">Add Members</string>
 
 </resources>
