@@ -63,4 +63,11 @@ class CommunityRepository @Inject constructor(
     suspend fun deleteService(serviceId: String) = apiService.deleteService(serviceId)
 
     suspend fun updateUser(userId:String,phoneNumber:String?, file: File?) = apiService.updateUser(userId,phoneNumber,file)
+
+    suspend fun getUserData(userId: String) = apiService.getUserData(userId)
+
+    suspend fun getCompanyData(companyId: String) = apiService.getCompanyData(companyId)
+
+    suspend fun updateCompanyServices(companyId: String, services: List<Service>) = apiService.updateCompanyServices(companyId, services)
+
 }

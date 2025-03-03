@@ -133,6 +133,62 @@ class UserViewModel @Inject constructor(private val communityRepository: Communi
         }
     }
 
+    private val _userDataLiveData = MutableLiveData<NetworkResult<User>>()
+    val userDataLiveData: LiveData<NetworkResult<User>> get() = _userDataLiveData
+
+    fun getUserData(userId: String): LiveData<NetworkResult<User>> {
+        _userDataLiveData.postValue(NetworkResult.Loading())
+
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val result = communityRepository.getUserData(userId)
+                _userDataLiveData.postValue(result)
+            } catch (e: Exception) {
+                _userDataLiveData.postValue(NetworkResult.Error(null, "Error ${e.message}"))
+            }
+        }
+
+        return _userDataLiveData
+    }
+
+    private val _companyDataLiveData = MutableLiveData<NetworkResult<Company>>()
+    val companyDataLiveData: LiveData<NetworkResult<Company>> get() = _companyDataLiveData
+
+    fun getCompanyData(companyId: String): LiveData<NetworkResult<Company>> {
+        _companyDataLiveData.postValue(NetworkResult.Loading())
+
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val result = communityRepository.getCompanyData(companyId)
+                _companyDataLiveData.postValue(result)
+            } catch (e: Exception) {
+                _companyDataLiveData.postValue(NetworkResult.Error(null, "Error ${e.message}"))
+            }
+        }
+
+        return _companyDataLiveData
+    }
+
+    private val _updateCompanyServicesLiveData = MutableLiveData<NetworkResult<Boolean>>()
+    val updateCompanyServicesLiveData: LiveData<NetworkResult<Boolean>> get() = _updateCompanyServicesLiveData
+
+    fun updateCompanyServices(companyId: String, servicesList: List<Service>) {
+        _updateCompanyServicesLiveData.postValue(NetworkResult.Loading())
+
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                // Convert CommonData to Service objects
+
+                val result = communityRepository.updateCompanyServices(companyId, servicesList)
+                _updateCompanyServicesLiveData.postValue(result)
+            } catch (e: Exception) {
+                _updateCompanyServicesLiveData.postValue(
+                    NetworkResult.Error(false, "Error updating company services: ${e.message}")
+                )
+            }
+        }
+    }
+
     fun getUserListData(searchTxt:String = "",role:Int): Flow<PagingData<CommonData>> {
         return communityRepository.getUserListData(
             searchTxt,
