@@ -11,23 +11,24 @@ import com.adsperclick.media.databinding.HorizontalCompanyListItemBinding
 
 class HorizontalServiceListAdapter(val onServiceClickListener: OnServiceClickListener) : ListAdapter<Service, HorizontalServiceListAdapter.MyViewHolder>(DiffUtil())
 {
-
+    var selectedPosition = 0
     interface OnServiceClickListener{
         fun onItemClick(service: Service)
     }
 
     inner class MyViewHolder(val binding: HorizontalCompanyListItemBinding): RecyclerView.ViewHolder(binding.root)
     {
-        fun bind(service: Service)
+        fun bind(service: Service, position: Int)
         {
-//            binding.tvGroupName.text = chatGroup.groupName
-//            binding.tvLastMsg.text= chatGroup.lastSentMsg?.message ?: ""
-//            binding.tvLastMsgDateTime.text = chatGroup.lastSentMsg?.timestamp.toString()
-
-
             binding.tvItemHorizontalCompanyList.text = service.serviceName
 
+            binding.root.isSelected = (selectedPosition == position)
+
             binding.root.setOnClickListener{
+                val previousSelectedPosition = selectedPosition
+                selectedPosition = position
+                notifyItemChanged(previousSelectedPosition)
+                notifyItemChanged(selectedPosition)
                 onServiceClickListener.onItemClick(service)
             }
         }
@@ -40,7 +41,7 @@ class HorizontalServiceListAdapter(val onServiceClickListener: OnServiceClickLis
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
         val service = getItem(position)
-        holder.bind(service)
+        holder.bind(service, position)
     }
 
     class DiffUtil : androidx.recyclerview.widget.DiffUtil.ItemCallback<Service>()

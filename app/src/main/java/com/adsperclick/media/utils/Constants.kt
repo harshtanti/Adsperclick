@@ -3,6 +3,7 @@ package com.adsperclick.media.utils
 import android.Manifest
 import android.os.Build
 import android.provider.MediaStore.Video
+import com.adsperclick.media.data.dataModels.Service
 
 object Constants {
 
@@ -12,6 +13,7 @@ object Constants {
     const val EMPTY = ""
     const val SPACE = " "
 
+    val DEFAULT_SERVICE = Service("All", "All");
 
     object ROLE{
         const val CLIENT = 1        // Can use Enum instead

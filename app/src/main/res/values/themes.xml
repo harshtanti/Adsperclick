@@ -93,7 +93,7 @@
         <item name="android:textColorHint">#3c3c43</item>
         <item name="android:fontFamily">@font/inter_600</item>
         <item name="android:textColor">@color/Black_6</item>
-        <item name="android:background">@drawable/et_horizontal_company_list_item_bg</item>
+        <item name="android:background">@drawable/et_horizontal_service_list_item_bg</item>
         <item name="android:paddingVertical">8dp</item>
         <item name="android:paddingHorizontal">@dimen/DP12</item>
     </style>

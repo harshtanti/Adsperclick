@@ -13,7 +13,7 @@ data class User(
     val isBlocked :Boolean ?= null,
     val userAdhaarNumber : String? = null,
     val listOfGroupsAssigned : List<String>? = null,            // List of groups this user is part of
-    val listOfServicesAssigned : List<Service>? = null,           // This field can be used for both
+    var listOfServicesAssigned : List<Service>? = null,           // This field can be used for both
     val selfCompanyId : String? = null,
     val selfCompanyName : String? = null,
     val selfCompanyGstNumber : String? = null,// For clients only, name of company the client is associated with
