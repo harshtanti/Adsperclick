@@ -22,6 +22,7 @@ import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.databinding.FragmentChatBinding
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.Constants.CLICKED_GROUP
+import com.adsperclick.media.utils.Constants.DEFAULT_SERVICE
 import com.adsperclick.media.utils.gone
 import com.adsperclick.media.views.chat.adapters.ChatGroupListAdapter
 import com.adsperclick.media.views.chat.adapters.HorizontalServiceListAdapter
@@ -44,6 +45,9 @@ class ChatFragment : Fragment(),View.OnClickListener {
 
     @Inject
     lateinit var tokenManager: TokenManager
+
+    private var listOfGroupChat = listOf<GroupChatListingData>()
+    private var selectedService = DEFAULT_SERVICE
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -70,28 +74,18 @@ class ChatFragment : Fragment(),View.OnClickListener {
 
 
     private fun setUpAdapters(){
-
-        val companyList = listOf(Service("1", "All"),
-            Service("2", "Amazon"),
-            Service("3", "Meesho"),
-            Service("8", "companyNumber-8"),
-            Service("3", "Flipkart"),
-            Service("4", "Jumbo Tail"))
-
         horizontalServiceListAdapter = HorizontalServiceListAdapter(
             object : HorizontalServiceListAdapter.OnServiceClickListener{
                 override fun onItemClick(service: Service) {
-                    Toast.makeText(context, "Selected : ${service.serviceName}", Toast.LENGTH_SHORT).show()
+                    selectedService = service
+                    updateAdapterWithListOfGroupsHavingSelectedService()
                 }
             }
         )
-        horizontalServiceListAdapter.submitList(companyList)
         binding.rvHorizontalForServiceList.adapter = horizontalServiceListAdapter
-
 
         chatGroupListAdapter = ChatGroupListAdapter(object : ChatGroupListAdapter.OnGroupChatClickListener{
             override fun onItemClick(groupChat : GroupChatListingData) {
-                Toast.makeText(context, "You clicked ${groupChat.groupName}!", Toast.LENGTH_SHORT).show()
 
                 // We'll convert the "GroupChatListingData" object to "String" using the below function,
                 // later this "String" will be converted back to object of "GroupChatListingData"
@@ -140,6 +134,9 @@ class ChatFragment : Fragment(),View.OnClickListener {
                         requireActivity().finish()
                     } else{
                         user?.listOfGroupsAssigned?.let { chatViewModel.startListeningToGroups(it) }
+                        user?.listOfServicesAssigned?.let {
+                            horizontalServiceListAdapter.submitList(it)
+                        }
                     }
                 }
                 else ->{}
@@ -150,7 +147,10 @@ class ChatFragment : Fragment(),View.OnClickListener {
             when(response){
                 is NetworkResult.Success ->{
                     response.data?.let {
-                        if(it.isNotEmpty()) chatGroupListAdapter.submitList(it)
+                        listOfGroupChat = it
+                        updateAdapterWithListOfGroupsHavingSelectedService()
+//                        listOfDesiredGroupChats = listOfGroupChat
+//                        if(it.isNotEmpty()) chatGroupListAdapter.submitList(listOfGroupChat)
                     }
                 }
 
@@ -170,6 +170,17 @@ class ChatFragment : Fragment(),View.OnClickListener {
             binding.addDetails -> {
                 findNavController().navigate(R.id.action_navigation_chat_to_selectUserFragment)
             }
+        }
+    }
+
+    fun updateAdapterWithListOfGroupsHavingSelectedService(){
+        val listOfDesiredGroupChats = when(selectedService){
+            DEFAULT_SERVICE -> listOfGroupChat
+            else -> listOfGroupChat.filter { it.associatedServiceId == selectedService.serviceId }
+        }
+
+        chatGroupListAdapter.submitList(listOfDesiredGroupChats){
+            binding.rvGroupChatList.scrollToPosition(0)
         }
     }
 }

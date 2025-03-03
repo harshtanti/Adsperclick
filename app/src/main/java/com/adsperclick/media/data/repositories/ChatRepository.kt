@@ -15,10 +15,12 @@ import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.Message
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.NotificationMsg
+import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.data.pagingsource.NotificationsPagingSource
 import com.adsperclick.media.views.user.pagingsource.UserCommunityPagingSource
 import com.adsperclick.media.utils.Constants
+import com.adsperclick.media.utils.Constants.DEFAULT_SERVICE
 import com.adsperclick.media.utils.UtilityFunctions
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentSnapshot
@@ -173,6 +175,19 @@ class ChatRepository @Inject constructor(private val apiService: ApiService, pri
             }
 
             val user = result.toObject(User::class.java) // Convert Firestore doc to User object
+
+            if(user?.role != Constants.ROLE.CLIENT){
+                // Now we fetch list of all services and put it in "User" object, thereafter it will be saved in shared Prefs
+                val servicesList = firestore.collection(Constants.DB.SERVICE).orderBy("serviceName").get().await()
+                val listOfServices = arrayListOf<Service>(DEFAULT_SERVICE)      // Filled first service with default service i.e. "All"
+                for(document in servicesList.documents){
+                    val service = document.toObject(Service::class.java)
+                    service?.let {
+                        listOfServices.add(it)
+                    }
+                }
+                user?.listOfServicesAssigned = listOfServices
+            }
 
             user?.let {
                 // Write code for when new "User" object obtained from backend successfully
