@@ -41,7 +41,7 @@ class MainActivity : AppCompatActivity() {
         if(tokenManager.isUserSignedIn()){
             val intent = Intent(this, HomeActivity::class.java)
             startActivity(intent)
-            finish()        // So that user can't come back to Login page using back-navigation
+            finish()        // To Finish this MainActivity(LOGIN ACTIVITY) So that user can't come back to Login page using back-navigation
         }
     }
 }

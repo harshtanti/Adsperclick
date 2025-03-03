@@ -22,27 +22,33 @@
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/tvGroupName"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/DP8"
+        android:layout_marginEnd="@dimen/DP18"
         android:fontFamily="@font/inter_600"
         android:text="This is Name of Group"
         android:textColor="@color/Black_2"
         android:textSize="@dimen/DP15"
         app:layout_constraintBottom_toTopOf="@+id/tvLastMsg"
+        app:layout_constraintEnd_toStartOf="@+id/tvLastMsgDateTime"
         app:layout_constraintStart_toEndOf="@+id/imgProfileDp"
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/tvLastMsg"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/DP3"
         android:fontFamily="@font/inter_400"
         android:text="You: Let's have a chat"
         android:textColor="@color/Black_8"
         android:textSize="@dimen/DP13"
+        android:layout_marginEnd="@dimen/DP35"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:maxLines="1"
+        android:ellipsize="end"
         app:layout_constraintStart_toStartOf="@+id/tvGroupName"
         app:layout_constraintTop_toBottomOf="@+id/tvGroupName" />
 
@@ -55,6 +61,7 @@
         android:text="4 Jan, 2002"
         android:textColor="@color/Black_6"
         android:textSize="11sp"
+        app:layout_constraintBottom_toBottomOf="@+id/tvGroupName"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/tvGroupName" />
 

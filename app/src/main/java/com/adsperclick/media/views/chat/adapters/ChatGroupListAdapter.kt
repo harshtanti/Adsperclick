@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.databinding.ChatGroupListItemBinding
 import com.adsperclick.media.utils.Constants.EMPTY
+import com.adsperclick.media.utils.Constants.SPACE
 import com.adsperclick.media.utils.UtilityFunctions
 
 
@@ -21,9 +22,17 @@ class ChatGroupListAdapter(val onGroupChatClickListener: OnGroupChatClickListene
     {
         fun bind(chatGroup: GroupChatListingData)
         {
+            val lastMessage = chatGroup.lastSentMsg?.let { lastMsg->
+                (lastMsg.senderName?.split(SPACE)?.get(0) ?: EMPTY) + ": " + lastMsg.message
+            } ?: run { EMPTY}
+
+            val lastMsgTime = chatGroup.lastSentMsg?.timestamp?.let {
+                UtilityFunctions.gcListDateFormat(it)
+            } ?: run { EMPTY }
+
             binding.tvGroupName.text = chatGroup.groupName
-            binding.tvLastMsg.text= chatGroup.lastSentMsg?.message ?: ""
-            binding.tvLastMsgDateTime.text = chatGroup.lastSentMsg?.timestamp.toString()
+            binding.tvLastMsg.text= lastMessage
+            binding.tvLastMsgDateTime.text = lastMsgTime
 
             chatGroup.groupImgUrl?.let { imageUrl ->
                 UtilityFunctions.loadImageWithGlide(

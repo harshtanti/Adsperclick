@@ -14,10 +14,12 @@ import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.Message
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.NotificationMsg
+import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.views.chat.pagingsource.NotificationsPagingSource
 import com.adsperclick.media.views.user.pagingsource.UserCommunityPagingSource
 import com.adsperclick.media.utils.Constants
+import com.adsperclick.media.utils.Constants.DEFAULT_SERVICE
 import com.adsperclick.media.utils.UtilityFunctions
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentSnapshot
@@ -170,6 +172,19 @@ class ChatRepository @Inject constructor(private val apiService: ApiService, pri
 
             val user = result.toObject(User::class.java) // Convert Firestore doc to User object
 
+            if(user?.role != Constants.ROLE.CLIENT){
+                // Now we fetch list of all services and put it in "User" object, thereafter it will be saved in shared Prefs
+                val servicesList = firestore.collection(Constants.DB.SERVICE).orderBy("serviceName").get().await()
+                val listOfServices = arrayListOf<Service>(DEFAULT_SERVICE)      // Filled first service with default service i.e. "All"
+                for(document in servicesList.documents){
+                    val service = document.toObject(Service::class.java)
+                    service?.let {
+                        listOfServices.add(it)
+                    }
+                }
+                user?.listOfServicesAssigned = listOfServices
+            }
+
             user?.let {
                 // Write code for when new "User" object obtained from backend successfully
                 tokenManager.saveUser(it) // Update SharedPreferences
@@ -180,6 +195,7 @@ class ChatRepository @Inject constructor(private val apiService: ApiService, pri
             _userLiveData.postValue(NetworkResult.Error(null, "Error: ${e.message}"))
         }
     }
+
 
     private val _listOfGroupChatLiveData = MutableLiveData<NetworkResult<List<GroupChatListingData>>>()
     val listOfGroupChatLiveData: LiveData<NetworkResult<List<GroupChatListingData>>> get() = _listOfGroupChatLiveData
@@ -335,7 +351,6 @@ class ChatRepository @Inject constructor(private val apiService: ApiService, pri
 // ----------------------------------------------------------------------------------------------------------------
 
 
-
     fun sendMessage(msgText: String, groupId: String, user: User) {
         val messagesRef = firestore.collection(Constants.DB.MESSAGES)
             .document(groupId)
@@ -357,13 +372,24 @@ class ChatRepository @Inject constructor(private val apiService: ApiService, pri
             .set(message.toMapForFirestore()) // Convert to Map to use server timestamp
             .addOnSuccessListener {
                 Log.d("Firestore", "Message sent successfully: $msgId")
+                // Now since our "Message" object is sent to server, it means the firestore
+                // timestamp is updated on it we'll get it back using the "msgId"
+                messagesRef.document(msgId).get()
+                    .addOnSuccessListener {
+                        val updatedMessage = it.toMessage()
+                        updatedMessage?.let { msg ->
+                            firestore.collection(Constants.DB.GROUPS)
+                                .document(groupId)
+                                .update("lastSentMsg", msg) // ✅ Save correct message with timestamp
+                        }
+                    }
             }
             .addOnFailureListener { e ->
                 Log.e("Firestore", "Error sending message: ${e.message}")
             }
+
+        // firestore.collection(Constants.DB.GROUPS).document(groupId).update("lastSentMsg", message)
     }
-
-
 
     suspend fun getServiceList() = apiService.getServiceList()
 
