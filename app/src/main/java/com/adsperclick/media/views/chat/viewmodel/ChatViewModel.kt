@@ -12,6 +12,7 @@ import com.adsperclick.media.data.dataModels.Message
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.NotificationMsg
 import com.adsperclick.media.data.dataModels.User
+import com.adsperclick.media.utils.ConsumableValue
 import com.adsperclick.media.views.login.repository.AuthRepository
 import com.adsperclick.media.views.chat.repository.ChatRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -101,67 +102,72 @@ class ChatViewModel@Inject constructor(
 
     val notificationsPager = chatRepository.getNotificationPager().flow.cachedIn(viewModelScope)
 
-    private val _usersListLiveData = MutableLiveData<NetworkResult<List<User>>>()
-    val usersListLiveData: LiveData<NetworkResult<List<User>>> = _usersListLiveData
+    private val _usersListLiveData = MutableLiveData<ConsumableValue<NetworkResult<List<User>>>>()
+    val usersListLiveData: LiveData<ConsumableValue<NetworkResult<List<User>>>> = _usersListLiveData
 
     fun fetchGroupUsers(groupUsers: List<GroupUser>?) {
-        viewModelScope.launch {
-            _usersListLiveData.value = NetworkResult.Loading()
+        _usersListLiveData.postValue(ConsumableValue(NetworkResult.Loading()))
+        try {
+            viewModelScope.launch {
 
-            if (groupUsers.isNullOrEmpty()) {
-                _usersListLiveData.value = NetworkResult.Error(null,"No user IDs provided")
-                return@launch
+                if (groupUsers.isNullOrEmpty()) {
+                    _usersListLiveData.postValue(ConsumableValue(NetworkResult.Error(null,"No user IDs provided")))
+                    return@launch
+                }
+
+                val userIds = groupUsers.map { it.userId }
+                val result = chatRepository.getMultipleUsers(userIds)
+                _usersListLiveData.postValue(ConsumableValue(result))
             }
-
-            val userIds = groupUsers.map { it.userId }
-            val result = chatRepository.getMultipleUsers(userIds)
-            _usersListLiveData.value = result
+        } catch (e:Exception){
+            _usersListLiveData.postValue(ConsumableValue(NetworkResult.Error(null, "Error ${e.message}")))
         }
+
     }
 
-    private val _updateGroupLiveData = MutableLiveData<NetworkResult<Boolean>>()
-    val updateGroupLiveData: LiveData<NetworkResult<Boolean>> get() = _updateGroupLiveData
+    private val _updateGroupLiveData = MutableLiveData<ConsumableValue<NetworkResult<Boolean>>>()
+    val updateGroupLiveData: LiveData<ConsumableValue<NetworkResult<Boolean>>> get() = _updateGroupLiveData
 
     fun updateGroupProfile(groupId:String,groupName:String?=null, file: File?=null){
-        _updateGroupLiveData.postValue(NetworkResult.Loading())
+        _updateGroupLiveData.postValue(ConsumableValue(NetworkResult.Loading()))
 
         try {
             viewModelScope.launch(Dispatchers.IO){
                 val result = chatRepository.updateGroupProfile(groupId,groupName,file)
-                _updateGroupLiveData.postValue(result)
+                _updateGroupLiveData.postValue(ConsumableValue(result))
             }
         } catch (e : Exception){
-            _updateGroupLiveData.postValue(NetworkResult.Error(null, "Error ${e.message}"))
+            _updateGroupLiveData.postValue(ConsumableValue(NetworkResult.Error(null, "Error ${e.message}")))
         }
     }
 
-    private val _leaveGroupResult = MutableLiveData<NetworkResult<String>>()
-    val leaveGroupResult: LiveData<NetworkResult<String>> = _leaveGroupResult
+    private val _leaveGroupResult = MutableLiveData<ConsumableValue<NetworkResult<String>>>()
+    val leaveGroupResult: LiveData<ConsumableValue<NetworkResult<String>>> = _leaveGroupResult
 
     fun leaveGroup(userId: String, groupId: String) {
-        _leaveGroupResult.postValue(NetworkResult.Loading())
+        _leaveGroupResult.postValue(ConsumableValue(NetworkResult.Loading()))
         try {
             viewModelScope.launch(Dispatchers.IO){
                 val result = chatRepository.removeUserFromGroup(userId, groupId)
-                _leaveGroupResult.postValue(result)
+                _leaveGroupResult.postValue(ConsumableValue(result))
             }
         } catch (e : Exception){
-            _leaveGroupResult.postValue(NetworkResult.Error(null, "Error ${e.message}"))
+            _leaveGroupResult.postValue(ConsumableValue(NetworkResult.Error(null, "Error ${e.message}")))
         }
     }
 
-    private val _groupDetailResult = MutableLiveData<NetworkResult<GroupChatListingData>>()
-    val groupDetailResult: LiveData<NetworkResult<GroupChatListingData>> = _groupDetailResult
+    private val _groupDetailResult = MutableLiveData<ConsumableValue<NetworkResult<GroupChatListingData>>>()
+    val groupDetailResult: LiveData<ConsumableValue<NetworkResult<GroupChatListingData>>> = _groupDetailResult
 
     fun getGroupDetails(groupId: String) {
-        _groupDetailResult.postValue(NetworkResult.Loading())
+        _groupDetailResult.postValue(ConsumableValue(NetworkResult.Loading()))
         try {
             viewModelScope.launch(Dispatchers.IO){
                 val result = chatRepository.getGroupDetails(groupId)
-                _groupDetailResult.postValue(result)
+                _groupDetailResult.postValue(ConsumableValue(result))
             }
         } catch (e : Exception){
-            _groupDetailResult.postValue(NetworkResult.Error(null, "Error ${e.message}"))
+            _groupDetailResult.postValue(ConsumableValue(NetworkResult.Error(null, "Error ${e.message}")))
         }
     }
 

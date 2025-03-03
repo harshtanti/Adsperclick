@@ -20,6 +20,7 @@ import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.databinding.FragmentGroupProfileBinding
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.Constants.CLICKED_GROUP
+import com.adsperclick.media.utils.ConsumableValue
 import com.adsperclick.media.utils.DialogUtils
 import com.adsperclick.media.utils.UtilityFunctions
 import com.adsperclick.media.utils.disableHeaderButton
@@ -141,116 +142,126 @@ class GroupProfileFragment : Fragment(),View.OnClickListener {
         viewModel.groupDetailResult.observe(viewLifecycleOwner,groupDetailObserver)
     }
 
-    private val groupDetailObserver = Observer<NetworkResult<GroupChatListingData>> { it ->
-        when(it){
-            is NetworkResult.Loading -> {
-                binding.progressBar.visible()
-            }
-            is NetworkResult.Success -> {
-                binding.progressBar.gone()
-                it.data?.let {
-                    groupChat = it
-                    setUpView()
-                    viewModel.fetchGroupUsers(it.listOfUsers)
+    private val groupDetailObserver = Observer<ConsumableValue<NetworkResult<GroupChatListingData>>> { it1 ->
+        it1.handle {
+            when(it){
+                is NetworkResult.Loading -> {
+                    binding.progressBar.visible()
                 }
-            }
-            is NetworkResult.Error -> {
-                binding.progressBar.gone()
-                Toast.makeText(context, it.message ?: "Group Fetch failed",Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    private val leaveGroupObserver = Observer<NetworkResult<String>> { it ->
-        when (it) {
-            is NetworkResult.Loading -> {
-                binding.progressBar.visible()
-            }
-            is NetworkResult.Success -> {
-                binding.progressBar.gone()
-
-                if (!it.data.isNullOrEmpty()) {
-                    groupId?.let {
-                        viewModel.getGroupDetails(it)
+                is NetworkResult.Success -> {
+                    binding.progressBar.gone()
+                    it.data?.let {
+                        groupChat = it
+                        setUpView()
+                        viewModel.fetchGroupUsers(it.listOfUsers)
                     }
-                    Toast.makeText(context, "User removed successfully",Toast.LENGTH_SHORT).show()
                 }
-            }
-            is NetworkResult.Error -> {
-                binding.progressBar.gone()
-                Toast.makeText(context, it.message ?: "Update failed",Toast.LENGTH_SHORT).show()
+                is NetworkResult.Error -> {
+                    binding.progressBar.gone()
+                    Toast.makeText(context, it.message ?: "Group Fetch failed",Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
 
-    private val groupUpdateObserver = Observer<NetworkResult<Boolean>> { it ->
-        when (it) {
-            is NetworkResult.Loading -> {
-                // Show loading indicator
-                binding.progressBar.visible()
-            }
-            is NetworkResult.Success -> {
-                // Hide loading indicator
-                binding.progressBar.gone()
-
-                // Update the UI to reflect changes
-                if (it.data == true) {
-                    // Update was successful
-                    Toast.makeText(context, "Group Profile updated successfully",Toast.LENGTH_SHORT).show()
-
-                    // Reset the selectedImageFile since it's been uploaded
-                    selectedImageFile = null
-
-                    // Revalidate the submit button state
-                    validateSubmitButton()
+    private val leaveGroupObserver = Observer<ConsumableValue<NetworkResult<String>>> { it1 ->
+        it1.handle {
+            when (it) {
+                is NetworkResult.Loading -> {
+                    binding.progressBar.visible()
                 }
-            }
-            is NetworkResult.Error -> {
-                // Hide loading indicator
-                binding.progressBar.gone()
+                is NetworkResult.Success -> {
+                    binding.progressBar.gone()
 
-                // Show error message
-                Toast.makeText(context, it.message ?: "Update failed",Toast.LENGTH_SHORT).show()
+                    if (!it.data.isNullOrEmpty()) {
+                        groupId?.let {
+                            viewModel.getGroupDetails(it)
+                        }
+                        Toast.makeText(context, "User removed successfully",Toast.LENGTH_SHORT).show()
+                    }
+                }
+                is NetworkResult.Error -> {
+                    binding.progressBar.gone()
+                    Toast.makeText(context, it.message ?: "Update failed",Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
 
-    private val userListObserver = Observer<NetworkResult<List<User>>> { it ->
-        when (it) {
-            is NetworkResult.Success -> {
-                binding.progressBar.gone()
-                binding.rvUser.visible()
-                it.data?.let { users ->
-                    userList = users.map { user ->
-                        if (user.role == Constants.ROLE.EMPLOYEE){
-                            CommonData(
-                                id = user.userId ?: "",
-                                name = user.userName ?: "",
-                                tagName = Constants.EMPLOYEE_SINGULAR,
-                                imgUrl = user.userProfileImgUrl
-                            )
-                        }else{
+    private val groupUpdateObserver = Observer<ConsumableValue<NetworkResult<Boolean>>> { it1 ->
+        it1.handle {
+            when (it) {
+                is NetworkResult.Loading -> {
+                    // Show loading indicator
+                    binding.progressBar.visible()
+                }
+                is NetworkResult.Success -> {
+                    // Hide loading indicator
+                    binding.progressBar.gone()
+
+                    // Update the UI to reflect changes
+                    if (it.data == true) {
+                        // Update was successful
+                        Toast.makeText(context, "Group Profile updated successfully",Toast.LENGTH_SHORT).show()
+
+                        // Reset the selectedImageFile since it's been uploaded
+                        selectedImageFile = null
+
+                        // Revalidate the submit button state
+                        validateSubmitButton()
+                    }
+                }
+                is NetworkResult.Error -> {
+                    // Hide loading indicator
+                    binding.progressBar.gone()
+
+                    // Show error message
+                    Toast.makeText(context, it.message ?: "Update failed",Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+
+    }
+
+    private val userListObserver = Observer<ConsumableValue<NetworkResult<List<User>>>> { it1 ->
+        it1.handle {
+            when (it) {
+                is NetworkResult.Success -> {
+                    binding.progressBar.gone()
+                    binding.rvUser.visible()
+                    it.data?.let { users ->
+                        userList = users.map { user ->
+                            if (user.role == Constants.ROLE.EMPLOYEE){
+                                CommonData(
+                                    id = user.userId ?: "",
+                                    name = user.userName ?: "",
+                                    tagName = Constants.EMPLOYEE_SINGULAR,
+                                    imgUrl = user.userProfileImgUrl
+                                )
+                            }else{
                                 CommonData(
                                     id = user.userId ?: "",
                                     name = user.userName ?: "",
                                     tagName = user.selfCompanyName,
                                     imgUrl = user.userProfileImgUrl
                                 )
+                            }
                         }
+                        userList = userList.sortedBy { it.name }
+                        groupCompanyName = userList
+                            .firstOrNull { it.tagName != Constants.EMPLOYEE_SINGULAR }
+                            ?.tagName
+                        adapter.submitList(userList)
                     }
-                    userList = userList.sortedBy { it.name }
-                    groupCompanyName = userList
-                        .firstOrNull { it.tagName != Constants.EMPLOYEE_SINGULAR }
-                        ?.tagName
-                    adapter.submitList(userList)
                 }
-            }
-            is NetworkResult.Error -> {
-                binding.progressBar.gone()
-                Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
-            }
-            is NetworkResult.Loading -> {
-                binding.progressBar.visible()
+                is NetworkResult.Error -> {
+                    binding.progressBar.gone()
+                    Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
+                }
+                is NetworkResult.Loading -> {
+                    binding.progressBar.visible()
+                }
             }
         }
     }
