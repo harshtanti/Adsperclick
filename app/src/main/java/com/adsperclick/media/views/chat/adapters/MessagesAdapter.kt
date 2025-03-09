@@ -8,9 +8,11 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.adsperclick.media.R
+import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.Message
 import com.adsperclick.media.databinding.ChatMsgItemIncomingBinding
 import com.adsperclick.media.databinding.ChatMsgItemOutgoingBinding
+import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.Constants.ROLE.CLIENT
 import com.adsperclick.media.utils.Constants.TXT_MSG_TYPE.FIRST_MSG_BY_CURRENT_USER
 import com.adsperclick.media.utils.Constants.TXT_MSG_TYPE.FIRST_MSG_LEFT
@@ -28,7 +30,7 @@ import com.adsperclick.media.utils.UtilityFunctions
 import com.adsperclick.media.utils.UtilityFunctions.formatMessageTimestamp
 import com.adsperclick.media.utils.gone
 import com.adsperclick.media.utils.visible
-
+import com.adsperclick.media.views.chat.adapters.ChatGroupListAdapter.OnGroupChatClickListener
 
 
 // Nomenclature of XML :
@@ -46,8 +48,21 @@ import com.adsperclick.media.utils.visible
 
 // Am using a variable "isClientOnRight" to decide on which side client should be and on other side rest others will be
 
-class MessagesAdapter(private val currentUserId: String, private val isClientOnRight: Boolean) :
+class MessagesAdapter(private val currentUserId: String,
+                      private val isClientOnRight: Boolean, val onMessageClickListener: OnMessageClickListener) :
     ListAdapter<Message, MessagesAdapter.ChatAdapterViewHolder>(DiffUtil()) {
+
+    private var dateStamp :String? = null
+    private var showUnreadStamp :Boolean = false
+    private var lastVisitedTimestamp :Long? = null
+
+    fun updateLastVisitedTimestamp(newTimestamp: Long?) {
+        lastVisitedTimestamp = newTimestamp
+    }
+
+    interface OnMessageClickListener{
+        fun onItemClick(message: Message)
+    }
 
     inner class ChatAdapterViewHolder(private val binding: ViewBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -61,6 +76,14 @@ class MessagesAdapter(private val currentUserId: String, private val isClientOnR
                 is ChatMsgItemIncomingBinding -> {
                     with(binding)
                     {
+                        dateStamp?.let {
+                            tvDateStamp.visible()
+                            tvDateStamp.text = it
+                        }?: run{tvDateStamp.gone()}
+                        if(showUnreadStamp){
+                            binding.tvUnread.visible()
+                            showUnreadStamp = false
+                        } else {binding.tvUnread.gone()}
                         textMessageIncoming.text = message.message
                         tvTime.text = formattedDate
 
@@ -103,6 +126,16 @@ class MessagesAdapter(private val currentUserId: String, private val isClientOnR
 
                 is ChatMsgItemOutgoingBinding -> {
                     with(binding){
+                        dateStamp?.let {
+                            tvDateStamp.visible()
+                            tvDateStamp.text = it
+                        } ?: run{tvDateStamp.gone()}
+
+                        if(showUnreadStamp){
+                            binding.tvUnread.visible()
+                            showUnreadStamp = false
+                        } else {binding.tvUnread.gone()}
+
                         textMessageOutgoing.text = message.message
                         tvTimeOutgoing.text = formattedDate
 
@@ -168,6 +201,13 @@ class MessagesAdapter(private val currentUserId: String, private val isClientOnR
                     }
                 }
             }
+
+            if(message.msgType == Constants.MSG_TYPE.IMG_URL)
+            {
+                binding.root.setOnClickListener{
+                    onMessageClickListener.onItemClick(message)
+                }
+            }
         }
     }
 
@@ -211,6 +251,18 @@ class MessagesAdapter(private val currentUserId: String, private val isClientOnR
             it.senderId == message.senderId
         } ?: run {
             false
+        }
+
+        dateStamp = UtilityFunctions.processDateStamp(message.timestamp , prevMsg?.timestamp)
+
+        if(message.senderId != currentUserId){
+            lastVisitedTimestamp?.let { lastVisitedTimestamp->
+                message.timestamp?.let { msgTimestamp->
+                    prevMsg?.timestamp?.let { prevMsgTimestamp->
+                        showUnreadStamp = (lastVisitedTimestamp in (prevMsgTimestamp + 1)..<msgTimestamp)
+                    }
+                }
+            }
         }
 
         val keepThisMessageOnRight = (isClientOnRight && message.senderRole == CLIENT) || ((isClientOnRight.not() && message.senderRole != CLIENT))

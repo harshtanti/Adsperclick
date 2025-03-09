@@ -12,6 +12,7 @@ import com.adsperclick.media.data.dataModels.Message
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.NotificationMsg
 import com.adsperclick.media.data.dataModels.User
+import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.ConsumableValue
 import com.adsperclick.media.views.login.repository.AuthRepository
 import com.adsperclick.media.views.chat.repository.ChatRepository
@@ -39,7 +40,7 @@ class ChatViewModel@Inject constructor(
     }
 
     val userLiveData :
-            LiveData<NetworkResult<User>> get()  = chatRepository.userLiveData
+            LiveData<ConsumableValue<NetworkResult<User>>> get()  = chatRepository.userLiveData
     fun syncUser(){
         viewModelScope.launch (Dispatchers.IO){
             chatRepository.syncUser()
@@ -58,7 +59,9 @@ class ChatViewModel@Inject constructor(
         }
     }
 
-    val listOfGroupChatLiveData: LiveData<NetworkResult<List<GroupChatListingData>>>
+    val lastSeenForEachUserEachGroupLiveData get() = chatRepository.lastSeenForEachUserEachGroupLiveData
+
+    val listOfGroupChatLiveData: LiveData<ConsumableValue<NetworkResult<List<GroupChatListingData>>>>
         get() = chatRepository.listOfGroupChatLiveData
 
     fun startListeningToGroups(groupIds: List<String>){
@@ -77,7 +80,7 @@ class ChatViewModel@Inject constructor(
         _groupId.value = roomId
     }
 
-
+    val lastSeenTimestampLiveData  = chatRepository.lastSeenTimestampLiveData
     fun fetchAllNewMessages(groupId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             chatRepository.fetchAllNewMessages(groupId)
@@ -90,12 +93,16 @@ class ChatViewModel@Inject constructor(
         }
     }
 
-    fun sendMessage(text: String, groupId: String, currentUser: User) {
+    fun sendMessage(text: String, groupId: String, currentUser: User, groupName: String,
+                    listOfGroupMemberId: List<String>, msgType:Int = Constants.MSG_TYPE.TEXT) {
         viewModelScope.launch(Dispatchers.IO) {
             chatRepository.sendMessage(
                 msgText = text,
                 groupId = groupId,
-                user = currentUser
+                user = currentUser,
+                groupName = groupName,
+                listOfGroupMemberId = listOfGroupMemberId,
+                msgType = msgType
             )
         }
     }
@@ -168,6 +175,27 @@ class ChatViewModel@Inject constructor(
             }
         } catch (e : Exception){
             _groupDetailResult.postValue(ConsumableValue(NetworkResult.Error(null, "Error ${e.message}")))
+        }
+    }
+
+    fun updateLastReadMsg(groupId: String, lastReadMsgId: String, currentUserId:String, listOfUsers : List<GroupUser>) {
+        viewModelScope.launch (Dispatchers.IO){
+//            val updatedUserList = listOfUsers.map { member ->
+//                if (member.userId == currentUserId) {
+//                    member.copy(lastSeenMsgId = lastReadMsgId)
+//                } else {
+//                    member
+//                }
+//            }
+            chatRepository.updateLastReadMessage(groupId, currentUserId)
+        }
+    }
+
+
+    val imageUploadedLiveData get() = chatRepository.imageUploadedLiveData
+    fun uploadFile(groupId: String, groupName: String, file: File?){
+        viewModelScope.launch(Dispatchers.IO) {
+            chatRepository.uploadFile(groupId, groupName, file)
         }
     }
 

@@ -98,6 +98,20 @@
         <item name="android:paddingHorizontal">@dimen/DP12</item>
     </style>
 
+    <style name="tv_datestamp">
+        <item name="android:textSize">12sp</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginHorizontal">4dp</item>">
+        <item name="android:textColorHint">#3c3c43</item>
+        <item name="android:fontFamily">@font/inter_600</item>
+        <item name="android:textColor">@color/Black_5</item>
+        <item name="android:background">@drawable/bg_datestamp</item>
+        <item name="android:paddingVertical">4dp</item>
+        <item name="android:paddingHorizontal">@dimen/DP12</item>
+    </style>
+
     <style name="tv_notification_title">
         <item name="android:textSize">21sp</item>
         <item name="android:layout_width">wrap_content</item>

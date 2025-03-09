@@ -2,6 +2,7 @@ package com.adsperclick.media.applicationCommonView
 
 import android.content.Context
 import com.adsperclick.media.data.dataModels.User
+import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.Constants.IS_USER_SIGNED_IN
 import com.adsperclick.media.utils.Constants.TOKEN_FOR_PREFS
 import com.adsperclick.media.utils.Constants.USER_IDENTITY
@@ -30,6 +31,17 @@ class TokenManager @Inject constructor(@ApplicationContext context : Context) {
         return prefs.getString(USER_IDENTITY, null)?.let {
             Json.decodeFromString(User.serializer(), it)
         }
+    }
+
+    fun saveFcmToken(fcmToken: String){
+        with(prefs.edit()){
+            putString(Constants.FCM.DEVICE_TOKEN, fcmToken)
+            apply()
+        }
+    }
+
+    fun getFcmToken(): String?{
+        return prefs.getString(Constants.FCM.DEVICE_TOKEN, null)
     }
 
     fun isUserSignedIn() : Boolean{

@@ -445,4 +445,39 @@ object UtilityFunctions {
             context.resources.displayMetrics
         ).toInt()
     }
+
+    fun processDateStamp(timestamp: Long?, prevMsgTimestamp: Long?): String? {
+        if (timestamp == null) return null
+
+        val currentDate = Calendar.getInstance()
+        val messageDate = Calendar.getInstance().apply { timeInMillis = timestamp }
+        val previousDate = prevMsgTimestamp?.let { Calendar.getInstance().apply { timeInMillis = it } }
+
+        // Check if previous message was sent on the same date
+        previousDate?.let {
+            if (it.get(Calendar.YEAR) == messageDate.get(Calendar.YEAR) &&
+                it.get(Calendar.DAY_OF_YEAR) == messageDate.get(Calendar.DAY_OF_YEAR)
+            ) {
+                return null
+            }
+        }
+
+        // Check if message is sent today or yesterday
+        return when {
+            currentDate.get(Calendar.YEAR) == messageDate.get(Calendar.YEAR) &&
+                    currentDate.get(Calendar.DAY_OF_YEAR) == messageDate.get(Calendar.DAY_OF_YEAR) -> {
+                "Today"
+            }
+
+            currentDate.get(Calendar.YEAR) == messageDate.get(Calendar.YEAR) &&
+                    currentDate.get(Calendar.DAY_OF_YEAR) - 1 == messageDate.get(Calendar.DAY_OF_YEAR) -> {
+                "Yesterday"
+            }
+
+            else -> {
+                val dateFormat = SimpleDateFormat("d MMMM yyyy", Locale.getDefault())
+                dateFormat.format(Date(timestamp))
+            }
+        }
+    }
 }

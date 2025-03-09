@@ -1,6 +1,7 @@
 package com.adsperclick.media.api
 
 import android.net.Uri
+import android.util.Log
 import com.adsperclick.media.data.dataModels.Company
 import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.GroupUser
@@ -8,8 +9,11 @@ import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.utils.Constants
+import com.adsperclick.media.utils.Constants.DB.GROUPS
+import com.adsperclick.media.utils.Constants.DB.USERS
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Source
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import kotlinx.coroutines.tasks.await
@@ -177,7 +181,7 @@ class ApiServiceImpl @Inject constructor(
 
     override suspend fun createGroup(data: GroupChatListingData, file: File): NetworkResult<Boolean> {
         return try {
-            val groupCollection = FirebaseFirestore.getInstance().collection("groups")
+            val groupCollection = db.collection("groups")
 
             // Step 1: Check if a group with the same groupName, associatedServiceId, and associatedService exists
             val query = groupCollection
@@ -255,8 +259,8 @@ class ApiServiceImpl @Inject constructor(
     override suspend fun deleteService(serviceId: String): NetworkResult<Boolean> {
         return try {
             // First check if the service is used by any groups
-            val groupsWithService = FirebaseFirestore.getInstance()
-                .collection("groups")
+            val groupsWithService = db
+                .collection(GROUPS)
                 .whereEqualTo("associatedServiceId", serviceId)
                 .get()
                 .await()
@@ -266,8 +270,7 @@ class ApiServiceImpl @Inject constructor(
             }
 
             // If not used, delete the service
-            FirebaseFirestore.getInstance()
-                .collection("services")
+            db.collection("services")
                 .document(serviceId)
                 .delete()
                 .await()
@@ -284,7 +287,7 @@ class ApiServiceImpl @Inject constructor(
         file: File?
     ): NetworkResult<Boolean> {
         return try {
-            val userCollection = FirebaseFirestore.getInstance().collection("users")
+            val userCollection = db.collection(USERS)
             val userRef = userCollection.document(userId)
 
             // Create a map to hold the fields to update
@@ -323,11 +326,16 @@ class ApiServiceImpl @Inject constructor(
 
     }
 
+
     override suspend fun getUserData(userId: String): NetworkResult<User> {
         return try {
-            val userDoc = db.collection(Constants.DB.USERS).document(userId).get().await()
+            val userDoc = db.collection(Constants.DB.USERS).document(userId).get(Source.SERVER).await()
+            Log.d("Firestore Debug", "Fetched user data: ${userDoc.data}")
             val user = userDoc.toObject(User::class.java)
                 ?: return NetworkResult.Error(null, "User not found")
+
+            Log.d("Firestore Debug", "User object: $user")
+            Log.d("Firestore Debug", "Get Boolean : ${userDoc.getBoolean("blocked")}")
 
             NetworkResult.Success(user)
         } catch (e: Exception) {
@@ -545,7 +553,7 @@ class ApiServiceImpl @Inject constructor(
                     }
 
                     // Add user to the list of new group users
-                    newGroupUsers.add(GroupUser(userId = userId, lastSeen = null))
+                    newGroupUsers.add(GroupUser(userId = userId, lastSeenMsgId = null))
                 }
             }
 

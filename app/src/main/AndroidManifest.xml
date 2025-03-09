@@ -8,26 +8,20 @@
     <uses-permission
         android:name="android.permission.CAPTURE_AUDIO_OUTPUT"
         tools:ignore="ProtectedPermissions" />
-
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
-    <!-- In your manifest, add this inside the <manifest> tag -->
-    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
-
-    <!-- Camera permission -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /> <!-- In your manifest, add this inside the <manifest> tag -->
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" /> <!-- Camera permission -->
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-feature android:name="android.hardware.camera" android:required="false" />
-    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 
-    <!-- Image permissions -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        android:required="false" /> <!-- Image permissions -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission android:name="android.permission.WRITE_MEDIA_IMAGES" />
-
-    <!-- Video permissions -->
+    <uses-permission android:name="android.permission.WRITE_MEDIA_IMAGES" /> <!-- Video permissions -->
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-    <uses-permission android:name="android.permission.WRITE_MEDIA_VIDEO" />
-
-    <!-- For Android 12 and below -->
+    <uses-permission android:name="android.permission.WRITE_MEDIA_VIDEO" /> <!-- For Android 12 and below -->
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
@@ -35,10 +29,11 @@
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="32"
         tools:ignore="ScopedStorage" />
-
     <uses-permission android:name="android.permission.MEDIA_S" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+
 
     <application
         android:name=".applicationCommonView.AdsperclickApplication"
@@ -51,21 +46,33 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Adsperclick"
         tools:targetApi="31">
+
+        <service
+            android:name=".services.FCM_Service"
+            android:exported="false"
+            android:enabled="true"
+            android:permission="android.permission.BIND_JOB_SERVICE">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
         <activity
             android:name=".views.homeActivity.HomeActivity"
-            android:windowSoftInputMode="adjustResize"
-            android:exported="false" />
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".views.login.MainActivity"
-            android:windowSoftInputMode="adjustResize"
+            android:exported="true"
             android:theme="@style/Theme.Adsperclick.StartingScreen"
-            android:exported="true">
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
@@ -76,8 +83,5 @@
                 android:resource="@xml/file_paths" />
         </provider>
     </application>
-
-
-
 
 </manifest>

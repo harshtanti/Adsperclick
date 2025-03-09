@@ -60,6 +60,17 @@
         app:layout_constraintEnd_toStartOf="@id/btnNotifications"
         app:layout_constraintTop_toTopOf="@+id/btnNotifications" />
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnTesting"
+        android:layout_width="@dimen/DP24"
+        android:layout_height="@dimen/DP16"
+        android:layout_marginEnd="@dimen/DP15"
+        android:background="@drawable/ic_add_group"
+        app:backgroundTint="@null"
+        app:layout_constraintBottom_toBottomOf="@+id/btnNotifications"
+        app:layout_constraintEnd_toStartOf="@id/addDetails"
+        app:layout_constraintTop_toTopOf="@+id/btnNotifications" />
+
     <EditText
         android:id="@+id/etSearchBar"
         style="@style/et_search_bar"
@@ -93,11 +104,45 @@
         android:layout_marginVertical="5dp"
         android:orientation="vertical"
         android:visibility="visible"
+        tools:visibility="gone"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         tools:listitem="@layout/chat_group_list_item"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/rvHorizontalForServiceList" />
+
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/groupNoGroups"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        tools:visibility="visible"
+        app:constraint_referenced_ids="imgGroups,tvNoGroupsFound" />
+
+    <ImageView
+        android:id="@+id/imgGroups"
+        android:layout_width="140dp"
+        android:layout_height="125dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/rvHorizontalForServiceList"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintVertical_bias="0.4"
+        android:background="@drawable/img_no_gc_found"
+        />
+
+    <TextView
+        android:id="@+id/tvNoGroupsFound"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/DP10"
+        android:text="No Groups Found"
+        android:fontFamily="@font/inter_700"
+        android:textSize="@dimen/SP18"
+        app:layout_constraintEnd_toEndOf="@+id/imgGroups"
+        app:layout_constraintStart_toStartOf="@+id/imgGroups"
+        app:layout_constraintTop_toBottomOf="@id/imgGroups" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
