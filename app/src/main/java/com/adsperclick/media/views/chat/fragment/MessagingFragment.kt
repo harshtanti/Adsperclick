@@ -31,6 +31,7 @@ import com.adsperclick.media.views.chat.adapters.MessagesAdapter
 import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
 import com.google.firebase.database.ChildEventListener
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 import javax.inject.Inject
@@ -137,6 +138,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         binding.includeTextSender.btnCamera.setOnClickListener(this)
         binding.includeTopBar.container.setOnClickListener(this)
         binding.includeTopBar.btnBack.setOnClickListener(this)
+        binding.includeTopBar.tvGroupName.setOnClickListener(this)
     }
 
     private fun setupObservers(){
@@ -168,6 +170,13 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                 // Ensure previous last message updates (To update the chat bubble of previous message
                 if (oldLastMessagePosition >= 0) {
                     adapter.notifyItemChanged(oldLastMessagePosition)
+                }
+            }
+            binding.includeTopBar.btnCall -> {
+                groupChat?.let {
+                    val bundle = Bundle()
+                    bundle.putString(CLICKED_GROUP, Json.encodeToString(it))
+                    findNavController().navigate(R.id.action_messagingFragment_to_voiceCallFragment, bundle)
                 }
             }
         }
