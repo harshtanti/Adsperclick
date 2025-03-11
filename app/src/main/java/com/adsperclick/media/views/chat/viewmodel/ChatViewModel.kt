@@ -18,6 +18,8 @@ import com.adsperclick.media.views.login.repository.AuthRepository
 import com.adsperclick.media.views.chat.repository.ChatRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
@@ -39,13 +41,39 @@ class ChatViewModel@Inject constructor(
         }
     }
 
-    val userLiveData :
-            LiveData<ConsumableValue<NetworkResult<User>>> get()  = chatRepository.userLiveData
+
+    private val _userLiveData = MutableLiveData<ConsumableValue<NetworkResult<User>>>()
+    val userLiveData: LiveData<ConsumableValue<NetworkResult<User>>> get() = _userLiveData
+
+// This function will run only once the app is launched, it syncs user with server object
+// to know things like user is not blocked, fetch latest groups user is added to, etc..
+    // We also sync device time with server time (See function to know how)
+    // We also check if current app version is supported or not
+    // These 3 things are checked in parallel concurretly saving time and later when all 3 results
+    // come, we post result to UI as per requirements
     fun syncUser(){
         viewModelScope.launch (Dispatchers.IO){
-            chatRepository.syncUser()
+            val syncUserJob = async { chatRepository.syncUser()}
+            val syncTimeJob = async { chatRepository.syncDeviceTime()}
+            val isAcceptableVersionJob = async{ chatRepository.isCurrentVersionAcceptable() }
+
+            val userObjectFromBackend = syncUserJob.await()
+            val isAcceptableVersion = isAcceptableVersionJob.await()
+            syncTimeJob.await()
+
+            if(isAcceptableVersion.not()){
+                _userLiveData.postValue(ConsumableValue
+                    (NetworkResult.Error(null, "Update Required to use this App")))
+                return@launch
+            }
+
+            _userLiveData.postValue(userObjectFromBackend)
         }
     }
+
+
+
+
 
     fun updateLastNotificationSeenTime(){
         viewModelScope.launch (Dispatchers.IO){
@@ -193,9 +221,10 @@ class ChatViewModel@Inject constructor(
 
 
     val imageUploadedLiveData get() = chatRepository.imageUploadedLiveData
-    fun uploadFile(groupId: String, groupName: String, file: File?){
+    fun uploadFile(groupId: String, groupName: String, file: File?,
+                   listOfUsers: List<String>, msgType: Int){
         viewModelScope.launch(Dispatchers.IO) {
-            chatRepository.uploadFile(groupId, groupName, file)
+            chatRepository.uploadFile(groupId, groupName, file, listOfUsers, msgType)
         }
     }
 

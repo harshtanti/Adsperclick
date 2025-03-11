@@ -20,6 +20,9 @@ import com.adsperclick.media.databinding.FragmentMessagingBinding
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.Constants.CLICKED_GROUP
 import com.adsperclick.media.utils.Constants.LAST_SEEN_GROUP_TIME
+import com.adsperclick.media.utils.Constants.MSG_TYPE.VIDEO
+import com.adsperclick.media.utils.Constants.PDF_VISIBLE
+import com.adsperclick.media.utils.Constants.VIDEO_VISIBLE
 import com.adsperclick.media.utils.UtilityFunctions
 import com.adsperclick.media.views.chat.adapters.MessagesAdapter
 import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
@@ -49,7 +52,8 @@ class MessagingFragment : Fragment(),View.OnClickListener {
     private var idOfLastMsgInGroup : String?= null
     var lastTimeVisitedThisGroupTimestamp :Long?= null
 
-    val bottomSheetSelectables = arrayListOf(Constants.CAMERA_VISIBLE,Constants.GALLERY_VISIBLE,Constants.DELETE_VISIBLE)
+    val bottomSheetSelectables = arrayListOf(Constants.CAMERA_VISIBLE,
+        Constants.GALLERY_VISIBLE, Constants.DELETE_VISIBLE, VIDEO_VISIBLE, PDF_VISIBLE)
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -108,14 +112,12 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         listofGroupMemberId = groupChat?.listOfUsers?.map { it.userId } ?: emptyList()
     }
 
+
+
     private fun setupAdapter(){
 
         val isClientOnRight = currentUser.role == Constants.ROLE.CLIENT
-        adapter = currentUser.userId?.let { MessagesAdapter(it, isClientOnRight, object : MessagesAdapter.OnMessageClickListener{
-            override fun onItemClick(message: Message) {
-                Toast.makeText(context, message.message , Toast.LENGTH_SHORT).show()
-            }
-        }) }!!
+        adapter = currentUser.userId?.let { MessagesAdapter(it, isClientOnRight, onMessageClickListener) }!!
         binding.rvChat.adapter = adapter
         binding.rvChat.layoutManager = LinearLayoutManager(requireContext()).apply {
             stackFromEnd = true
@@ -138,14 +140,10 @@ class MessagingFragment : Fragment(),View.OnClickListener {
 
         chatViewModel.imageUploadedLiveData.observe(viewLifecycleOwner){ consumableValue ->
             consumableValue.handle { response->
+                // Response is a string "image download url", we're not using it here
                 when(response){
                     is NetworkResult.Success->{
-                        groupChat?.let {gc->
-                            val text = response.data ?: ""
-                            chatViewModel.sendMessage(text, gc.groupId ?: "",
-                                currentUser, gc.groupName ?: "", listofGroupMemberId, Constants.MSG_TYPE.IMG_URL
-                            )
-                        }
+                        Toast.makeText(context, "Sent!", Toast.LENGTH_SHORT).show()
                     }
 
                     is NetworkResult.Error->{
@@ -153,7 +151,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                     }
 
                     is NetworkResult.Loading -> {
-                        Toast.makeText(context, "Uploading Image..", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Sharing..", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -235,35 +233,55 @@ class MessagingFragment : Fragment(),View.OnClickListener {
 
     private val uploadOnSelectListener = object : UploadImageDocsBottomSheet.OnSelectListener{
         override fun onSelect(option: String, type: UploadImageDocsBottomSheet.UploadMethod) {
-            when (type) {
-                UploadImageDocsBottomSheet.UploadMethod.CAMERA,
-                UploadImageDocsBottomSheet.UploadMethod.GALLERY -> {
-                    // Check if the file path is valid
-                    if (option.isNotEmpty()) {
-                        val imageFile = File(option)
-                        if (imageFile.exists()) {
 
-                            groupChat?.let {gc->
-                                gc.groupId?.let { gc.groupName?.let { it1 ->
-                                    chatViewModel.uploadFile(it, it1, imageFile) } }
-                            }
+            if(option.isNotEmpty()){
+                val imageFile = File(option)
+                if(imageFile.exists()){
+                    val msgType = when(type){
+                        UploadImageDocsBottomSheet.UploadMethod.CAMERA,
+                        UploadImageDocsBottomSheet.UploadMethod.GALLERY -> Constants.MSG_TYPE.IMG_URL
 
-                            // Just store the file for later upload
-//                            selectedImageFile = imageFile
-//
-//                            // Load image preview
-//                            loadImageIntoView(imageFile)
-//                            validateSubmitButton()
-                        }
+                        UploadImageDocsBottomSheet.UploadMethod.VIDEO_CAMERA,
+                        UploadImageDocsBottomSheet.UploadMethod.VIDEO_GALLERY-> Constants.MSG_TYPE.VIDEO
+
+                        UploadImageDocsBottomSheet.UploadMethod.PDF -> Constants.MSG_TYPE.PDF_DOC
+                        UploadImageDocsBottomSheet.UploadMethod.NOTSELECTED -> null
                     }
-                }
-                else -> {
-                    // Reset the image if NOTSELECTED or for error cases
-//                    binding.imgProfileDp.setImageResource(R.drawable.baseline_person_24) // Replace with your default image
+
+
+                    groupChat?.let {gc->
+                        gc.groupId?.let {groupId->
+                            gc.groupName?.let { groupName ->
+                                msgType?.let {msgType->
+                                    chatViewModel.uploadFile(groupId,
+                                        groupName, imageFile,  listofGroupMemberId, msgType)
+                                } } }       // This function will upload file in firebase-storage
+                                            // and also display it to user in this fragment
+                    }
                 }
             }
         }
 
+    }
+
+    private val onMessageClickListener = object : MessagesAdapter.OnMessageClickListener{
+        override fun onItemClick(message: Message) {
+//            Toast.makeText(context, message.message , Toast.LENGTH_SHORT).show()
+
+            // Create bundle with necessary info
+            val bundle = Bundle().apply {
+                putString("mediaUrl", message.message) // Your download URL
+                putString("mediaType", message.msgType.toString()) // IMAGE, VIDEO, DOCUMENT etc.
+                putString("fileName", "XYZ")
+                // Any other metadata you want to pass
+            }
+
+            // Navigate to preview fragment
+            findNavController().navigate(
+                R.id.action_messagingFragment_to_mediaPreviewFragment,
+                bundle
+            )
+        }
     }
 
 }

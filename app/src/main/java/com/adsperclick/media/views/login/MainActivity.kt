@@ -3,6 +3,7 @@ package com.adsperclick.media.views.login
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -85,6 +86,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     is NetworkResult.Loading->{}
                     is NetworkResult.Error->{
+                        Toast.makeText(this@MainActivity, "${response.message}", Toast.LENGTH_LONG).show()
                         Log.d("skt", "Error: ${response.message}")
                     }
                 }

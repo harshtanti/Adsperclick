@@ -55,4 +55,16 @@ class TokenManager @Inject constructor(@ApplicationContext context : Context) {
             apply()
         }
     }
+
+    fun setServerMinusDeviceTime(timeDiff : Long){
+        with(prefs.edit()){
+            putLong(Constants.SERVER_MINUS_DEVICE_TIME, timeDiff)
+            apply()
+        }
+    }
+
+    fun getServerMinusDeviceTime(): Long{
+        return prefs.getLong(Constants.SERVER_MINUS_DEVICE_TIME, 0)
+    }
+
 }

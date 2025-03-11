@@ -1,5 +1,6 @@
 package com.adsperclick.media.views.chat.repository
 
+import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.LiveData
@@ -18,12 +19,16 @@ import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.NotificationMsg
 import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.data.dataModels.User
+import com.adsperclick.media.di.VersionProvider
 import com.adsperclick.media.views.chat.pagingsource.NotificationsPagingSource
 import com.adsperclick.media.views.user.pagingsource.UserCommunityPagingSource
 import com.adsperclick.media.utils.Constants
+import com.adsperclick.media.utils.Constants.DB.CONFIG
 import com.adsperclick.media.utils.Constants.DB.GROUPS
 import com.adsperclick.media.utils.Constants.DB.MESSAGES
 import com.adsperclick.media.utils.Constants.DB.MESSAGES_INSIDE_MESSAGES
+import com.adsperclick.media.utils.Constants.DB.MIN_APP_LEVEL_DOC
+import com.adsperclick.media.utils.Constants.DB.SERVER_TIME_DOC
 import com.adsperclick.media.utils.Constants.DEFAULT_SERVICE
 import com.adsperclick.media.utils.ConsumableValue
 import com.adsperclick.media.utils.UtilityFunctions
@@ -31,6 +36,7 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
@@ -42,9 +48,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.io.File
+import java.net.UnknownHostException
 import javax.inject.Inject
 
-class ChatRepository @Inject constructor(private val apiService: ApiService, private val firestore:FirebaseFirestore) {
+class ChatRepository @Inject constructor(
+    private val apiService: ApiService,
+    private val firestore:FirebaseFirestore
+) {
 
     @Inject
     lateinit var tokenManager : TokenManager
@@ -57,6 +67,12 @@ class ChatRepository @Inject constructor(private val apiService: ApiService, pri
 
     @Inject
     lateinit var storageRef: StorageReference
+
+    @Inject
+    lateinit var versionProvider: VersionProvider
+
+    @Inject
+    lateinit var context: Context
 
 // ----------------------------------------------------------------------------------------------------------------
 //  NOTIFICATION CREATION, LISTING, UPDATING_LAST_NOTIFICATION_SEEN_TIME, NOTIFICATION_PAGER
@@ -171,18 +187,19 @@ class ChatRepository @Inject constructor(private val apiService: ApiService, pri
 // ----------------------------------------------------------------------------------------------------------------
 
 
-    private val _userLiveData = MutableLiveData<ConsumableValue<NetworkResult<User>>>()
-    val userLiveData: LiveData<ConsumableValue<NetworkResult<User>>> get() = _userLiveData
 
-    suspend fun syncUser(){
-//        _userLiveData.postValue(ConsumableValue(NetworkResult.Loading()))
+// ----------------------------------------------------------------------------------------------------------------
+// WHEN USER OPENS THE APP, THESE FUNCTIONS ARE SUPPOSED TO RUN ONLY ONE TIME, AFTER THE USER OPENS THE APP,
+// SO WE RUN THEM ON SPLASH SCREEN
+
+    suspend fun syncUser():ConsumableValue<NetworkResult<User>>{
         try{
+
             val userId = tokenManager.getUser()?.userId
             val result = firestore.collection(Constants.DB.USERS).document(userId!!).get().await()
 
             if (result.exists().not()) {
-                _userLiveData.postValue(ConsumableValue(NetworkResult.Error(null, "User not found in database")))
-                return
+                return ConsumableValue(NetworkResult.Error(null, "User not found in database"))
             }
 
             val user = result.toObject(User::class.java) // Convert Firestore doc to User object
@@ -203,13 +220,66 @@ class ChatRepository @Inject constructor(private val apiService: ApiService, pri
             user?.let {
                 // Write code for when new "User" object obtained from backend successfully
                 tokenManager.saveUser(it) // Update SharedPreferences
-                _userLiveData.postValue(ConsumableValue(NetworkResult.Success(it)))  // Notify UI with updated user
-            } ?: _userLiveData.postValue(ConsumableValue(NetworkResult.Error(null, "Failed to parse user data")))
+                return ConsumableValue(NetworkResult.Success(it))  // Notify UI with updated user
+            } ?: return ConsumableValue(NetworkResult.Error(null, "Failed to parse user data"))
         }
         catch (e: Exception){
-            _userLiveData.postValue(ConsumableValue(NetworkResult.Error(null, "Error: ${e.message}")))
+            return ConsumableValue(NetworkResult.Error(null, "Error: ${e.message}"))
         }
     }
+
+    suspend fun syncDeviceTime() {
+        try {
+            if(UtilityFunctions.isNetworkAvailable(context).not()){ // To handle the case user is offline
+                Log.d("skt", "User is offline") // This function is updating firebase, so c
+                                        // annot be run when user is offline
+                return
+            }
+
+
+            val docRef = firestore.collection(CONFIG).document(SERVER_TIME_DOC)
+
+            // Update the document with the server timestamp
+            docRef.update(SERVER_TIME_DOC, FieldValue.serverTimestamp()).await()
+
+            // Fetch the updated timestamp
+            val snapshot = docRef.get().await()
+            snapshot.getTimestamp(SERVER_TIME_DOC)?.let { serverTime ->
+                val timeDiff = UtilityFunctions.timestampToLong(serverTime) - System.currentTimeMillis()
+                tokenManager.setServerMinusDeviceTime(timeDiff)
+            }
+        } catch (e: Exception) {
+            when (e) {
+                is UnknownHostException,  // No internet connection
+                is FirebaseFirestoreException -> {
+                    Log.e("skt", "Network error: ${e.message}")
+                }
+                else -> Log.e("skt", "Unexpected error: ${e.message}")
+            }
+        }
+    }
+    suspend fun isCurrentVersionAcceptable(): Boolean {
+        return try {
+            val result = firestore.collection(CONFIG).document(MIN_APP_LEVEL_DOC).get().await()
+            val minAcceptableVersion = result.getLong(MIN_APP_LEVEL_DOC) ?: 1
+
+            val currentAppVersion = versionProvider.appVersion // Get current app version
+
+            if (minAcceptableVersion == null) {
+                Log.e("compareAppVersion", "Invalid minAcceptableAppLvl from Firestore")
+                return true // Assume app is valid if Firestore data is incorrect
+            }
+
+            // If current app version is lower than min required, return false (force update needed)
+            currentAppVersion >= minAcceptableVersion
+        } catch (e: Exception) {
+            Log.e("compareAppVersion", "Error: ${e.message}")
+            true // In case of Firestore failure, allow app usage (fail-safe)
+        }
+    }
+
+
+    // ---------------------------------------------------------------------------------------------------------------------------------------------------
 
     private val _lastSeenForEachUserEachGroupLiveData =
         MutableLiveData<ConsumableValue<NetworkResult<Map<String, List<Pair<String, Long?>>>>>>()
@@ -256,7 +326,7 @@ class ChatRepository @Inject constructor(private val apiService: ApiService, pri
         _listOfGroupChatLiveData.postValue(ConsumableValue(NetworkResult.Loading()))
 
         // Firestore listener (Real-time updates)
-        val query = firestore.collection(Constants.DB.GROUPS)
+        val query = firestore.collection(GROUPS)
             .whereIn("groupId", listOfGroupChatId)
 
         query.addSnapshotListener { snapshot, error ->
@@ -341,7 +411,7 @@ class ChatRepository @Inject constructor(private val apiService: ApiService, pri
             // This we are doing coz firestore has a limit, each document can be of atmost 1MB, so
             // we need each "Message" to be a single document so that there's no issue as per backend limits
 
-            val querySnapshot = firestore.collection(Constants.DB.MESSAGES)
+            val querySnapshot = firestore.collection(MESSAGES)
                 .document(groupId)
                 .collection(MESSAGES_INSIDE_MESSAGES)                   // Subcollection for messages
                 .whereGreaterThan("timestamp", timestampDataType) // Query only new messages
@@ -388,7 +458,7 @@ class ChatRepository @Inject constructor(private val apiService: ApiService, pri
         // Remove any existing listener before setting a new one
         chatListener?.remove()
 
-        chatListener = firestore.collection(Constants.DB.MESSAGES)
+        chatListener = firestore.collection(MESSAGES)
             .document(groupId)
             .collection(MESSAGES_INSIDE_MESSAGES)
             .whereGreaterThan("timestamp", lastTimestamp)
@@ -421,7 +491,7 @@ class ChatRepository @Inject constructor(private val apiService: ApiService, pri
 
     suspend fun sendMessage(msgText: String, groupId: String, user: User, groupName: String,
                             listOfGroupMemberId: List<String>, msgType: Int) {
-        val messagesRef = firestore.collection(Constants.DB.MESSAGES)
+        val messagesRef = firestore.collection(MESSAGES)
             .document(groupId)
             .collection(MESSAGES_INSIDE_MESSAGES)
 
@@ -447,7 +517,7 @@ class ChatRepository @Inject constructor(private val apiService: ApiService, pri
                     .addOnSuccessListener {
                         val updatedMessage = it.toMessage()
                         updatedMessage?.let { msg ->
-                            firestore.collection(Constants.DB.GROUPS)
+                            firestore.collection(GROUPS)
                                 .document(groupId)
                                 .update("lastSentMsg", msg) // ✅ Save correct message with timestamp
                         }
@@ -509,7 +579,8 @@ class ChatRepository @Inject constructor(private val apiService: ApiService, pri
     private val _imageUploadedLiveData = MutableLiveData<ConsumableValue<NetworkResult<String>>>()
     val imageUploadedLiveData: LiveData<ConsumableValue<NetworkResult<String>>> get() = _imageUploadedLiveData
 
-    suspend fun uploadFile(groupId: String, groupName: String, file: File?){
+    suspend fun uploadFile(groupId: String, groupName: String, file: File?,
+                           listOfUsers: List<String>, msgType: Int){
         return try {
             // If file is not null, upload it and get the URL
             if (file != null) {
@@ -524,6 +595,8 @@ class ChatRepository @Inject constructor(private val apiService: ApiService, pri
 
                 // Get the download URL
                 val imageUrl = imageRef.downloadUrl.await().toString()
+                sendMessage(imageUrl, groupId, tokenManager.getUser()!!, groupName, listOfUsers, msgType)
+
                 _imageUploadedLiveData.postValue(ConsumableValue(NetworkResult.Success(imageUrl)))
             } else {
                 _imageUploadedLiveData.postValue(ConsumableValue(NetworkResult.Error(null, "Couldn't upload img..")))

@@ -31,6 +31,8 @@ import com.adsperclick.media.utils.UtilityFunctions.formatMessageTimestamp
 import com.adsperclick.media.utils.gone
 import com.adsperclick.media.utils.visible
 import com.adsperclick.media.views.chat.adapters.ChatGroupListAdapter.OnGroupChatClickListener
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 
 
 // Nomenclature of XML :
@@ -136,8 +138,63 @@ class MessagesAdapter(private val currentUserId: String,
                             showUnreadStamp = false
                         } else {binding.tvUnread.gone()}
 
-                        textMessageOutgoing.text = message.message
-                        tvTimeOutgoing.text = formattedDate
+
+                        fun setupText(){
+                            // Show text message, hide media preview
+                            textMessageOutgoing.visible()
+                            mediaPreviewContainer.gone()
+                            groupImage.gone()
+                            textMessageOutgoing.text = message.message
+                            tvTimeOutgoing.visible()
+                            tvTimeOutgoing.text = formattedDate             // We'll show date in this tv
+                        }
+
+                        fun setupImage(){
+                            textMessageOutgoing.gone()
+                            tvTimeOutgoing.gone()
+                            mediaPreviewContainer.gone()
+                            groupImage.visible()
+                            tvTimeOutgoingInsideImg.text = formattedDate    // We'll show date in this tv
+                        }
+
+                        fun setupDocAndVideo(){
+                            textMessageOutgoing.gone()
+                            tvTimeOutgoing.gone()
+                            mediaPreviewContainer.visible()
+                            groupImage.gone()
+                            mediaFileSize.text = formattedDate              // We'll show date in this tv
+                        }
+
+
+                        when(message.msgType){
+                            Constants.MSG_TYPE.TEXT -> setupText()
+
+                            Constants.MSG_TYPE.IMG_URL -> {
+                                setupImage()
+                                Glide.with(binding.imgSharedInGroup)
+                                    .load(message.message)
+                                    .diskCacheStrategy(DiskCacheStrategy.ALL) // Caches both full-size & resized images
+                                    .override(200, 200)  // Resize image to exactly match ImageView dimensions + This prevents out-of-memory problem and makes app faster, as that particular size img is rendered now
+                                    .centerCrop()
+                                    .placeholder(R.drawable.ic_image)
+                                    .error(R.drawable.logout_red)
+                                    .into(binding.imgSharedInGroup)     // .into()      For thread safety, glide internally uses Non-UI thread to load images
+                                                                        // and prevent UI from hanging
+                            }
+
+                            Constants.MSG_TYPE.VIDEO -> {
+                                setupDocAndVideo()
+                                binding.mediaTypeIcon.setImageResource(R.drawable.ic_image)
+                                binding.mediaFileName.text = "Video"
+                            }
+
+                            Constants.MSG_TYPE.PDF_DOC -> {
+                                setupDocAndVideo()
+                                binding.mediaTypeIcon.setImageResource(R.drawable.ic_image)
+                                binding.mediaFileName.text = "Document"
+                            }
+                        }
+
 
                         if(msgRelativePosition == SINGLE_MSG_RIGHT || msgRelativePosition == FIRST_MSG_RIGHT){
                             tvSenderNameOutgoing.text = message.senderName
@@ -157,7 +214,6 @@ class MessagesAdapter(private val currentUserId: String,
 
 
                         val rootLayoutParams = root.layoutParams as ViewGroup.MarginLayoutParams
-
                         fun dpToPx(dp: Int): Int {
                             val scale = root.context.resources.displayMetrics.density
                             return (dp * scale + 0.5f).toInt()
@@ -202,7 +258,9 @@ class MessagesAdapter(private val currentUserId: String,
                 }
             }
 
-            if(message.msgType == Constants.MSG_TYPE.IMG_URL)
+
+
+            if(message.msgType != Constants.MSG_TYPE.TEXT)
             {
                 binding.root.setOnClickListener{
                     onMessageClickListener.onItemClick(message)
@@ -210,6 +268,7 @@ class MessagesAdapter(private val currentUserId: String,
             }
         }
     }
+
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatAdapterViewHolder {
         val binding = when (viewType) {

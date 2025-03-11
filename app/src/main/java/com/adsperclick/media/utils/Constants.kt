@@ -10,6 +10,7 @@ object Constants {
     const val TOKEN_FOR_PREFS = "token_prefs"
     const val USER_IDENTITY = "user_identity"
     const val IS_USER_SIGNED_IN = "is_user_signed_in"
+    const val SERVER_MINUS_DEVICE_TIME = "Diff bw server-device for syncing"
     const val EMPTY = ""
     const val SPACE = " "
 
@@ -49,6 +50,7 @@ object Constants {
         const val IMG_URL = 200
         const val PDF_DOC = 220
         const val VIDEO = 240
+        const val DOCUMENT= 320
     }
 
 
@@ -118,6 +120,10 @@ object Constants {
         const val MESSAGES_INSIDE_MESSAGES = "messages"
         const val COMPANY = "companies"
         const val SERVICE = "services"
+
+        const val CONFIG = "config"
+        const val SERVER_TIME_DOC = "serverTime"        //Within config collection it is a document (To fetch server-side time and sync it with device time)
+        const val MIN_APP_LEVEL_DOC = "minAppLevel"      //Within config collection it is a document"
     }
 
     object TXT_MSG_TYPE{

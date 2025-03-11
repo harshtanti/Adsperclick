@@ -33,15 +33,22 @@ import java.util.UUID
 import kotlin.math.abs
 import android.media.MediaMetadataRetriever
 import android.media.ThumbnailUtils
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.provider.MediaStore
 import android.util.TypedValue
 import android.webkit.MimeTypeMap
+import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.data.dataModels.GroupChatListingData
 import java.nio.file.Files
 import java.nio.file.Paths
+import javax.inject.Inject
 import kotlin.math.absoluteValue
 
 object UtilityFunctions {
+
+//    @Inject
+//    lateinit var tokenManger : TokenManager
 
     // Generate drawable with initials (For people/group-chats
     // which don't have profile-pictures, there name initials
@@ -428,6 +435,27 @@ object UtilityFunctions {
             .into(imageView)
     }
 
+    fun loadChatListingImgWithGlide(
+        context: Context,
+        imageView: ImageView,
+        imageUrl: String?,
+        placeholderId: Int = R.drawable.baseline_person_24,
+        errorId: Int = R.drawable.baseline_person_24
+    ) {
+        if (imageUrl.isNullOrEmpty()) {
+            imageView.setImageResource(placeholderId)
+            return
+        }
+
+        Glide.with(context)
+            .load(imageUrl)
+            .placeholder(placeholderId)
+            .override(45,45)
+            .error(errorId)
+            .centerCrop()
+            .into(imageView)
+    }
+
     fun setInitialsDrawable(imageView: ImageView, name:String?) {
         if (name.isNullOrEmpty()) {
             imageView.setImageResource(R.drawable.baseline_person_24)
@@ -479,5 +507,20 @@ object UtilityFunctions {
                 dateFormat.format(Date(timestamp))
             }
         }
+    }
+
+    // This function can help you get server side time! That is the actual time, not the device time
+    // Without requiring internet
+    // When user opens the app I save the time difference of server & his device time in shared prefs
+    // to obtain server side time from his device time everytime :)
+//    fun getCurrentTimeInMillis(): Long{
+//        return tokenManger.getServerMinusDeviceTime() + System.currentTimeMillis()
+//    }
+
+    fun isNetworkAvailable(context: Context): Boolean {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = connectivityManager.activeNetwork ?: return false
+        val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+        return capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) || capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
     }
 }
