@@ -25,5 +25,6 @@ interface ApiService {
     suspend fun removeUserFromGroup(userId: String, groupId: String): NetworkResult<String>
     suspend fun getGroupDetails(groupId: String): NetworkResult<GroupChatListingData>
     suspend fun addGroupMember(groupId: String, userSet: MutableSet<String>): NetworkResult<Boolean>
+//    suspend fun uploadFile(groupId: String, userSet: MutableSet<String>): NetworkResult<Boolean>
 
 }

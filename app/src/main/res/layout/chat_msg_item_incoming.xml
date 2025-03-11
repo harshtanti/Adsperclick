@@ -5,9 +5,43 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:paddingVertical="1dp"
-    android:paddingEnd="35dp"
+    android:paddingEnd="85dp"
     android:paddingStart="12dp"
     >
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tvUnread"
+        style="@style/tv_datestamp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Unread"
+        android:visibility="gone"
+        tools:visibility="visible"
+        android:layout_marginBottom="@dimen/DP12"
+        android:layout_marginEnd="@dimen/DP12"
+        android:layout_marginStart="@dimen/DP85"
+        android:layout_marginTop="@dimen/DP10"
+        android:paddingBottom="@dimen/DP50"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/tvDateStamp"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tvDateStamp"
+        style="@style/tv_datestamp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="Today"
+        tools:visibility="visible"
+        android:visibility="gone"
+        android:layout_marginBottom="@dimen/DP12"
+        android:layout_marginEnd="@dimen/DP12"
+        android:layout_marginStart="@dimen/DP85"
+        android:paddingBottom="@dimen/DP50"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/viewIncomingMsgs" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/viewIncomingMsgs"
@@ -15,6 +49,7 @@
         android:layout_height="match_parent"
         android:background="@drawable/bubble_single_msg_grey"
         android:paddingTop="5dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
         <com.google.android.material.textview.MaterialTextView
@@ -24,9 +59,9 @@
             android:fontFamily="@font/inter_400"
             android:textColor="#202124"
             android:textSize="14dp"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
             app:fontFamily="@font/inter_600"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             tools:text="Saumya Kumar Thakur" />
 
         <com.google.android.material.textview.MaterialTextView
@@ -35,9 +70,9 @@
             android:layout_height="wrap_content"
             android:fontFamily="@font/inter_400"
             android:textColor="#202124"
-            app:layout_constraintTop_toBottomOf="@+id/tvSenderName"
+            android:textSize="15dp"
             app:layout_constraintStart_toStartOf="@+id/tvSenderName"
-            android:textSize="16dp"
+            app:layout_constraintTop_toBottomOf="@+id/tvSenderName"
             tools:text="Hi, How are you?" />
 
         <com.google.android.material.textview.MaterialTextView
@@ -47,9 +82,9 @@
             android:fontFamily="@font/inter_400"
             android:gravity="end"
             android:textColor="@color/Black_8"
-            app:layout_constraintTop_toBottomOf="@+id/textMessageIncoming"
-            app:layout_constraintEnd_toEndOf="parent"
             android:textSize="10sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textMessageIncoming"
             tools:text="9:30 AM" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 

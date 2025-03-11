@@ -12,6 +12,7 @@ import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.data.dataModels.User
+import com.adsperclick.media.utils.ConsumableValue
 import com.adsperclick.media.views.user.repository.CommunityRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -186,6 +187,14 @@ class UserViewModel @Inject constructor(private val communityRepository: Communi
                     NetworkResult.Error(false, "Error updating company services: ${e.message}")
                 )
             }
+        }
+    }
+
+    val userBlockedStatusLiveData: LiveData<ConsumableValue<NetworkResult<Boolean>>> get() = communityRepository.userBlockedStatusLiveData
+
+    fun changeUserBlockedStatus(shouldBlock:Boolean, userId: String){
+        viewModelScope.launch(Dispatchers.IO) {
+            communityRepository.changeUserBlockedStatus(shouldBlock, userId)
         }
     }
 

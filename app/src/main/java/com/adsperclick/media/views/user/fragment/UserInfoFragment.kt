@@ -15,13 +15,14 @@ import com.adsperclick.media.data.dataModels.Company
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.data.dataModels.User
-import com.adsperclick.media.databinding.FragmentSettingBinding
 import com.adsperclick.media.databinding.FragmentUserInfoBinding
 import com.adsperclick.media.utils.Constants
+import com.adsperclick.media.utils.ConsumableValue
 import com.adsperclick.media.utils.UtilityFunctions
 import com.adsperclick.media.utils.disableHeaderButton
 import com.adsperclick.media.utils.enableHeaderButton
 import com.adsperclick.media.utils.gone
+import com.adsperclick.media.utils.visible
 import com.adsperclick.media.views.user.bottomsheet.ServiceBottomSheetFragment
 import com.adsperclick.media.views.user.viewmodel.UserViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -133,6 +134,16 @@ class UserInfoFragment : Fragment(), View.OnClickListener {
                 binding.tvEmail.text = user?.email ?: "N.A."
                 binding.tvPhone.text = user?.userPhoneNumber ?: "N.A."
                 binding.tvAssociationDate.text = user?.associationDate ?: "N.A."
+                user?.blocked.let { isUserBlocked->
+                    if(isUserBlocked == true) {
+                        binding.btnUnblock.visible()
+                        binding.btnBlock.gone()
+                    } else {
+                        binding.btnBlock.visible()
+                        binding.btnUnblock.gone()
+
+                    }
+                }
                 user?.userProfileImgUrl?.let { imageUrl ->
                     UtilityFunctions.loadImageWithGlide(
                         binding.imgProfileDp.context,
@@ -201,6 +212,8 @@ class UserInfoFragment : Fragment(), View.OnClickListener {
     }
 
     private fun setUpClickListener(){
+        binding.btnBlock.setOnClickListener(this)
+        binding.btnUnblock.setOnClickListener(this)
         binding.header.btnBack.setOnClickListener(this)
         binding.cvServices.setOnClickListener(this)
         binding.header.btnSave.setOnClickListener(this)
@@ -238,6 +251,7 @@ class UserInfoFragment : Fragment(), View.OnClickListener {
 
     private fun setUpObserver(){
         viewModel.listServiceLiveData.observe(viewLifecycleOwner,serviceListObserver)
+        viewModel.userBlockedStatusLiveData.observe(viewLifecycleOwner, userBlockedStatusObserver)
         viewModel.updateCompanyServicesLiveData.observe(viewLifecycleOwner,updateCompanyServiceListObserver)
     }
 
@@ -258,6 +272,36 @@ class UserInfoFragment : Fragment(), View.OnClickListener {
             }
 
             is NetworkResult.Loading ->{}
+        }
+    }
+
+
+    private val userBlockedStatusObserver = Observer<ConsumableValue<NetworkResult<Boolean>>> { consumable->
+        consumable.handle{
+            when(it){
+                is NetworkResult.Success ->{
+                    val isBlocked = it.data     // To know if we've blocked user or unblocked user XD
+                    when (isBlocked) {
+                        true -> {
+                            Toast.makeText(requireContext(), "User blocked successfully!", Toast.LENGTH_SHORT).show()
+                            binding.btnBlock.gone()
+                            binding.btnUnblock.visible()
+                        }
+                        false -> {
+                            Toast.makeText(requireContext(), "User unblocked successfully!", Toast.LENGTH_SHORT).show()
+                            binding.btnBlock.visible()
+                            binding.btnUnblock.gone()
+                        }
+                        else -> {
+                            Toast.makeText(requireContext(), "Some issue while blocking/unblocking...", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+                is NetworkResult.Error ->{
+                    Toast.makeText(requireContext(), it.message, Toast.LENGTH_SHORT).show()
+                }
+                is NetworkResult.Loading ->{}
+            }
         }
     }
 
@@ -283,6 +327,22 @@ class UserInfoFragment : Fragment(), View.OnClickListener {
                     updateProfile()
                 }
 
+            }
+
+            binding.btnBlock->{
+                userId?.let {uid->
+                    viewModel.changeUserBlockedStatus(true, uid)
+                } ?: run{
+                    Toast.makeText(context, "User id is null", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            binding.btnUnblock->{
+                userId?.let {uid->
+                    viewModel.changeUserBlockedStatus(false, uid)
+                } ?: run{
+                    Toast.makeText(context, "User id is null", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }

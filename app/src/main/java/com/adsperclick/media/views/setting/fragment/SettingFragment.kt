@@ -25,6 +25,7 @@ import com.adsperclick.media.utils.disableHeaderButton
 import com.adsperclick.media.utils.disableSubmitButton
 import com.adsperclick.media.utils.enableHeaderButton
 import com.adsperclick.media.utils.gone
+import com.adsperclick.media.utils.visible
 import com.adsperclick.media.views.login.MainActivity
 import com.adsperclick.media.views.login.viewModels.AuthViewModel
 import com.adsperclick.media.views.setting.viewmodel.SettingViewModel
@@ -216,6 +217,7 @@ class SettingFragment : Fragment(),View.OnClickListener {
     private fun observeViewModel() {
         // Observe the update user result
         settingViewModel.updateUserLiveData.observe(viewLifecycleOwner,updateUserObserver)
+        authViewModel.signoutLiveData.observe(viewLifecycleOwner, signoutObserver)
     }
 
     private val updateUserObserver = androidx.lifecycle.Observer<ConsumableValue<NetworkResult<Boolean>>> {it1 ->
@@ -258,6 +260,39 @@ class SettingFragment : Fragment(),View.OnClickListener {
                 }
         }
     }
+
+
+
+    private val signoutObserver = androidx.lifecycle.Observer<ConsumableValue<NetworkResult<Boolean>>> {it1 ->
+        it1.handle {
+            when (it) {
+                is NetworkResult.Loading -> {
+                }
+
+                is NetworkResult.Success -> {
+                    binding.progressBar.gone()
+
+                    // Update the UI to reflect changes
+                    if (it.data == true) {
+                        // Signout-user
+                        val intent = Intent(requireActivity(), MainActivity::class.java)
+                        startActivity(intent)
+                        requireActivity().finish()
+                    }
+                }
+
+                is NetworkResult.Error -> {
+                    // Hide loading indicator
+                    binding.progressBar.gone()
+                    // Show error message
+                    Toast.makeText(context, it.message ?: "Update failed",Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+
+
 
     private fun showPhoneNumberDialog() {
         // Create a listener implementation for the dialog
@@ -308,10 +343,8 @@ class SettingFragment : Fragment(),View.OnClickListener {
                 bottomSheet.show(childFragmentManager, bottomSheet.tag)
             }
             binding.btnLogout -> {
+                binding.progressBar.visible()
                 authViewModel.signOut()
-                val intent = Intent(requireActivity(), MainActivity::class.java)
-                startActivity(intent)
-                requireActivity().finish()
             }
             binding.header.btnBack -> {
                 findNavController().popBackStack()
@@ -322,4 +355,6 @@ class SettingFragment : Fragment(),View.OnClickListener {
             }
         }
     }
+
+
 }

@@ -35,7 +35,7 @@ class ChatGroupListAdapter(val onGroupChatClickListener: OnGroupChatClickListene
             binding.tvLastMsgDateTime.text = lastMsgTime
 
             chatGroup.groupImgUrl?.let { imageUrl ->
-                UtilityFunctions.loadImageWithGlide(
+                UtilityFunctions.loadChatListingImgWithGlide(
                     binding.imgProfileDp.context,
                     binding.imgProfileDp,
                     imageUrl

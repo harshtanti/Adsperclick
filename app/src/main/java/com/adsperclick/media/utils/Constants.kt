@@ -10,6 +10,7 @@ object Constants {
     const val TOKEN_FOR_PREFS = "token_prefs"
     const val USER_IDENTITY = "user_identity"
     const val IS_USER_SIGNED_IN = "is_user_signed_in"
+    const val SERVER_MINUS_DEVICE_TIME = "Diff bw server-device for syncing"
     const val EMPTY = ""
     const val SPACE = " "
 
@@ -49,10 +50,12 @@ object Constants {
         const val IMG_URL = 200
         const val PDF_DOC = 220
         const val VIDEO = 240
+        const val DOCUMENT= 320
     }
 
 
     const val CLICKED_GROUP = "Jis group ko click kia"
+    const val LAST_SEEN_GROUP_TIME = "The time at which this group was visited by this user last"
 
     const val APPLICATION_PDF = "application/pdf"
     const val IMAGE = "image/*"
@@ -114,8 +117,13 @@ object Constants {
         const val GROUPS = "groups"
         const val NOTIFICATIONS = "notifications"
         const val MESSAGES = "Messages"
+        const val MESSAGES_INSIDE_MESSAGES = "messages"
         const val COMPANY = "companies"
         const val SERVICE = "services"
+
+        const val CONFIG = "config"
+        const val SERVER_TIME_DOC = "serverTime"        //Within config collection it is a document (To fetch server-side time and sync it with device time)
+        const val MIN_APP_LEVEL_DOC = "minAppLevel"      //Within config collection it is a document"
     }
 
     object TXT_MSG_TYPE{
@@ -133,5 +141,26 @@ object Constants {
         const val FIRST_MSG_LEFT = 223
         const val MIDDLE_MSG_LEFT = 323
         const val LAST_MSG_LEFT = 423
+    }
+
+    object FIREBASE_FUNCTION_NAME{
+        const val GET_USER_COUNT = "getUserCount"
+        const val SEND_NOTIFICATION_TO_GROUP_MEMBERS = "sendNotificationToGroupMembers"
+    }
+
+    object FCM{
+        const val CHANNEL_ID = "delivery_notification_channel"
+        const val NOTIFICATION_ID = 698334
+
+        // Types of notifications
+        const val BASIC_NOTIFICATION = 123132
+        const val NOTIFICATION_WITH_INTENT_TO_GO_TO_SECOND_ACTIVITY = 7832
+        const val NOTIFICATION_WITH_BIG_PICTURE_STYLE = 298332
+        const val NOTIFICATION_WITH_INBOX_STYLE = 3178323
+
+        // For shared-preferences storing current device token-v-
+        const val DEVICE_TOKEN = "fcm_token_for_this_device"
+
+        const val ITS_A_BROADCAST_NOTIFICATION = "Not a group, It's a broadcast notification"
     }
 }
