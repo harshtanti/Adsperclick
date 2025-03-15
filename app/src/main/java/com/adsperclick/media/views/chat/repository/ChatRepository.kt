@@ -30,6 +30,9 @@ import com.adsperclick.media.utils.Constants.DB.MESSAGES_INSIDE_MESSAGES
 import com.adsperclick.media.utils.Constants.DB.MIN_APP_LEVEL_DOC
 import com.adsperclick.media.utils.Constants.DB.SERVER_TIME_DOC
 import com.adsperclick.media.utils.Constants.DEFAULT_SERVICE
+import com.adsperclick.media.utils.Constants.MSG_TYPE.IMG_URL
+import com.adsperclick.media.utils.Constants.MSG_TYPE.PDF_DOC
+import com.adsperclick.media.utils.Constants.MSG_TYPE.VIDEO
 import com.adsperclick.media.utils.ConsumableValue
 import com.adsperclick.media.utils.UtilityFunctions
 import com.google.firebase.Timestamp
@@ -528,23 +531,19 @@ class ChatRepository @Inject constructor(
             }
 
         // firestore.collection(Constants.DB.GROUPS).document(groupId).update("lastSentMsg", message)
-
-        message.message?.let {msgText->
-            message.senderId?.let { senderId ->
-                message.groupId?.let { groupId->
-
-                    triggerNotificationToGroupMembers(groupId, groupName, msgText, senderId, listOfGroupMemberId)
-                } } }
     }
 
 //    groupName, msgText, senderId, listOfGroupMemberId
 
-    private suspend fun triggerNotificationToGroupMembers(
-        groupId: String, groupName:String, msgText: String, senderId: String, listOfGroupMemberId: List<String>){
+    suspend fun triggerNotificationToGroupMembers(
+        groupId: String, groupName:String, msgText: String, senderId: String,
+        msgType: Int, listOfGroupMemberId: List<String>)
+    {
         val data = mapOf(
             "groupId" to groupId,
             "groupName" to groupName,
             "msgText" to msgText,
+            "msgType" to msgType,
             "senderId" to senderId,
             "listOfGroupMemberId" to listOfGroupMemberId
         )
@@ -586,16 +585,32 @@ class ChatRepository @Inject constructor(
             if (file != null) {
                 _imageUploadedLiveData.postValue(ConsumableValue(NetworkResult.Loading()))
                 val storageRef = storageRef
-                val imagePath = "SharedInGroup/${groupName}_${groupId}/images/${System.currentTimeMillis()}_${file.name}"
-                val imageRef = storageRef.child(imagePath)
+
+                val fileType = when(msgType){
+                    IMG_URL -> "images"
+                    PDF_DOC -> "pdfs"
+                    VIDEO -> "videos"
+                    else -> {"Unknown"}
+                }
+
+                val filePath = "SharedInGroup/${groupName}_${groupId}/$fileType/${System.currentTimeMillis()}_${file.name}"
+                val fileRef = storageRef.child(filePath)
 
                 // Upload the file
-                val uploadTask = imageRef.putFile(Uri.fromFile(file))
+                val uploadTask = fileRef.putFile(Uri.fromFile(file))
                 uploadTask.await()
 
                 // Get the download URL
-                val imageUrl = imageRef.downloadUrl.await().toString()
+                val imageUrl = fileRef.downloadUrl.await().toString()
+
+                // After URL is created at backend and obtained here, we sendMessage & notification to group-members
                 sendMessage(imageUrl, groupId, tokenManager.getUser()!!, groupName, listOfUsers, msgType)
+
+                tokenManager.getUser()?.userId?.let {
+                    triggerNotificationToGroupMembers(groupId= groupId,
+                        groupName= groupName, msgText = imageUrl, senderId = it,
+                        msgType = msgType, listOfGroupMemberId = listOfUsers)
+                }
 
                 _imageUploadedLiveData.postValue(ConsumableValue(NetworkResult.Success(imageUrl)))
             } else {

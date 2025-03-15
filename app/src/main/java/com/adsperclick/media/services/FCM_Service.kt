@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -18,16 +19,27 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.adsperclick.media.R
+import com.adsperclick.media.applicationCommonView.AdsperclickApplication
 import com.adsperclick.media.data.workManager.FCMTokenUpdateWorker
+import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.Constants.FCM.BASIC_NOTIFICATION
 import com.adsperclick.media.utils.Constants.FCM.CHANNEL_ID
+import com.adsperclick.media.utils.Constants.FCM.ID_OF_GROUP_TO_OPEN
+import com.adsperclick.media.utils.Constants.GROUP_ID
 import com.adsperclick.media.utils.Constants.FCM.ITS_A_BROADCAST_NOTIFICATION
 import com.adsperclick.media.utils.Constants.FCM.NOTIFICATION_ID
 import com.adsperclick.media.utils.Constants.FCM.NOTIFICATION_WITH_BIG_PICTURE_STYLE
 import com.adsperclick.media.utils.Constants.FCM.NOTIFICATION_WITH_INBOX_STYLE
 import com.adsperclick.media.utils.Constants.FCM.NOTIFICATION_WITH_INTENT_TO_GO_TO_SECOND_ACTIVITY
+import com.adsperclick.media.utils.Constants.MSG_TYPE.IMG_URL
+import com.adsperclick.media.utils.Constants.MSG_TYPE.PDF_DOC
+import com.adsperclick.media.utils.Constants.MSG_TYPE.VIDEO
+import com.adsperclick.media.views.homeActivity.HomeActivity
 import com.adsperclick.media.views.login.MainActivity
 import com.adsperclick.media.views.login.repository.AuthRepository
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.google.api.ResourceProto.resource
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
@@ -69,7 +81,15 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
         super.onMessageReceived(message)
         val title = message.data["title"] ?: "No Title"
         val body = message.data["body"] ?: "No Description"
+        val msgType = message.data["msgType"]?.toInt() ?: Constants.MSG_TYPE.TEXT
         val groupId = message.data["groupId"] ?: ITS_A_BROADCAST_NOTIFICATION
+        val downloadUrl = message.data["downloadUrl"] ?: ""
+
+
+        // Below line prevents notification when user is using the app/ ie app is in foreground
+        if(AdsperclickApplication.appLifecycleObserver.isAppInForeground && groupId != ITS_A_BROADCAST_NOTIFICATION){
+            return      // Don't show any notification if app is in use,
+        }
 
         // Store message for this group
         if (!messagesMap.containsKey(groupId)) {
@@ -84,14 +104,8 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
             messagesMap[groupId] = messagesMap[groupId]?.takeLast(5)?.toMutableList() ?: mutableListOf()
         }
 
-        sendNotification(BASIC_NOTIFICATION, title, body, groupId)
+        sendNotification(BASIC_NOTIFICATION, title, body, groupId, msgType, downloadUrl)
     }
-
-
-
-
-
-
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun sendNotification(
@@ -99,6 +113,8 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
         title: String,
         body: String,
         groupId: String,
+        msgType: Int,
+        imgUrl: String
     ) {
         val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
@@ -108,24 +124,24 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
             "Delivery Notifications",
             NotificationManager.IMPORTANCE_HIGH
         )
-
         nm.createNotificationChannel(channel)
 
-        // Convert Drawable to Bitmap safely
+        // Default small icon
         val drawable = ResourcesCompat.getDrawable(resources, R.drawable.notifications_24px, null)
-        val bitmap = (drawable as? BitmapDrawable)?.bitmap
+        val defaultBitmap = (drawable as? BitmapDrawable)?.bitmap
 
         // Group key for this specific chat group
-        val groupKey = when(groupId){
+        val groupKey = when (groupId) {
             ITS_A_BROADCAST_NOTIFICATION -> "${System.currentTimeMillis()}"     // Because for Broadcast notifications I want to show a summary notification, and each time a new notificaiton should be generated hence the unique key i.e. timestamp
             else -> "GROUP_CHAT_$groupId"
         }
 
-        // Create intent for when notification is clicked
         val intent = Intent(this, MainActivity::class.java).apply {
-            putExtra("groupId", groupId)
+            putExtra(ID_OF_GROUP_TO_OPEN, groupId)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
+
+
         val pendingIntent = PendingIntent.getActivity(
             this,
             groupId.hashCode(),
@@ -133,32 +149,60 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-
-        // Get the stored messages for this group
         val groupMessages = messagesMap[groupId] ?: listOf()
         val messageCount = groupMessages.size
 
+        // Build the notification
         val summaryNotificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.notifications_24px)
             .setGroup(groupKey)
-            .setGroupSummary(true)  // This is the summary
+            .setGroupSummary(true)
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(pendingIntent)
 
+        // **If Message Type is IMG_URL, Load the Image and Show Notification**
+        if (msgType == Constants.MSG_TYPE.IMG_URL && imgUrl.isNotEmpty()) {
+            Glide.with(appContext)
+                .asBitmap()
+                .load(imgUrl)
+                .into(object : CustomTarget<Bitmap>() {     // Inside code runs asynchronously
+                    override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                        val imageNotification = summaryNotificationBuilder
+                            .setContentTitle(title)
+                            .setContentText(groupMessages.last())
+                            .setStyle(NotificationCompat.BigPictureStyle().bigPicture(resource))
+                            .build()
 
-        if (messageCount == 1) {
-            // Single message -> Use BigTextStyle to show full message
+                        nm.notify(groupKey.hashCode(), imageNotification)
+                    }
+
+                    override fun onLoadCleared(placeholder: Drawable?) {
+                        // Handle cleanup if needed
+                    }
+
+                    override fun onLoadFailed(errorDrawable: Drawable?) {
+                        // Fallback to default text notification if image fails to load
+                        summaryNotificationBuilder
+                            .setContentTitle(title)
+                            .setContentText(groupMessages.firstOrNull() ?: "Image message")
+                            .setStyle(NotificationCompat.BigTextStyle().bigText(groupMessages.firstOrNull() ?: "Image message"))
+
+                        nm.notify(groupKey.hashCode(), summaryNotificationBuilder.build())
+                    }
+                })
+        }
+        // **Else, Handle Normal Notifications**
+        else if (messageCount == 1) {
             summaryNotificationBuilder
                 .setContentTitle(title)
-                .setContentText(groupMessages.first())  // Show full message in small preview
-                .setStyle(NotificationCompat.BigTextStyle().bigText(groupMessages.first())) // Expand full message
+                .setContentText(groupMessages.first())
+                .setStyle(NotificationCompat.BigTextStyle().bigText(groupMessages.first()))
         } else {
-            // Multiple messages -> Use InboxStyle to stack messages
             val inboxStyle = NotificationCompat.InboxStyle()
                 .setBigContentTitle(title)
                 .setSummaryText("$messageCount messages")
 
-            // Add each message to the inbox style
             groupMessages.forEach { message ->
                 inboxStyle.addLine(message)
             }
@@ -169,13 +213,113 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
                 .setStyle(inboxStyle)
         }
 
-        // First send the individual notification
-//        nm.notify("${groupId}_${System.currentTimeMillis()}".hashCode(), messageNotification)
-
-        // Then send the summary notification with the same group ID
-        nm.notify(groupKey.hashCode(), summaryNotificationBuilder.build())
+        // **For Non-Image Notifications, Show Immediately**
+        if (msgType != Constants.MSG_TYPE.IMG_URL) {
+            nm.notify(groupKey.hashCode(), summaryNotificationBuilder.build())
+        }
     }
+
+
+
+
+
+//    @RequiresApi(Build.VERSION_CODES.O)
+//    private fun sendNotification(
+//        notificationType: Int,
+//        title: String,
+//        body: String,
+//        groupId: String,
+//        msgType: Int,
+//        imgUrl : String
+//    ) {
+//        val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+//
+//        // Create Notification Channel
+//        val channel = NotificationChannel(
+//            CHANNEL_ID,
+//            "Delivery Notifications",
+//            NotificationManager.IMPORTANCE_HIGH
+//        )
+//
+//        nm.createNotificationChannel(channel)
+//
+//        // Convert Drawable to Bitmap safely
+//        val drawable = ResourcesCompat.getDrawable(resources, R.drawable.notifications_24px, null)
+//        val bitmap = (drawable as? BitmapDrawable)?.bitmap
+//
+//        // Group key for this specific chat group
+//        val groupKey = when(groupId){
+//            ITS_A_BROADCAST_NOTIFICATION -> "${System.currentTimeMillis()}"     // Because for Broadcast notifications I want to show a summary notification, and each time a new notificaiton should be generated hence the unique key i.e. timestamp
+//            else -> "GROUP_CHAT_$groupId"
+//        }
+//
+//        // Create intent for when notification is clicked
+//        val intent = Intent(this, MainActivity::class.java).apply {
+//            putExtra("groupId", groupId)
+//            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+//        }
+//        val pendingIntent = PendingIntent.getActivity(
+//            this,
+//            groupId.hashCode(),
+//            intent,
+//            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+//        )
+//
+//
+//        // Get the stored messages for this group
+//        val groupMessages = messagesMap[groupId] ?: listOf()
+//        val messageCount = groupMessages.size
+//
+//        val summaryNotificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
+//            .setSmallIcon(R.drawable.notifications_24px)
+//            .setGroup(groupKey)
+//            .setGroupSummary(true)  // This is the summary
+//            .setAutoCancel(true)
+//            .setPriority(NotificationCompat.PRIORITY_HIGH)
+//
+//
+//        if(msgType == IMG_URL){
+//
+////            val bitmap = imgToBitmap
+//            summaryNotificationBuilder
+//                .setContentTitle(title)
+//                .setContentText(groupMessages.first())  // Show full message in small preview
+//                .setStyle(NotificationCompat.BigPictureStyle().bigPicture(bitmap)) // Expand full message
+//        }
+//        else if (messageCount == 1) {
+//            // Single message -> Use BigTextStyle to show full message
+//            summaryNotificationBuilder
+//                .setContentTitle(title)
+//                .setContentText(groupMessages.first())  // Show full message in small preview
+//                .setStyle(NotificationCompat.BigTextStyle().bigText(groupMessages.first())) // Expand full message
+//        } else {
+//            // Multiple messages -> Use InboxStyle to stack messages
+//            val inboxStyle = NotificationCompat.InboxStyle()
+//                .setBigContentTitle(title)
+//                .setSummaryText("$messageCount messages")
+//
+//            // Add each message to the inbox style
+//            groupMessages.forEach { message ->
+//                inboxStyle.addLine(message)
+//            }
+//
+//            summaryNotificationBuilder
+//                .setContentTitle(title)
+//                .setContentText("$messageCount new messages")
+//                .setStyle(inboxStyle)
+//        }
+//
+//        nm.notify(groupKey.hashCode(), summaryNotificationBuilder.build())
+//    }
+
+
+
+
+
 }
+
+
+
 
 
 

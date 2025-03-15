@@ -1,5 +1,6 @@
 package com.adsperclick.media.views.chat.fragment
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
@@ -25,6 +26,8 @@ import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.Constants.CLICKED_GROUP
 import com.adsperclick.media.utils.Constants.DEFAULT_SERVICE
 import com.adsperclick.media.utils.Constants.EMPTY
+import com.adsperclick.media.utils.Constants.FCM.ID_OF_GROUP_TO_OPEN
+import com.adsperclick.media.utils.Constants.GROUP_ID
 import com.adsperclick.media.utils.Constants.LAST_SEEN_GROUP_TIME
 import com.adsperclick.media.utils.gone
 import com.adsperclick.media.utils.visible
@@ -60,6 +63,14 @@ class ChatFragment : Fragment(),View.OnClickListener {
 
     @Inject
     lateinit var cloudFunc : FirebaseFunctions
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+//        val groupId = arguments?.getString(GROUP_ID)      // For FCM Notification based on group
+//        if(tokenManager.getUser()?.listOfGroupsAssigned?.contains(groupId.toString()) == true){
+////            findNavController().navigate()
+//        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -151,6 +162,25 @@ class ChatFragment : Fragment(),View.OnClickListener {
                         response.data?.let {listOfGroups->
                             listOfGroupChat = listOfGroups
                             updateAdapterWithListOfGroupsHavingSelectedService()
+                            arguments?.let { arg ->         // If no arguments r passed it will come as null (normal scenario, when not coming via notification)
+                                val groupId = arg.getString(ID_OF_GROUP_TO_OPEN)
+                                val gc = listOfGroups.find { it.groupId == groupId }
+                                gc?.let {groupChat ->
+                                    val groupChatObjToString = Json.encodeToString(GroupChatListingData.serializer(), groupChat)
+                                    val lastSeenForEachUserInSelectedGroup = lastSeenForEachUserEachGroup?.get(groupChat.groupId.toString())
+
+                                    val lastSeen = lastSeenForEachUserInSelectedGroup?.find { it.first == user?.userId }?.second
+
+                                    val bundle = Bundle()
+                                    bundle.putString(CLICKED_GROUP, groupChatObjToString)
+                                    if (lastSeen != null) {
+                                        bundle.putLong(LAST_SEEN_GROUP_TIME, lastSeen)
+                                    }
+                                    requireArguments().clear()
+                                    findNavController().navigate(R.id.action_navigation_chat_to_messagingFragment, bundle)
+                                }
+                            }
+//                            updateAdapterWithListOfGroupsHavingSelectedService()
                         }
                     }
 
