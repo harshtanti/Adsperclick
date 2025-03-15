@@ -93,7 +93,7 @@ class MediaPreviewFragment : Fragment() {
     }
 
     private fun setupMediaPreview() {
-        when (mediaType?.toInt()) {
+        when (mediaType) {
             Constants.MSG_TYPE.IMG_URL -> {
                 // Show image view, hide others
                 binding.imagePreview.visible()

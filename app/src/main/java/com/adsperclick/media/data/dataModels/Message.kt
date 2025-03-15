@@ -40,3 +40,7 @@ data class Message(
         )
     }
 }
+
+// shared pref = serverTime - currentTimeOfDevice
+
+// serverSideTime = pre + currentTimeOfDevice

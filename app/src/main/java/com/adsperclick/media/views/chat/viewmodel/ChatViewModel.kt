@@ -133,6 +133,14 @@ class ChatViewModel@Inject constructor(
                 msgType = msgType
             )
         }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            currentUser.userId?.let {
+                chatRepository.triggerNotificationToGroupMembers(groupId= groupId,
+                    groupName= groupName, msgText = text, senderId = it,
+                    msgType = msgType, listOfGroupMemberId = listOfGroupMemberId)
+            }
+        }
     }
 
     val notificationsPager = chatRepository.getNotificationPager().flow.cachedIn(viewModelScope)
