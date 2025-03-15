@@ -69,6 +69,8 @@ object Constants {
     const val GALLERY_VISIBLE = "gallery"
     const val VIDEO_VISIBLE = "video"
     const val DELETE_VISIBLE = "delete"
+    const val CLOSE_VISIBLE = "close"
+    const val HEADING_VISIBLE = "heading"
 
     val REQUIRED_PERMISSIONS_CAMERA  = when {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> {
@@ -171,4 +173,13 @@ object Constants {
         const val ITS_A_BROADCAST_NOTIFICATION = "Not a group, It's a broadcast notification"
         const val ID_OF_GROUP_TO_OPEN = "This contains groupId for group to open in chat fragment"
     }
+
+    const val CLICKED_GROUP_T = "clicked_group"
+    const val ROLE_T = "role"
+
+    // Agora constants
+    const val AGORA_APP_ID = "your-agora-app-id" // Replace with your Agora App ID
+
+    // Temporary token (for development only!) - Replace with your token from Agora console
+    const val TEMP_AGORA_TOKEN = "006your-token-from-agora-console"
 }

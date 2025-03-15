@@ -49,7 +49,7 @@ class GroupProfileFragment : Fragment(),View.OnClickListener {
     private var groupName:String?=null
     private var groupCompanyName:String?=null
     private var selectedImageFile: File? = null
-    private val selectedTypeList = arrayListOf(Constants.CAMERA_VISIBLE,Constants.GALLERY_VISIBLE,Constants.DELETE_VISIBLE)
+    private val selectedTypeList = arrayListOf(Constants.CLOSE_VISIBLE,Constants.HEADING_VISIBLE,Constants.CAMERA_VISIBLE,Constants.GALLERY_VISIBLE,Constants.DELETE_VISIBLE)
 
     private val viewModel: ChatViewModel by viewModels()
 
@@ -441,7 +441,7 @@ class GroupProfileFragment : Fragment(),View.OnClickListener {
             binding.btnImage -> {
                 if(isAdmin){
                     val bottomSheet = UploadImageDocsBottomSheet.createBottomsheet(
-                        uploadOnSelectListener,selectedTypeList)
+                        uploadOnSelectListener,selectedTypeList,getString(R.string.group_profile))
                     bottomSheet.show(childFragmentManager, bottomSheet.tag)
                 }
             }

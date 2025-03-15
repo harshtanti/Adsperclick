@@ -223,7 +223,8 @@ class FormFragment : Fragment(),View.OnClickListener {
                             aadharNumber.getText()?.isNotEmpty() == true &&
                             email.getText()?.isNotEmpty() == true &&
                             password.getText()?.isNotEmpty() == true &&
-                            confirmPassword.getText()?.isNotEmpty() == true
+                            confirmPassword.getText()?.isNotEmpty() == true &&
+                            validatePasswords()
                 }
 
                 Constants.CLIENTS_SEMI_CAPS -> {
@@ -233,7 +234,8 @@ class FormFragment : Fragment(),View.OnClickListener {
                             gst.getText()?.isNotEmpty() == true &&
                             email.getText()?.isNotEmpty() == true &&
                             password.getText()?.isNotEmpty() == true &&
-                            confirmPassword.getText()?.isNotEmpty() == true
+                            confirmPassword.getText()?.isNotEmpty() == true &&
+                            validatePasswords()
                 }
 
                 Constants.SERVICES_SEMI_CAPS -> {
@@ -644,9 +646,7 @@ class FormFragment : Fragment(),View.OnClickListener {
         when(v){
             binding.submitButton -> {
                 if(areFixedDetailsValid(userType)){
-                    if (validatePasswords() && ( userType == Constants.CLIENTS_SEMI_CAPS || userType == Constants.EMPLOYEES_SEMI_CAPS)) {
-                        saveUserDetails(userType)
-                    }
+                    saveUserDetails(userType)
                 }
             }
             binding.btnBack -> {

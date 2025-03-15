@@ -56,8 +56,8 @@ class MessagingFragment : Fragment(),View.OnClickListener {
     private var idOfLastMsgInGroup : String?= null
     var lastTimeVisitedThisGroupTimestamp :Long?= null
 
-    val bottomSheetSelectables = arrayListOf(Constants.CAMERA_VISIBLE,
-        Constants.GALLERY_VISIBLE, VIDEO_VISIBLE, PDF_VISIBLE)
+    private val bottomSheetSelectables = arrayListOf(Constants.CLOSE_VISIBLE,Constants.HEADING_VISIBLE,Constants.CAMERA_VISIBLE,
+        Constants.GALLERY_VISIBLE, Constants.VIDEO_VISIBLE, Constants.PDF_VISIBLE)
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -138,7 +138,6 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         binding.includeTextSender.btnCamera.setOnClickListener(this)
         binding.includeTopBar.container.setOnClickListener(this)
         binding.includeTopBar.btnBack.setOnClickListener(this)
-        binding.includeTopBar.tvGroupName.setOnClickListener(this)
     }
 
     private fun setupObservers(){
@@ -172,13 +171,6 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                     adapter.notifyItemChanged(oldLastMessagePosition)
                 }
             }
-            binding.includeTopBar.btnCall -> {
-                groupChat?.let {
-                    val bundle = Bundle()
-                    bundle.putString(CLICKED_GROUP, Json.encodeToString(it))
-                    findNavController().navigate(R.id.action_messagingFragment_to_voiceCallFragment, bundle)
-                }
-            }
         }
     }
 
@@ -209,7 +201,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
 
             binding.includeTextSender.btnCamera ->{
                 val bottomSheet = UploadImageDocsBottomSheet.createBottomsheet(
-                    uploadOnSelectListener, bottomSheetSelectables)
+                    uploadOnSelectListener, bottomSheetSelectables,"Send")
                 bottomSheet.show(childFragmentManager, bottomSheet.tag)
             }
 

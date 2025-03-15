@@ -73,5 +73,6 @@
     <string name="confirm_message_for_remove_details_dialog">%s will be removed. Do you wish to proceed?</string>
     <string name="you_cannot_remove_yourself">You cannot remove yourself</string>
     <string name="add_members">Add Members</string>
+    <string name="profile">Profile</string>
 
 </resources>
