@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "com.adsperclick.media"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.adsperclick.media"
@@ -40,6 +40,7 @@ android {
 
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
 
@@ -57,7 +58,13 @@ dependencies {
     implementation("androidx.paging:paging-common-ktx:3.2.1")
     implementation(libs.androidx.paging.common.android)
     implementation(libs.firebase.database.ktx)
-    implementation(libs.firebase.storage.ktx) // Required if using Paging in Repository with Flow
+    implementation(libs.firebase.storage.ktx)
+    implementation(libs.firebase.storage)
+    implementation(libs.firebase.functions)
+    implementation(libs.firebase.messaging)
+    implementation(libs.androidx.hilt.common)
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.transport.api) // Required if using Paging in Repository with Flow
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -78,4 +85,9 @@ dependencies {
     implementation(libs.room.runtime)
     kapt(libs.room.compiler)
     implementation(libs.room.ktx)
+
+//    ExoPlayer for video playback: Add
+    implementation("com.google.android.exoplayer:exoplayer:2.18.1")
+//    PhotoView for zoomable images: Add
+    implementation("com.github.chrisbanes:PhotoView:2.3.0")
 }

@@ -335,7 +335,22 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/DP10"
         android:text="@string/block"
+        android:visibility="gone"
+        tools:visibility="visible"
         android:textColor="@color/red_email"
+        android:backgroundTint="@color/transparent"
+        app:layout_constraintBottom_toTopOf="@id/btn_delete"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnUnblock"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/DP10"
+        android:text="Unblock"
+        android:visibility="gone"
+        android:textColor="@color/DarkGreen"
         android:backgroundTint="@color/transparent"
         app:layout_constraintBottom_toTopOf="@id/btn_delete"
         app:layout_constraintEnd_toEndOf="parent"

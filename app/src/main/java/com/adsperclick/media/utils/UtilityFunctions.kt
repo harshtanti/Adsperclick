@@ -33,15 +33,22 @@ import java.util.UUID
 import kotlin.math.abs
 import android.media.MediaMetadataRetriever
 import android.media.ThumbnailUtils
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.provider.MediaStore
 import android.util.TypedValue
 import android.webkit.MimeTypeMap
+import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.data.dataModels.GroupChatListingData
 import java.nio.file.Files
 import java.nio.file.Paths
+import javax.inject.Inject
 import kotlin.math.absoluteValue
 
 object UtilityFunctions {
+
+//    @Inject
+//    lateinit var tokenManger : TokenManager
 
     // Generate drawable with initials (For people/group-chats
     // which don't have profile-pictures, there name initials
@@ -194,6 +201,31 @@ object UtilityFunctions {
         val date = Date(timestamp)
         val formatter = SimpleDateFormat("hh:mm a", Locale.getDefault()) // Example: 01:45 PM
         return formatter.format(date)
+    }
+
+
+    fun gcListDateFormat(timestamp: Long): String {
+        val date = Date(timestamp)
+        val calendar = Calendar.getInstance()
+        val today = Calendar.getInstance()
+
+        // Check if the date is today
+        if (calendar.apply { time = date }.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+            calendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)
+        ) {
+            return SimpleDateFormat("h:mm a", Locale.getDefault()).format(date) // Example: 9:26 AM
+        }
+
+        // Check if the date is yesterday
+        today.add(Calendar.DAY_OF_YEAR, -1)
+        if (calendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+            calendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)
+        ) {
+            return "Yesterday"
+        }
+
+        // Otherwise, return date in dd/MM/yy format
+        return SimpleDateFormat("dd/MM/yy", Locale.getDefault()).format(date) // Example: 23/02/25
     }
 
     private const val MAX_IMAGE_SIZE = 200 * 1024
@@ -403,6 +435,27 @@ object UtilityFunctions {
             .into(imageView)
     }
 
+    fun loadChatListingImgWithGlide(
+        context: Context,
+        imageView: ImageView,
+        imageUrl: String?,
+        placeholderId: Int = R.drawable.baseline_person_24,
+        errorId: Int = R.drawable.baseline_person_24
+    ) {
+        if (imageUrl.isNullOrEmpty()) {
+            imageView.setImageResource(placeholderId)
+            return
+        }
+
+        Glide.with(context)
+            .load(imageUrl)
+            .placeholder(placeholderId)
+            .override(45,45)
+            .error(errorId)
+            .centerCrop()
+            .into(imageView)
+    }
+
     fun setInitialsDrawable(imageView: ImageView, name:String?) {
         if (name.isNullOrEmpty()) {
             imageView.setImageResource(R.drawable.baseline_person_24)
@@ -419,5 +472,55 @@ object UtilityFunctions {
             dp.toFloat(),
             context.resources.displayMetrics
         ).toInt()
+    }
+
+    fun processDateStamp(timestamp: Long?, prevMsgTimestamp: Long?): String? {
+        if (timestamp == null) return null
+
+        val currentDate = Calendar.getInstance()
+        val messageDate = Calendar.getInstance().apply { timeInMillis = timestamp }
+        val previousDate = prevMsgTimestamp?.let { Calendar.getInstance().apply { timeInMillis = it } }
+
+        // Check if previous message was sent on the same date
+        previousDate?.let {
+            if (it.get(Calendar.YEAR) == messageDate.get(Calendar.YEAR) &&
+                it.get(Calendar.DAY_OF_YEAR) == messageDate.get(Calendar.DAY_OF_YEAR)
+            ) {
+                return null
+            }
+        }
+
+        // Check if message is sent today or yesterday
+        return when {
+            currentDate.get(Calendar.YEAR) == messageDate.get(Calendar.YEAR) &&
+                    currentDate.get(Calendar.DAY_OF_YEAR) == messageDate.get(Calendar.DAY_OF_YEAR) -> {
+                "Today"
+            }
+
+            currentDate.get(Calendar.YEAR) == messageDate.get(Calendar.YEAR) &&
+                    currentDate.get(Calendar.DAY_OF_YEAR) - 1 == messageDate.get(Calendar.DAY_OF_YEAR) -> {
+                "Yesterday"
+            }
+
+            else -> {
+                val dateFormat = SimpleDateFormat("d MMMM yyyy", Locale.getDefault())
+                dateFormat.format(Date(timestamp))
+            }
+        }
+    }
+
+    // This function can help you get server side time! That is the actual time, not the device time
+    // Without requiring internet
+    // When user opens the app I save the time difference of server & his device time in shared prefs
+    // to obtain server side time from his device time everytime :)
+//    fun getCurrentTimeInMillis(): Long{
+//        return tokenManger.getServerMinusDeviceTime() + System.currentTimeMillis()
+//    }
+
+    fun isNetworkAvailable(context: Context): Boolean {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = connectivityManager.activeNetwork ?: return false
+        val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+        return capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) || capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
     }
 }

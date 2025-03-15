@@ -1,18 +1,26 @@
 package com.adsperclick.media.views.user.repository
 
+import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.adsperclick.media.api.ApiService
 import com.adsperclick.media.data.dataModels.CommonData
 import com.adsperclick.media.data.dataModels.Company
+import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.data.dataModels.User
+import com.adsperclick.media.utils.Constants
+import com.adsperclick.media.utils.Constants.DB.USERS
+import com.adsperclick.media.utils.ConsumableValue
 import com.adsperclick.media.views.user.pagingsource.CompanyListPagingSource
 import com.adsperclick.media.views.user.pagingsource.ServiceListPagingSource
 import com.adsperclick.media.views.user.pagingsource.UserCommunityPagingSource
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.tasks.await
 import java.io.File
 import javax.inject.Inject
 
@@ -54,6 +62,22 @@ class CommunityRepository @Inject constructor(
             ),
             pagingSourceFactory = { ServiceListPagingSource(db, searchQuery) }
         ).flow
+    }
+
+    private val _userBlockedStatusLiveData = MutableLiveData<ConsumableValue<NetworkResult<Boolean>>>()
+    val userBlockedStatusLiveData : LiveData<ConsumableValue<NetworkResult<Boolean>>> = _userBlockedStatusLiveData
+
+    suspend fun changeUserBlockedStatus(shouldBlock:Boolean, userId: String){       // If should block is true we'll block user else we'll unblock
+        try {                                                                       // irrespective of the fact that current user status is blocked or unblocked
+            if(shouldBlock){
+                db.collection(USERS).document(userId).update("blocked", true).await()
+            } else{
+                db.collection(USERS).document(userId).update("blocked", false).await()
+            }
+            _userBlockedStatusLiveData.postValue(ConsumableValue(NetworkResult.Success(shouldBlock)))
+        } catch (ex : Exception){
+            _userBlockedStatusLiveData.postValue(ConsumableValue(NetworkResult.Error(null, ex.message?:"Unknown error")))
+        }
     }
 
     suspend fun getServiceList() = apiService.getServiceList()

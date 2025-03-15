@@ -6,8 +6,40 @@
     android:layout_height="wrap_content"
     android:paddingVertical="1dp"
     android:paddingEnd="12dp"
-    android:paddingStart="35dp"
-    >
+    android:paddingStart="65dp">
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tvUnread"
+        style="@style/tv_datestamp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Unread"
+        tools:visibility="visible"
+        android:visibility="gone"
+        android:layout_marginTop="@dimen/DP10"
+        android:layout_marginBottom="@dimen/DP12"
+        android:layout_marginEnd="@dimen/DP65"
+        android:layout_marginStart="@dimen/DP12"
+        android:paddingBottom="@dimen/DP50"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/tvDateStamp"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tvDateStamp"
+        style="@style/tv_datestamp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="Today"
+        android:visibility="gone"
+        android:layout_marginBottom="@dimen/DP12"
+        android:layout_marginEnd="@dimen/DP65"
+        android:layout_marginStart="@dimen/DP12"
+        android:paddingBottom="@dimen/DP50"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/viewOutgoingMsgs" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/viewOutgoingMsgs"
@@ -15,8 +47,8 @@
         android:layout_height="match_parent"
         android:background="@drawable/bubble_single_msg_blue"
         android:paddingTop="5dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/tvSenderNameOutgoing"
@@ -24,22 +56,138 @@
             android:layout_height="wrap_content"
             android:fontFamily="@font/inter_400"
             android:textColor="@color/Black_f"
-            android:textSize="15dp"
+            android:textSize="14dp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Saumya Kumar Thakur" />
 
+        <!-- Text message view - show when it's a regular text message -->
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/textMessageOutgoing"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/inter_400"
             android:textColor="@color/Black_f"
-            android:textSize="16dp"
+            android:textSize="15dp"
             app:layout_constraintStart_toStartOf="@+id/tvSenderNameOutgoing"
             app:layout_constraintTop_toBottomOf="@+id/tvSenderNameOutgoing"
-            tools:text="Hi, How are you?" />
+            tools:text="Hi, How are you?"
+            tools:visibility="gone" />
+
+
+
+
+
+
+        <!-- Media preview container - show when it's a media message -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/mediaPreviewContainer"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="#F2F2F2"
+            tools:visibility="gone"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="@+id/tvSenderNameOutgoing"
+            app:layout_constraintTop_toBottomOf="@+id/tvSenderNameOutgoing">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="8dp">
+
+                <ImageView
+                    android:id="@+id/mediaTypeIcon"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_image"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    tools:src="@drawable/ic_image" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/mediaFileName"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:fontFamily="@font/inter_400"
+                    android:textColor="@color/Black_6"
+                    android:textSize="14dp"
+                    android:maxLines="2"
+                    android:ellipsize="end"
+                    app:layout_constraintStart_toEndOf="@+id/mediaTypeIcon"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    tools:text="image_001.jpg" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/mediaFileSize"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:fontFamily="@font/inter_400"
+                    android:textColor="@color/Black_6"
+                    android:textSize="12dp"
+                    app:layout_constraintStart_toEndOf="@+id/mediaTypeIcon"
+                    app:layout_constraintTop_toBottomOf="@+id/mediaFileName"
+                    tools:text="1.2 MB" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Image container - show when user shares an image -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardImgContainer"
+            android:layout_width="@dimen/DP200"
+            android:layout_height="@dimen/DP200"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="#F2F2F2"
+            tools:visibility="visible"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/mediaPreviewContainer">  <!-- Fix stacking issue -->
+
+            <ImageView
+                android:id="@+id/imgSharedInGroup"
+                android:layout_height="match_parent"
+                android:layout_width="match_parent"
+                tools:ignore="MissingConstraints"
+                android:src="@drawable/ic_image"
+                android:scaleType="centerCrop"
+                tools:src="@drawable/ic_image" />
+                 <!-- Fix width -->
+        </androidx.cardview.widget.CardView>
+
+
+
+        <com.google.android.material.textview.MaterialTextView
+
+            android:id="@+id/tvTimeOutgoingInsideImg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/inter_500"
+            android:layout_marginEnd="@dimen/DP7"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:textColor="@color/white"
+            android:textSize="@dimen/SP11"
+            tools:text="9:30 AM"
+            />
+
+        <androidx.constraintlayout.widget.Group
+            android:id="@+id/groupImage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:constraint_referenced_ids="cardImgContainer, tvTimeOutgoingInsideImg"
+            />
+
+
+
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/tvTimeOutgoing"
@@ -53,6 +201,4 @@
             app:layout_constraintTop_toBottomOf="@+id/textMessageOutgoing"
             tools:text="9:30 AM" />
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-
 </androidx.constraintlayout.widget.ConstraintLayout>

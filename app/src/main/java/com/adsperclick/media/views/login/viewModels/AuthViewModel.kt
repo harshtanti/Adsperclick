@@ -41,6 +41,8 @@ class AuthViewModel @Inject constructor(private val authRepository: AuthReposito
         return authRepository.isUserLoggedIn()
     }
 
+
+    val signoutLiveData = authRepository.signoutLiveData
     fun signOut(){
         viewModelScope.launch(Dispatchers.IO) {
             authRepository.signoutUser()

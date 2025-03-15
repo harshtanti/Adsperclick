@@ -17,7 +17,7 @@ data class GroupChatListingData(
 @Serializable
 data class GroupUser(
     val userId: String,
-    val lastSeen: Long?
+    val lastSeenMsgId: String?
 ){
-    constructor() : this("", lastSeen = null)
+    constructor() : this("", lastSeenMsgId = null)
 }

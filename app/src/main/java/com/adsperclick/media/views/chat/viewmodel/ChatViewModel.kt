@@ -12,11 +12,14 @@ import com.adsperclick.media.data.dataModels.Message
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.NotificationMsg
 import com.adsperclick.media.data.dataModels.User
+import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.ConsumableValue
 import com.adsperclick.media.views.login.repository.AuthRepository
 import com.adsperclick.media.views.chat.repository.ChatRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
@@ -38,13 +41,39 @@ class ChatViewModel@Inject constructor(
         }
     }
 
-    val userLiveData :
-            LiveData<NetworkResult<User>> get()  = chatRepository.userLiveData
+
+    private val _userLiveData = MutableLiveData<ConsumableValue<NetworkResult<User>>>()
+    val userLiveData: LiveData<ConsumableValue<NetworkResult<User>>> get() = _userLiveData
+
+// This function will run only once the app is launched, it syncs user with server object
+// to know things like user is not blocked, fetch latest groups user is added to, etc..
+    // We also sync device time with server time (See function to know how)
+    // We also check if current app version is supported or not
+    // These 3 things are checked in parallel concurretly saving time and later when all 3 results
+    // come, we post result to UI as per requirements
     fun syncUser(){
         viewModelScope.launch (Dispatchers.IO){
-            chatRepository.syncUser()
+            val syncUserJob = async { chatRepository.syncUser()}
+            val syncTimeJob = async { chatRepository.syncDeviceTime()}
+            val isAcceptableVersionJob = async{ chatRepository.isCurrentVersionAcceptable() }
+
+            val userObjectFromBackend = syncUserJob.await()
+            val isAcceptableVersion = isAcceptableVersionJob.await()
+            syncTimeJob.await()
+
+            if(isAcceptableVersion.not()){
+                _userLiveData.postValue(ConsumableValue
+                    (NetworkResult.Error(null, "Update Required to use this App")))
+                return@launch
+            }
+
+            _userLiveData.postValue(userObjectFromBackend)
         }
     }
+
+
+
+
 
     fun updateLastNotificationSeenTime(){
         viewModelScope.launch (Dispatchers.IO){
@@ -58,7 +87,9 @@ class ChatViewModel@Inject constructor(
         }
     }
 
-    val listOfGroupChatLiveData: LiveData<NetworkResult<List<GroupChatListingData>>>
+    val lastSeenForEachUserEachGroupLiveData get() = chatRepository.lastSeenForEachUserEachGroupLiveData
+
+    val listOfGroupChatLiveData: LiveData<ConsumableValue<NetworkResult<List<GroupChatListingData>>>>
         get() = chatRepository.listOfGroupChatLiveData
 
     fun startListeningToGroups(groupIds: List<String>){
@@ -77,7 +108,7 @@ class ChatViewModel@Inject constructor(
         _groupId.value = roomId
     }
 
-
+    val lastSeenTimestampLiveData  = chatRepository.lastSeenTimestampLiveData
     fun fetchAllNewMessages(groupId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             chatRepository.fetchAllNewMessages(groupId)
@@ -90,12 +121,16 @@ class ChatViewModel@Inject constructor(
         }
     }
 
-    fun sendMessage(text: String, groupId: String, currentUser: User) {
+    fun sendMessage(text: String, groupId: String, currentUser: User, groupName: String,
+                    listOfGroupMemberId: List<String>, msgType:Int = Constants.MSG_TYPE.TEXT) {
         viewModelScope.launch(Dispatchers.IO) {
             chatRepository.sendMessage(
                 msgText = text,
                 groupId = groupId,
-                user = currentUser
+                user = currentUser,
+                groupName = groupName,
+                listOfGroupMemberId = listOfGroupMemberId,
+                msgType = msgType
             )
         }
     }
@@ -168,6 +203,28 @@ class ChatViewModel@Inject constructor(
             }
         } catch (e : Exception){
             _groupDetailResult.postValue(ConsumableValue(NetworkResult.Error(null, "Error ${e.message}")))
+        }
+    }
+
+    fun updateLastReadMsg(groupId: String, lastReadMsgId: String, currentUserId:String, listOfUsers : List<GroupUser>) {
+        viewModelScope.launch (Dispatchers.IO){
+//            val updatedUserList = listOfUsers.map { member ->
+//                if (member.userId == currentUserId) {
+//                    member.copy(lastSeenMsgId = lastReadMsgId)
+//                } else {
+//                    member
+//                }
+//            }
+            chatRepository.updateLastReadMessage(groupId, currentUserId)
+        }
+    }
+
+
+    val imageUploadedLiveData get() = chatRepository.imageUploadedLiveData
+    fun uploadFile(groupId: String, groupName: String, file: File?,
+                   listOfUsers: List<String>, msgType: Int){
+        viewModelScope.launch(Dispatchers.IO) {
+            chatRepository.uploadFile(groupId, groupName, file, listOfUsers, msgType)
         }
     }
 
