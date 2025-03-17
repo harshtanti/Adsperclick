@@ -43,7 +43,7 @@ import javax.inject.Inject
 class NewGroupFragment : Fragment(),View.OnClickListener {
 
     private lateinit var binding: FragmentNewGroupBinding
-    private val selectedTypeList = arrayListOf(Constants.CAMERA_VISIBLE,Constants.GALLERY_VISIBLE,Constants.DELETE_VISIBLE)
+    private val selectedTypeList = arrayListOf(Constants.CLOSE_VISIBLE,Constants.HEADING_VISIBLE,Constants.CAMERA_VISIBLE,Constants.GALLERY_VISIBLE,Constants.DELETE_VISIBLE)
     private var company:Company?=null
 
     @Inject
@@ -330,7 +330,7 @@ class NewGroupFragment : Fragment(),View.OnClickListener {
             }
             binding.btnImage -> {
                 val bottomSheet = UploadImageDocsBottomSheet.createBottomsheet(
-                    uploadOnSelectListener,selectedTypeList)
+                    uploadOnSelectListener,selectedTypeList,getString(R.string.group_profile))
                 bottomSheet.show(childFragmentManager, bottomSheet.tag)
             }
             binding.header.btnBack ->{

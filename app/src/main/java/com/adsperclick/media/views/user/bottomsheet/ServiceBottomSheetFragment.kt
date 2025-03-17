@@ -95,18 +95,19 @@ class ServiceBottomSheetFragment : BottomSheetDialogFragment(),View.OnClickListe
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                filterList(s.toString()) // Call filter function
             }
 
-            override fun afterTextChanged(s: Editable?) {}
+            override fun afterTextChanged(s: Editable?) {
+                filterList(s.toString())
+            }
         })
     }
 
     private fun filterList(query: String) {
-        val newFilteredList = if (query.length<3) {
+        val newFilteredList = if (query.isEmpty()) {
             dataList
         } else {
-            dataList.filter { it.name?.contains(query, ignoreCase = true) == true }
+            dataList.filter { it.name?.startsWith(query, true) ?: false }
         }
 
         adapter.submitList(newFilteredList.toList())

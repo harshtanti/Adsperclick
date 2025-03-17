@@ -31,6 +31,7 @@ import com.adsperclick.media.views.chat.adapters.MessagesAdapter
 import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
 import com.google.firebase.database.ChildEventListener
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 import javax.inject.Inject
@@ -55,8 +56,8 @@ class MessagingFragment : Fragment(),View.OnClickListener {
     private var idOfLastMsgInGroup : String?= null
     var lastTimeVisitedThisGroupTimestamp :Long?= null
 
-    val bottomSheetSelectables = arrayListOf(Constants.CAMERA_VISIBLE,
-        Constants.GALLERY_VISIBLE, VIDEO_VISIBLE, PDF_VISIBLE)
+    private val bottomSheetSelectables = arrayListOf(Constants.CLOSE_VISIBLE,Constants.HEADING_VISIBLE,Constants.CAMERA_VISIBLE,
+        Constants.GALLERY_VISIBLE, Constants.VIDEO_VISIBLE, Constants.PDF_VISIBLE)
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -200,7 +201,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
 
             binding.includeTextSender.btnCamera ->{
                 val bottomSheet = UploadImageDocsBottomSheet.createBottomsheet(
-                    uploadOnSelectListener, bottomSheetSelectables)
+                    uploadOnSelectListener, bottomSheetSelectables,"Send")
                 bottomSheet.show(childFragmentManager, bottomSheet.tag)
             }
 

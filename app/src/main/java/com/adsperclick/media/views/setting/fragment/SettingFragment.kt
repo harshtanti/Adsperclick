@@ -39,7 +39,7 @@ class SettingFragment : Fragment(),View.OnClickListener {
 
     private lateinit var binding: FragmentSettingBinding
     private var selectedImageFile: File? = null
-    private val selectedTypeList = arrayListOf(Constants.CAMERA_VISIBLE,Constants.GALLERY_VISIBLE,Constants.DELETE_VISIBLE)
+    private val selectedTypeList = arrayListOf(Constants.CLOSE_VISIBLE,Constants.HEADING_VISIBLE,Constants.CAMERA_VISIBLE,Constants.GALLERY_VISIBLE,Constants.DELETE_VISIBLE)
     private var user:User?=null
     private var phoneNumber:String?=null
 
@@ -339,7 +339,7 @@ class SettingFragment : Fragment(),View.OnClickListener {
             }
             binding.btnImage -> {
                 val bottomSheet = UploadImageDocsBottomSheet.createBottomsheet(
-                    uploadOnSelectListener,selectedTypeList)
+                    uploadOnSelectListener,selectedTypeList,getString(R.string.profile))
                 bottomSheet.show(childFragmentManager, bottomSheet.tag)
             }
             binding.btnLogout -> {

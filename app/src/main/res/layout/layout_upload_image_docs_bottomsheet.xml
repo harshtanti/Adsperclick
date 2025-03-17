@@ -3,7 +3,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     xmlns:tools="http://schemas.android.com/tools"
-    android:padding="@dimen/DP10"
+    android:paddingStart="@dimen/DP10"
+    android:paddingBottom="@dimen/DP10"
+    android:paddingEnd="@dimen/DP10"
+    android:background="@color/white"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <com.google.android.material.imageview.ShapeableImageView
@@ -11,6 +14,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/close_blue"
+        android:visibility="gone"
         android:layout_marginHorizontal="@dimen/DP10"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/tvTitle"
@@ -22,14 +26,15 @@
         android:layout_width="@dimen/DP0"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/DP10"
-        android:textSize="@dimen/SP16"
         android:gravity="center"
-        android:textColor="@color/black"
         android:text="@string/profile_photo"
-        app:layout_constraintStart_toEndOf="@id/btn_close"
+        android:textColor="@color/black"
+        android:textSize="@dimen/SP23"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/btn_delete"
-        tools:visibility="visible"/>
+        tools:visibility="visible" />
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/btn_delete"
@@ -43,64 +48,175 @@
         app:layout_constraintBottom_toBottomOf="@id/tvTitle"
         tools:visibility="visible"/>
 
-    <com.google.android.material.imageview.ShapeableImageView
+    <androidx.cardview.widget.CardView
         android:id="@+id/btn_camera"
-        android:layout_width="@dimen/DP50"
-        android:layout_height="@dimen/DP50"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/DP20"
-        android:background="@drawable/blue_border"
-        android:src="@drawable/blue_photo_camera"
         android:visibility="gone"
-        android:scaleType="centerInside"
-        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize50Percent"
+        app:cardCornerRadius="@dimen/DP8"
+        app:cardElevation="@dimen/DP1"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/btn_close"
         app:layout_constraintEnd_toStartOf="@id/btn_gallery"
-        tools:visibility="visible"/>
+        tools:visibility="visible">
+        <com.google.android.material.imageview.ShapeableImageView
+            android:layout_width="@dimen/DP30"
+            android:layout_height="@dimen/DP30"
+            android:layout_margin="@dimen/DP10"
+            android:background="@drawable/blue_photo_camera"
+            android:scaleType="centerInside"/>
+    </androidx.cardview.widget.CardView>
 
-    <com.google.android.material.imageview.ShapeableImageView
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tv_camera"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Camera"
+        android:textSize="@dimen/SP12"
+        android:textColor="@color/Gray"
+        android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@id/btn_camera"
+        app:layout_constraintStart_toStartOf="@id/btn_camera"
+        app:layout_constraintEnd_toEndOf="@id/btn_camera"/>
+
+    <androidx.cardview.widget.CardView
         android:id="@+id/btn_gallery"
-        android:layout_width="@dimen/DP50"
-        android:layout_height="@dimen/DP50"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/DP20"
-        android:background="@drawable/blue_border"
         android:visibility="gone"
-        android:src="@drawable/blue_image"
-        android:scaleType="centerInside"
-        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize50Percent"
+        app:cardCornerRadius="@dimen/DP8"
+        app:cardElevation="@dimen/DP1"
         app:layout_constraintStart_toEndOf="@id/btn_camera"
         app:layout_constraintTop_toBottomOf="@id/btn_close"
         app:layout_constraintEnd_toStartOf="@id/btn_doc"
-        tools:visibility="visible"/>
+        tools:visibility="visible">
+        <com.google.android.material.imageview.ShapeableImageView
+            android:layout_width="@dimen/DP30"
+            android:layout_height="@dimen/DP30"
+            android:layout_margin="@dimen/DP10"
+            android:background="@drawable/blue_image"
+            android:scaleType="centerInside"/>
+    </androidx.cardview.widget.CardView>
 
-    <com.google.android.material.imageview.ShapeableImageView
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tv_gallery"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Gallery"
+        android:textSize="@dimen/SP12"
+        android:textColor="@color/Gray"
+        android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@id/btn_gallery"
+        app:layout_constraintStart_toStartOf="@id/btn_gallery"
+        app:layout_constraintEnd_toEndOf="@id/btn_gallery"/>
+
+
+    <androidx.cardview.widget.CardView
         android:id="@+id/btn_doc"
-        android:layout_width="@dimen/DP50"
-        android:layout_height="@dimen/DP50"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/DP20"
-        android:background="@drawable/blue_border"
         android:visibility="gone"
-        android:src="@drawable/blue_pdf"
-        android:scaleType="centerInside"
-        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize50Percent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:cardCornerRadius="@dimen/DP8"
+        app:cardElevation="@dimen/DP1"
+        app:layout_constraintEnd_toStartOf="@id/btn_video"
         app:layout_constraintStart_toEndOf="@id/btn_gallery"
         app:layout_constraintTop_toBottomOf="@id/btn_close"
-        tools:visibility="visible"/>
+        tools:visibility="visible">
+        <com.google.android.material.imageview.ShapeableImageView
+            android:layout_width="@dimen/DP30"
+            android:layout_height="@dimen/DP30"
+            android:layout_margin="@dimen/DP10"
+            android:background="@drawable/blue_pdf"
+            android:scaleType="centerInside"
+            />
 
-    <com.google.android.material.imageview.ShapeableImageView
+    </androidx.cardview.widget.CardView>
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tv_doc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Document"
+        android:textSize="@dimen/SP12"
+        android:textColor="@color/Gray"
+        android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@id/btn_doc"
+        app:layout_constraintStart_toStartOf="@id/btn_doc"
+        app:layout_constraintEnd_toEndOf="@id/btn_doc"/>
+
+
+
+    <androidx.cardview.widget.CardView
         android:id="@+id/btn_video"
-        android:layout_width="@dimen/DP50"
-        android:layout_height="@dimen/DP50"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/DP20"
         android:visibility="gone"
-        android:background="@drawable/blue_border"
-        android:src="@drawable/blue_video"
-        android:scaleType="centerInside"
-        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize50Percent"
+        app:cardCornerRadius="@dimen/DP8"
+        app:cardElevation="@dimen/DP1"
+        app:layout_constraintStart_toEndOf="@id/btn_doc"
+        app:layout_constraintTop_toBottomOf="@id/btn_close"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:visibility="visible">
+        <com.google.android.material.imageview.ShapeableImageView
+            android:layout_width="@dimen/DP30"
+            android:layout_height="@dimen/DP30"
+            android:layout_margin="@dimen/DP10"
+            android:background="@drawable/blue_video"
+            android:scaleType="centerInside"
+            />
+    </androidx.cardview.widget.CardView>
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tv_video"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Video"
+        android:textSize="@dimen/SP12"
+        android:textColor="@color/Gray"
+        android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@id/btn_video"
+        app:layout_constraintStart_toStartOf="@id/btn_video"
+        app:layout_constraintEnd_toEndOf="@id/btn_video"/>
+
+
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/DP1"
+        android:layout_marginBottom="@dimen/DP40"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/btn_camera"
-        app:layout_constraintEnd_toStartOf="@id/btn_gallery"
-        tools:visibility="visible"/>
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/group_camera"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:constraint_referenced_ids="btn_camera,tv_camera"/>
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/group_gallery"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:constraint_referenced_ids="btn_gallery,tv_gallery"/>
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/group_doc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:constraint_referenced_ids="btn_doc,tv_doc"/>
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/group_video"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:constraint_referenced_ids="btn_video,tv_video"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -65,6 +65,8 @@ dependencies {
     implementation(libs.androidx.hilt.common)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.transport.api)
+    implementation(libs.firebase.functions.ktx) // Required if using Paging in Repository with Flow
+    implementation(libs.transport.api)
     implementation(libs.androidx.lifecycle.process) // Required if using Paging in Repository with Flow
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -91,4 +93,11 @@ dependencies {
     implementation("com.google.android.exoplayer:exoplayer:2.18.1")
 //    PhotoView for zoomable images: Add
     implementation("com.github.chrisbanes:PhotoView:2.3.0")
+
+    implementation(libs.voice.sdk)
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation ("com.squareup.okhttp3:okhttp:4.10.0")
+    implementation ("com.squareup.okhttp3:logging-interceptor:4.10.0")
+    implementation ("de.hdodenhof:circleimageview:3.1.0")
 }
