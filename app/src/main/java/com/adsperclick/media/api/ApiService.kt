@@ -28,13 +28,11 @@ interface ApiService {
     suspend fun addGroupMember(groupId: String, userSet: MutableSet<String>): NetworkResult<Boolean>
 //    suspend fun uploadFile(groupId: String, userSet: MutableSet<String>): NetworkResult<Boolean>
 
-    // New call-related methods
-    suspend fun startVoiceCall(user: User,groupId: String): NetworkResult<Call>
-    suspend fun endVoiceCall(callId: String): NetworkResult<Boolean>
-    suspend fun joinVoiceCall(user: User,callId: String): NetworkResult<Boolean>
-    suspend fun leaveVoiceCall(user: User,callId: String): NetworkResult<Boolean>
-    suspend fun getActiveCallInGroup(groupId: String): NetworkResult<Call?>
+    //Saumya
+    suspend fun getLastCall(groupId: String, userId: String,call:Call):NetworkResult<Boolean>
+    /*suspend fun getUserCallToken(groupId: String):NetworkResult<String>*/
+
+    //Harsh
     suspend fun updateParticipantStatus(user: User,callId: String, isMuted: Boolean): NetworkResult<Boolean>
-    suspend fun getCallHistory(groupId: String, limit: Int): NetworkResult<List<Call>>
 
 }

@@ -2,6 +2,7 @@ package com.adsperclick.media.api
 
 import android.net.Uri
 import android.util.Log
+import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.data.dataModels.Call
 import com.adsperclick.media.data.dataModels.CallParticipant
 import com.adsperclick.media.data.dataModels.Company
@@ -16,6 +17,7 @@ import com.adsperclick.media.utils.Constants.DB.USERS
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Source
+import com.google.firebase.functions.FirebaseFunctions
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import kotlinx.coroutines.tasks.await
@@ -28,6 +30,9 @@ class ApiServiceImpl @Inject constructor(
     private val storageRef: StorageReference,
     private val fs: FirebaseStorage
 ) : ApiService {
+
+    @Inject
+    lateinit var cloudFunctions: FirebaseFunctions
 
     override suspend fun getServiceList(): NetworkResult<ArrayList<Service>> {
         return try {
@@ -574,6 +579,14 @@ class ApiServiceImpl @Inject constructor(
         }
     }
 
+    override suspend fun updateParticipantStatus(
+        user: User,
+        callId: String,
+        isMuted: Boolean
+    ): NetworkResult<Boolean> {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun updateCompanyServices(
         companyId: String,
         services: List<Service>
@@ -590,410 +603,41 @@ class ApiServiceImpl @Inject constructor(
         }
     }
 
-    /*// New call-related method implementations
-    override suspend fun startVoiceCall(groupId: String): NetworkResult<Call> {
+
+    override suspend fun getLastCall(groupId: String, userId: String, call:Call):NetworkResult<Boolean>{ //startVoiceCall, endVoiceCall, joinVoiceCall == getActiveCallInGroup, leaveVoiceCall
         return try {
-            val callHistoryRef = firebaseDatabase.getReference("callHistory")
-            val callId = callHistoryRef.push().key ?: return NetworkResult.Error(null, "Failed to generate call ID")
-
-            val userId = tokenManager.getUser()?.userId ?: return NetworkResult.Error(null, "User not authenticated")
-            val user = getUserData(userId).data ?: return NetworkResult.Error(null, "Failed to get user data")
-
-            // Create call participant
-            val participant = CallParticipant(
-                userId = userId,
-                userName = user.userName ?: "Unknown User",
-                profileImage = user.profileImage ?: "",
-                joinedAt = System.currentTimeMillis()
-            )
-
-            // Create new call
-            val call = Call(
-                callId = callId,
-                groupId = groupId,
-                startTime = System.currentTimeMillis(),
-                initiatedBy = userId,
-                initiatorName = user.userName ?: "Unknown User",
-                status = "active",
-                type = "voice",
-                participants = mapOf(userId to participant)
-            )
-
-            // Save call to database
-            callHistoryRef.child(callId).setValue(call).await()
-
-            // Add to active calls reference
-            val activeCallsRef = firebaseDatabase.getReference("activeGroupCalls")
-            activeCallsRef.child(groupId).setValue(callId).await()
-
-            // Add the user to active participants
-            val participantsRef = firebaseDatabase.getReference("callParticipants").child(callId)
-            participantsRef.child(userId).setValue(participant).await()
-
-            NetworkResult.Success(call)
-        } catch (e: Exception) {
-            NetworkResult.Error(null, e.message ?: "Failed to start call")
-        }
-    }
-
-    override suspend fun endVoiceCall(callId: String): NetworkResult<Boolean> {
-        return try {
-            val callHistoryRef = firebaseDatabase.getReference("callHistory").child(callId)
-            val snapshot = callHistoryRef.get().await()
-
-            if (!snapshot.exists()) {
-                return NetworkResult.Error(null, "Call not found")
-            }
-
-            val call = snapshot.getValue(Call::class.java) ?:
-            return NetworkResult.Error(null, "Invalid call data")
-
-            // Update call status
-            callHistoryRef.child("status").setValue("completed").await()
-            callHistoryRef.child("endTime").setValue(System.currentTimeMillis()).await()
-
-            // Remove from active group calls
-            val activeCallsRef = firebaseDatabase.getReference("activeGroupCalls").child(call.groupId)
-            activeCallsRef.removeValue().await()
-
-            // Remove all participants
-            val participantsRef = firebaseDatabase.getReference("callParticipants").child(callId)
-            participantsRef.removeValue().await()
-
+            val data = Call
+            db.collection(GROUPS).document(groupId)
+                .collection("calls").document(System.currentTimeMillis().toString()).set(data)
             NetworkResult.Success(true)
-        } catch (e: Exception) {
-            NetworkResult.Error(null, e.message ?: "Failed to end call")
+        } catch (ex: Exception){
+            NetworkResult.Error(null, ex.message ?: "Failed to call group")
         }
     }
 
-    override suspend fun joinVoiceCall(callId: String): NetworkResult<Boolean> {
-        return try {
-            val userId = tokenManager.getUser()?.userId ?: return NetworkResult.Error(null, "User not authenticated")
-            val user = getUserData(userId).data ?: return NetworkResult.Error(null, "Failed to get user data")
+    /*override suspend fun getUserCallToken(groupId: String):NetworkResult<String> {
+        // Prepare the data to send to the Cloud Function
+        val data = hashMapOf(
+            "groupId" to groupId
+        )
 
-            // Check if call exists and is active
-            val callRef = firebaseDatabase.getReference("callHistory").child(callId)
-            val callSnapshot = callRef.get().await()
+        // Call the Cloud Function
+        cloudFunctions
+            .getHttpsCallable("generateAgoraToken")
+            .call(data)
+            .addOnSuccessListener { result ->
+                // Extract the result data
+                @Suppress("UNCHECKED_CAST")
+                val response = result.getData() as HashMap<String, Any>
 
-            if (!callSnapshot.exists() || callSnapshot.child("status").getValue(String::class.java) != "active") {
-                return NetworkResult.Error(null, "Call not active or doesn't exist")
+                val token = response["token"]
+                val channelName = response["channelName"]
+                NetworkResult.Success("Ok")
+
             }
-
-            // Create participant object
-            val participant = CallParticipant(
-                userId = userId,
-                userName = user.userName ?: "Unknown User",
-                profileImage = user.profileImage ?: "",
-                joinedAt = System.currentTimeMillis()
-            )
-
-            // Add to call participants
-            val participantsRef = firebaseDatabase.getReference("callParticipants").child(callId)
-            participantsRef.child(userId).setValue(participant).await()
-
-            // Update call history with new participant
-            val participantPath = "participants/$userId"
-            callRef.child(participantPath).setValue(participant).await()
-
-            NetworkResult.Success(true)
-        } catch (e: Exception) {
-            NetworkResult.Error(null, e.message ?: "Failed to join call")
-        }
-    }
-
-    override suspend fun leaveVoiceCall(callId: String): NetworkResult<Boolean> {
-        return try {
-            val userId = tokenManager.getUser()?.userId ?: return NetworkResult.Error(null, "User not authenticated")
-
-            // Remove from call participants
-            val participantsRef = firebaseDatabase.getReference("callParticipants").child(callId).child(userId)
-            participantsRef.removeValue().await()
-
-            // Check if user is the initiator - if so, end the call for everyone
-            val callRef = firebaseDatabase.getReference("callHistory").child(callId)
-            val callSnapshot = callRef.get().await()
-
-            if (callSnapshot.child("initiatedBy").getValue(String::class.java) == userId) {
-                // If initiator is leaving, end the call
-                return endVoiceCall(callId)
-            } else {
-                // Just update the participant status in call history
-                callRef.child("participants/$userId").removeValue().await()
-                NetworkResult.Success(true)
+            .addOnFailureListener { exception ->
+                NetworkResult.Error(null, exception.message ?: "Failed to call group")
             }
-        } catch (e: Exception) {
-            NetworkResult.Error(null, e.message ?: "Failed to leave call")
-        }
-    }
-
-    override suspend fun getActiveCallInGroup(groupId: String): NetworkResult<Call?> {
-        return try {
-            val activeCallsRef = firebaseDatabase.getReference("activeGroupCalls").child(groupId)
-            val snapshot = activeCallsRef.get().await()
-
-            if (!snapshot.exists()) {
-                return NetworkResult.Success(null) // No active call
-            }
-
-            val callId = snapshot.getValue(String::class.java) ?:
-            return NetworkResult.Error(null, "Invalid call reference")
-
-            // Get call details
-            val callRef = firebaseDatabase.getReference("callHistory").child(callId)
-            val callSnapshot = callRef.get().await()
-
-            if (!callSnapshot.exists()) {
-                return NetworkResult.Success(null) // Call reference exists but call data doesn't
-            }
-
-            val call = callSnapshot.getValue(Call::class.java)
-            NetworkResult.Success(call)
-        } catch (e: Exception) {
-            NetworkResult.Error(null, e.message ?: "Failed to get active call")
-        }
-    }
-
-    override suspend fun updateParticipantStatus(callId: String, isMuted: Boolean): NetworkResult<Boolean> {
-        return try {
-            val userId = tokenManager.getUser()?.userId ?: return NetworkResult.Error(null, "User not authenticated")
-
-            // Update mute status
-            val participantRef = firebaseDatabase.getReference("callParticipants").child(callId).child(userId)
-            participantRef.child("isMuted").setValue(isMuted).await()
-
-            // Also update in call history
-            val callRef = firebaseDatabase.getReference("callHistory").child(callId)
-            callRef.child("participants/$userId/isMuted").setValue(isMuted).await()
-
-            NetworkResult.Success(true)
-        } catch (e: Exception) {
-            NetworkResult.Error(null, e.message ?: "Failed to update status")
-        }
-    }
-
-    override suspend fun getCallHistory(groupId: String, limit: Int): NetworkResult<List<Call>> {
-        return try {
-            val callHistoryRef = firebaseDatabase.getReference("callHistory")
-            val query = callHistoryRef.orderByChild("groupId").equalTo(groupId).limitToLast(limit)
-            val snapshot = query.get().await()
-
-            val calls = mutableListOf<Call>()
-            for (childSnapshot in snapshot.children) {
-                val call = childSnapshot.getValue(Call::class.java)
-                call?.let { calls.add(it) }
-            }
-
-            // Sort by start time descending (newest first)
-            calls.sortByDescending { it.startTime }
-
-            NetworkResult.Success(calls)
-        } catch (e: Exception) {
-            NetworkResult.Error(null, e.message ?: "Failed to get call history")
-        }
     }*/
-
-    // Call-related method implementations using Firestore
-    override suspend fun startVoiceCall(user: User,groupId: String): NetworkResult<Call> {
-        return try {
-            // Create a document with auto-generated ID
-            val callDocRef = db.collection("callHistory").document()
-            val callId = callDocRef.id
-
-            val userId = user.userId ?: return NetworkResult.Error(null, "User not authenticated")
-            val user = getUserData(userId).data ?: return NetworkResult.Error(null, "Failed to get user data")
-
-            // Create call participant
-            val participant = CallParticipant(
-                userId = userId,
-                userName = user.userName ?: "Unknown User",
-                userProfileImgUrl = user.userProfileImgUrl ?: "",
-                joinedAt = System.currentTimeMillis()
-            )
-
-            // Create new call
-            val call = Call(
-                callId = callId,
-                groupId = groupId,
-                startTime = System.currentTimeMillis(),
-                initiatedBy = userId,
-                initiatorName = user.userName ?: "Unknown User",
-                status = "active",
-                type = "voice",
-                participants = mapOf(userId to participant)
-            )
-
-            // Save call to Firestore
-            callDocRef.set(call).await()
-
-            // Add to active calls
-            db.collection("activeGroupCalls").document(groupId).set(mapOf("callId" to callId)).await()
-
-            // Add participant (could be managed within the call document already, but keeping separate collection for easier queries)
-            db.collection("callParticipants").document(callId)
-                .collection("users").document(userId).set(participant).await()
-
-            NetworkResult.Success(call)
-        } catch (e: Exception) {
-            NetworkResult.Error(null, e.message ?: "Failed to start call")
-        }
-    }
-
-    override suspend fun endVoiceCall(callId: String): NetworkResult<Boolean> {
-        return try {
-            val callDocRef = db.collection("callHistory").document(callId)
-            val callDoc = callDocRef.get().await()
-
-            if (!callDoc.exists()) {
-                return NetworkResult.Error(null, "Call not found")
-            }
-
-            val call = callDoc.toObject(Call::class.java) ?:
-            return NetworkResult.Error(null, "Invalid call data")
-
-            // Update call status
-            callDocRef.update(
-                mapOf(
-                    "status" to "completed",
-                    "endTime" to System.currentTimeMillis()
-                )
-            ).await()
-
-            // Remove from active group calls
-            call.groupId?.let { db.collection("activeGroupCalls").document(it).delete().await() }
-
-            // We'll keep the participants collection for history, but you could delete it if needed
-            // This is different from the Realtime DB approach where you removed participants
-
-            NetworkResult.Success(true)
-        } catch (e: Exception) {
-            NetworkResult.Error(null, e.message ?: "Failed to end call")
-        }
-    }
-
-    override suspend fun joinVoiceCall(user: User,callId: String): NetworkResult<Boolean> {
-        return try {
-            val userId = user.userId ?: return NetworkResult.Error(null, "User not authenticated")
-            val user = getUserData(userId).data ?: return NetworkResult.Error(null, "Failed to get user data")
-
-            // Check if call exists and is active
-            val callDocRef = db.collection("callHistory").document(callId)
-            val callDoc = callDocRef.get().await()
-
-            if (!callDoc.exists() || callDoc.getString("status") != "active") {
-                return NetworkResult.Error(null, "Call not active or doesn't exist")
-            }
-
-            // Create participant object
-            val participant = CallParticipant(
-                userId = userId,
-                userName = user.userName ?: "Unknown User",
-                userProfileImgUrl = user.userProfileImgUrl ?: "",
-                joinedAt = System.currentTimeMillis()
-            )
-
-            // Add to call participants collection
-            db.collection("callParticipants").document(callId)
-                .collection("users").document(userId).set(participant).await()
-
-            // Update call document with new participant
-            callDocRef.update("participants.$userId", participant).await()
-
-            NetworkResult.Success(true)
-        } catch (e: Exception) {
-            NetworkResult.Error(null, e.message ?: "Failed to join call")
-        }
-    }
-
-    override suspend fun leaveVoiceCall(user: User,callId: String): NetworkResult<Boolean> {
-        return try {
-            val userId = user.userId ?: return NetworkResult.Error(null, "User not authenticated")
-
-            // Remove from call participants collection
-            db.collection("callParticipants").document(callId)
-                .collection("users").document(userId).delete().await()
-
-            // Check if user is the initiator - if so, end the call for everyone
-            val callDocRef = db.collection("callHistory").document(callId)
-            val callDoc = callDocRef.get().await()
-
-            if (callDoc.getString("initiatedBy") == userId) {
-                // If initiator is leaving, end the call
-                return endVoiceCall(callId)
-            } else {
-                // Just update the participant status in call history
-                callDocRef.update("participants.$userId", com.google.firebase.firestore.FieldValue.delete()).await()
-                NetworkResult.Success(true)
-            }
-        } catch (e: Exception) {
-            NetworkResult.Error(null, e.message ?: "Failed to leave call")
-        }
-    }
-
-    override suspend fun getActiveCallInGroup(groupId: String): NetworkResult<Call?> {
-        return try {
-            val activeCallDoc = db.collection("activeGroupCalls").document(groupId).get().await()
-
-            if (!activeCallDoc.exists()) {
-                return NetworkResult.Success(null) // No active call
-            }
-
-            val callId = activeCallDoc.getString("callId") ?:
-            return NetworkResult.Error(null, "Invalid call reference")
-
-            // Get call details
-            val callDoc = db.collection("callHistory").document(callId).get().await()
-
-            if (!callDoc.exists()) {
-                return NetworkResult.Success(null) // Call reference exists but call data doesn't
-            }
-
-            val call = callDoc.toObject(Call::class.java)
-            NetworkResult.Success(call)
-        } catch (e: Exception) {
-            NetworkResult.Error(null, e.message ?: "Failed to get active call")
-        }
-    }
-
-    override suspend fun updateParticipantStatus(user: User,callId: String, isMuted: Boolean): NetworkResult<Boolean> {
-        return try {
-            val userId = user.userId ?: return NetworkResult.Error(null, "User not authenticated")
-
-            // Update mute status in participants collection
-            db.collection("callParticipants").document(callId)
-                .collection("users").document(userId)
-                .update("isMuted", isMuted).await()
-
-            // Also update in call history
-            val callDocRef = db.collection("callHistory").document(callId)
-            callDocRef.update("participants.$userId.isMuted", isMuted).await()
-
-            NetworkResult.Success(true)
-        } catch (e: Exception) {
-            NetworkResult.Error(null, e.message ?: "Failed to update status")
-        }
-    }
-
-    override suspend fun getCallHistory(groupId: String, limit: Int): NetworkResult<List<Call>> {
-        return try {
-            val callHistoryQuery = db.collection("callHistory")
-                .whereEqualTo("groupId", groupId)
-                .orderBy("startTime")
-                .limitToLast(limit.toLong())
-                .get().await()
-
-            val calls = mutableListOf<Call>()
-            for (document in callHistoryQuery.documents) {
-                val call = document.toObject(Call::class.java)
-                call?.let { calls.add(it) }
-            }
-
-            // Sort by start time descending (newest first)
-            calls.sortByDescending { it.startTime }
-
-            NetworkResult.Success(calls)
-        } catch (e: Exception) {
-            NetworkResult.Error(null, e.message ?: "Failed to get call history")
-        }
-    }
 
 }

@@ -1,23 +1,19 @@
 package com.adsperclick.media.views.call.repository
 
+import android.util.Log
 import com.adsperclick.media.api.ApiService
 import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.data.dataModels.Call
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.User
+import com.adsperclick.media.utils.Constants.DB.GROUPS
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.firestore.FieldValue
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 
 class CallRepository @Inject constructor(private val apiService: ApiService) {
-    suspend fun startCall(user: User, groupId: String) = apiService.startVoiceCall(user,groupId)
-    suspend fun endCall(callId: String) = apiService.endVoiceCall(callId)
-    suspend fun joinCall(user: User, callId: String) = apiService.joinVoiceCall(user, callId)
-    suspend fun leaveCall(user: User, callId: String) = apiService.leaveVoiceCall(user, callId)
-    suspend fun getActiveCallInGroup(groupId: String) = apiService.getActiveCallInGroup(groupId)
-    suspend fun updateParticipantMuteStatus(user: User, callId: String, isMuted: Boolean) = apiService.updateParticipantStatus(user, callId, isMuted)
-    suspend fun getCallHistory(groupId: String, limit: Int = 20) = apiService.getCallHistory(groupId, limit)
 
     /*// Observe call participants in real-time
     fun observeCallParticipants(callId: String): Flow<List<CallParticipant>> = callbackFlow {
@@ -62,4 +58,8 @@ class CallRepository @Inject constructor(private val apiService: ApiService) {
             callRef.removeEventListener(listener)
         }
     }*/
+
+    suspend fun getLastCall(groupId: String, userId: String,call:Call) = apiService.getLastCall(groupId, userId,call)
+    /*suspend fun getUserCallToken(groupId: String) = apiService.getUserCallToken(groupId)*/
+
 }

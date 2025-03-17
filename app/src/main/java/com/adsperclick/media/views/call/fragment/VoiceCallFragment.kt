@@ -51,7 +51,7 @@ class VoiceCallFragment : Fragment() {
     private var isJoined = false
 
     // Permission launcher
-    private val requestPermissionLauncher = registerForActivityResult(
+    /*private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         val allGranted = permissions.entries.all { it.value }
@@ -65,63 +65,58 @@ class VoiceCallFragment : Fragment() {
             ).show()
             findNavController().popBackStack()
         }
-    }
+    }*/
 
-    // Agora event handler
-    private val rtcEventHandler = object : IRtcEngineEventHandler() {
-        override fun onJoinChannelSuccess(channel: String, uid: Int, elapsed: Int) {
-            isJoined = true
+
+
+    /*private val mRtcEventHandler = object : IRtcEngineEventHandler() {
+        override fun onJoinChannelSuccess(channel: String?, uid: Int, elapsed: Int) {
+            super.onJoinChannelSuccess(channel, uid, elapsed)
+            myUid = uid
+            isInChannel = true
             activity?.runOnUiThread {
-                binding.tvCallStatus.text = "Connected"
-                // Add current user to participants list
-                callViewModel.addParticipant(currentUser.toCallParticipant())
+                connectionStatusText.text = "Connected to channel: $channel"
+                connectionStatusText.setBackgroundColor(ContextCompat.getColor(this@MainActivity, R.color.green))
+                addUserToDisplay(uid, true)
+                updateServiceNotification("Connected to channel: $channel")
             }
         }
 
-        override fun onUserJoined(uid: Int, elapsed: Int) {
+        *//*override fun onUserJoined(uid: Int, elapsed: Int) {
+            runOnUiThread {
+                Toast.makeText(this@MainActivity, "User joined: $uid", Toast.LENGTH_SHORT).show()
+                addUserToDisplay(uid, false)
+                updateServiceNotification("Call in progress: ${joinedUsers.size} participants")
+            }
+        }*//*
+
+        *//*override fun onUserOffline(uid: Int, reason: Int) {
+            super.onUserOffline(uid, reason)
+            runOnUiThread {
+                Toast.makeText(this@MainActivity, "User offline: $uid", Toast.LENGTH_SHORT).show()
+                removeUserFromDisplay(uid)
+            }
+        }*//*
+
+        override fun onLeaveChannel(stats: RtcStats?) {
+            super.onLeaveChannel(stats)
             activity?.runOnUiThread {
-                // In a real app, you would get user info from a database
-                // For simplicity, we'll just add a placeholder participant
-                val participant = CallParticipant(
-                    userId = uid.toString(),
-                    userName = "User $uid",
-                    isMuted = false,
-                    isSpeaking = false
-                )
-                callViewModel.addParticipant(participant)
+                isInChannel = false
+                userListLayout.removeAllViews()
+                joinedUsers.clear()
+                connectionStatusText.text = "Disconnected"
+                connectionStatusText.setBackgroundColor(ContextCompat.getColor(this@MainActivity, R.color.red))
             }
         }
 
-        override fun onUserOffline(uid: Int, reason: Int) {
-            if (reason == USER_OFFLINE_QUIT) {
-                activity?.runOnUiThread {
-                    callViewModel.removeParticipant(uid.toString())
-                }
+        override fun onConnectionStateChanged(state: Int, reason: Int) {
+            super.onConnectionStateChanged(state, reason)
+            if (state == io.agora.rtc2.Constants.CONNECTION_STATE_CONNECTED &&
+                reason == io.agora.rtc2.Constants.CONNECTION_CHANGED_INTERRUPTED) {
+                enableMicrophone()
             }
         }
-
-        override fun onUserMuteAudio(uid: Int, muted: Boolean) {
-            activity?.runOnUiThread {
-                callViewModel.updateParticipantMuteStatus(uid.toString(), muted)
-            }
-        }
-
-        override fun onAudioVolumeIndication(
-            speakers: Array<out AudioVolumeInfo>?,
-            totalVolume: Int
-        ) {
-            activity?.runOnUiThread {
-                speakers?.forEach { speaker ->
-                    // Update UI to show who is speaking
-                    if (speaker.volume > 50) { // Threshold for speaking
-                        callViewModel.updateParticipantSpeakingStatus(speaker.uid.toString(), true)
-                    } else {
-                        callViewModel.updateParticipantSpeakingStatus(speaker.uid.toString(), false)
-                    }
-                }
-            }
-        }
-    }
+    }*/
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -146,11 +141,17 @@ class VoiceCallFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        initializeCall()
+
         setupUI()
         setupObservers()
 
         // Check and request permissions
-        checkPermissions()
+        /*checkPermissions()*/
+    }
+
+    private fun initializeCall(){
+        /*callViewModel.initializeCall()*/
     }
 
     private fun setupUI() {
@@ -164,7 +165,7 @@ class VoiceCallFragment : Fragment() {
             layoutManager = GridLayoutManager(requireContext(), 2)
         }
 
-        // Set up call control buttons
+        /*// Set up call control buttons
         binding.btnMute.setOnClickListener {
             toggleMute()
         }
@@ -175,16 +176,16 @@ class VoiceCallFragment : Fragment() {
 
         binding.btnEndCall.setOnClickListener {
             endCall()
-        }
+        }*/
     }
 
     private fun setupObservers() {
-        callViewModel.participants.observe(viewLifecycleOwner) { participants ->
+       /* callViewModel.participants.observe(viewLifecycleOwner) { participants ->
             participantAdapter.submitList(participants)
-        }
+        }*/
     }
 
-    private fun checkPermissions() {
+    /*private fun checkPermissions() {
         val permissions = arrayOf(
             Manifest.permission.RECORD_AUDIO
         )
@@ -206,14 +207,14 @@ class VoiceCallFragment : Fragment() {
         val groupId = groupChat?.groupId ?: return
 
         // Start the call in Firebase
-        callViewModel.startCall(groupId)
+        *//*callViewModel.startCall(groupId)*//*
 
         // Get temporary token and join channel
-        val token = callViewModel.getAgoraToken()
-        joinChannel(groupId, token)
-    }
+       *//* val token = callViewModel.getAgoraToken()*//*
+       *//* joinChannel(groupId, token)*//*
+    }*/
 
-    private fun setupAgoraEngine() {
+    /*private fun setupAgoraEngine() {
         try {
             val config = RtcEngineConfig()
             config.mContext = context
@@ -227,10 +228,10 @@ class VoiceCallFragment : Fragment() {
         } catch (e: Exception) {
             Toast.makeText(requireContext(), "Failed to initialize Agora SDK: ${e.message}", Toast.LENGTH_SHORT).show()
             findNavController().popBackStack()
-        }
+        }*/
     }
 
-    private fun joinChannel(channelName: String, token: String) {
+    /*private fun joinChannel(channelName: String, token: String) {
         // Configure channel options
         val options = ChannelMediaOptions().apply {
             autoSubscribeAudio = true
@@ -297,5 +298,5 @@ class VoiceCallFragment : Fragment() {
             isSpeaking = false,
             isActive = true
         )
-    }
-}
+    }*/
+/*}*/
