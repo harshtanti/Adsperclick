@@ -16,6 +16,8 @@ import com.adsperclick.media.R
 import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.databinding.ActivityMainBinding
+import com.adsperclick.media.utils.Constants.FCM.ID_OF_GROUP_TO_OPEN
+import com.adsperclick.media.utils.Constants.GROUP_ID
 import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
 import com.adsperclick.media.views.homeActivity.HomeActivity
 import dagger.hilt.android.AndroidEntryPoint
@@ -38,6 +40,8 @@ class MainActivity : AppCompatActivity() {
 
         // Keep splash screen visible until we explicitly dismiss it
         val splashScreen = installSplashScreen()
+        Log.d("skt", "Intent Extras OnCreate: ${intent?.extras}")
+
 
         // Set a condition for keeping the splash screen visible
         splashScreen.setKeepOnScreenCondition {
@@ -95,9 +99,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun changeActivity(){
-        val intent = Intent(this, HomeActivity::class.java)
-        startActivity(intent)
-        finish()             // To Finish this MainActivity(LOGIN ACTIVITY) So that user can't come back to Login page using back-navigation
+        Log.d("skt", "Intent Extras: ${intent?.extras}")
+        val groupId = intent?.getStringExtra(ID_OF_GROUP_TO_OPEN) // Ensure we check the existing intent
+        Log.d("skt", "Received Group ID: $groupId")
+
+        val homeIntent = Intent(this, HomeActivity::class.java).apply {
+            if (!groupId.isNullOrEmpty()) {
+                putExtra(ID_OF_GROUP_TO_OPEN, groupId)
+            }
+        }
+
+        startActivity(homeIntent)
+        finish() // To Finish this MainActivity(LOGIN ACTIVITY) So that user can't come back to Login page using back-navigation
     }
 
 }

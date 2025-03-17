@@ -162,5 +162,6 @@ object Constants {
         const val DEVICE_TOKEN = "fcm_token_for_this_device"
 
         const val ITS_A_BROADCAST_NOTIFICATION = "Not a group, It's a broadcast notification"
+        const val ID_OF_GROUP_TO_OPEN = "This contains groupId for group to open in chat fragment"
     }
 }

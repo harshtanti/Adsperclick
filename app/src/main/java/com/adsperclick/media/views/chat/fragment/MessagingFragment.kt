@@ -53,7 +53,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
     var lastTimeVisitedThisGroupTimestamp :Long?= null
 
     val bottomSheetSelectables = arrayListOf(Constants.CAMERA_VISIBLE,
-        Constants.GALLERY_VISIBLE, Constants.DELETE_VISIBLE, VIDEO_VISIBLE, PDF_VISIBLE)
+        Constants.GALLERY_VISIBLE, VIDEO_VISIBLE, PDF_VISIBLE)
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
