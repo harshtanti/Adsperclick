@@ -1,5 +1,6 @@
 package com.adsperclick.media.views.chat.fragment
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -20,6 +21,8 @@ import com.adsperclick.media.databinding.FragmentMessagingBinding
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.Constants.CLICKED_GROUP
 import com.adsperclick.media.utils.Constants.LAST_SEEN_GROUP_TIME
+import com.adsperclick.media.utils.Constants.MSG_TYPE.IMG_URL
+import com.adsperclick.media.utils.Constants.MSG_TYPE.PDF_DOC
 import com.adsperclick.media.utils.Constants.MSG_TYPE.VIDEO
 import com.adsperclick.media.utils.Constants.PDF_VISIBLE
 import com.adsperclick.media.utils.Constants.VIDEO_VISIBLE
@@ -142,10 +145,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
             consumableValue.handle { response->
                 // Response is a string "image download url", we're not using it here
                 when(response){
-                    is NetworkResult.Success->{
-                        Toast.makeText(context, "Sent!", Toast.LENGTH_SHORT).show()
-                    }
-
+                    is NetworkResult.Success->{}
                     is NetworkResult.Error->{
                         Toast.makeText(context, "Error : ${response.message}", Toast.LENGTH_SHORT).show()
                     }
@@ -242,7 +242,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                         UploadImageDocsBottomSheet.UploadMethod.GALLERY -> Constants.MSG_TYPE.IMG_URL
 
                         UploadImageDocsBottomSheet.UploadMethod.VIDEO_CAMERA,
-                        UploadImageDocsBottomSheet.UploadMethod.VIDEO_GALLERY-> Constants.MSG_TYPE.VIDEO
+                        UploadImageDocsBottomSheet.UploadMethod.VIDEO_GALLERY-> VIDEO
 
                         UploadImageDocsBottomSheet.UploadMethod.PDF -> Constants.MSG_TYPE.PDF_DOC
                         UploadImageDocsBottomSheet.UploadMethod.NOTSELECTED -> null
@@ -261,26 +261,45 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                 }
             }
         }
-
     }
 
     private val onMessageClickListener = object : MessagesAdapter.OnMessageClickListener{
         override fun onItemClick(message: Message) {
-//            Toast.makeText(context, message.message , Toast.LENGTH_SHORT).show()
 
-            // Create bundle with necessary info
+            if(message.msgType == PDF_DOC){     // For PDF-Doc, we're moving to "PdfWebViewActivity"
+                openPdfInWebView(message.message)       // For online viewing of all kinds of docs using "google's doc rendering tool"
+                return
+            }
+
+
+
+            val fileName = if(message.msgType == IMG_URL) "Image" else "Video"
+            // Navigate to preview fragment
             val bundle = Bundle().apply {
                 putString("mediaUrl", message.message) // Your download URL
                 putString("mediaType", message.msgType.toString()) // IMAGE, VIDEO, DOCUMENT etc.
-                putString("fileName", "XYZ")
+                putString("fileName", fileName)
                 // Any other metadata you want to pass
             }
 
-            // Navigate to preview fragment
             findNavController().navigate(
                 R.id.action_messagingFragment_to_mediaPreviewFragment,
                 bundle
             )
+        }
+    }
+
+    // To open PDF directly using firebase download URL (Firebase download url is a web-url link
+    // as u can simply paste that link on web and can view an image or document, here we're using
+    // this "PdfWebViewActivity" to view pdf using web-view, so we're not storing the doc on my device
+    // just retrieving it using net whenever user wants to view it :)
+    fun openPdfInWebView(downloadUrl: String?) {
+
+        downloadUrl.let {downloadUrl->
+            val intent = Intent(requireContext(), PdfWebViewActivity::class.java).apply {
+                putExtra("pdf_url", downloadUrl)
+            }
+            startActivity(intent)
         }
     }
 

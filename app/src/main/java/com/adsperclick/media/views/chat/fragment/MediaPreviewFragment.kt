@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -26,6 +27,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
 import com.bumptech.glide.Glide
 import com.google.android.exoplayer2.Player
+import java.util.Locale
 
 
 @AndroidEntryPoint
@@ -71,16 +73,16 @@ class MediaPreviewFragment : Fragment() {
         setupObservers()
 
         // Set up download button
-        binding.btnDownload.setOnClickListener {
-            mediaUrl?.let { url ->
-                viewModel.downloadMedia(url, fileName ?: "download")
-            }
-        }
+//        binding.btnDownload.setOnClickListener {
+//            mediaUrl?.let { url ->
+//                viewModel.downloadMedia(url, fileName ?: "download")
+//            }
+//        }
 
         // Set up share button
-        binding.btnShare.setOnClickListener {
-            shareMedia()
-        }
+//        binding.btnShare.setOnClickListener {
+//            shareMedia()
+//        }
     }
 
     private fun setupToolbar() {
@@ -120,7 +122,7 @@ class MediaPreviewFragment : Fragment() {
                 binding.progressBar.visible()
             }
 
-            Constants.MSG_TYPE.DOCUMENT -> {
+            Constants.MSG_TYPE.PDF_DOC -> {
                 // Show document view, hide others
                 binding.imagePreview.gone()
                 binding.videoPlayerView.gone()
@@ -210,30 +212,68 @@ class MediaPreviewFragment : Fragment() {
     }
 
     private fun openDocumentWithSystemApp() {
-        viewModel.getDownloadedFile(mediaUrl, fileName ?: "document")?.let { file ->
-            openFile(file)
-        } ?: run {
-            // File not downloaded yet, start download
-            mediaUrl?.let { url ->
-                viewModel.downloadMedia(url, fileName ?: "document").observe(viewLifecycleOwner) { file ->
-                    file?.let { openFile(it) }
-                }
-            }
-        }
+//        viewModel.getDownloadedFile(mediaUrl, fileName ?: "document")?.let { file ->
+//            // openFile(file)
+//            openPdfInWebView(mediaUrl ?:"")
+//        } ?: run {
+//            // File not downloaded yet, start download
+//            mediaUrl?.let { url ->
+//                viewModel.downloadMedia(url, fileName ?: "document").observe(viewLifecycleOwner) { file ->
+//                    file?.let {
+//                        // openFile(it)
+//                        openPdfInWebView(mediaUrl ?:"")
+//                    }
+//                }
+//            }
+//        }
+
+        openPdfInWebView(mediaUrl ?:"")
     }
 
+
+    // To open PDF directly using firebase download URL (Firebase download url is a web-url link
+    // as u can simply paste that link on web and can view an image or document, here we're using
+    // this "PdfWebViewActivity" to view pdf using web-view, so we're not storing the doc on my device
+    // just retrieving it using net whenever user wants to view it :)
+    fun openPdfInWebView(downloadUrl: String) {
+        val intent = Intent(requireContext(), PdfWebViewActivity::class.java).apply {
+            putExtra("pdf_url", downloadUrl)
+        }
+        startActivity(intent)
+    }
+
+
+    /*
     private fun openFile(file: File) {
         try {
             val uri = FileProvider.getUriForFile(
                 requireContext(),
-                "${requireContext().packageName}.fileprovider",
+                "${requireContext().packageName}.provider",
                 file
             )
 
-            val intent = Intent(Intent.ACTION_VIEW).apply {
+/*            val intent = Intent(Intent.ACTION_VIEW).apply {
                 setDataAndType(uri, getMimeType(file.name))
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }*/
+
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/pdf")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
+
+            val chooserIntent = Intent.createChooser(intent, "Open PDF with...")
+            startActivity(chooserIntent)
+
+            if (!file.exists() || !file.canRead()) {
+                Toast.makeText(context, "File doesn't exist or can't be read", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            Log.d("FileOpener", "URI: $uri, MimeType: ${getMimeType(file.name)}")
+
+            Log.d("FileOpener", "File absolute path: ${file.absolutePath}")
+            Log.d("FileOpener", "File exists: ${file.exists()}, Can read: ${file.canRead()}")
 
             if (intent.resolveActivity(requireContext().packageManager) != null) {
                 startActivity(intent)
@@ -247,14 +287,16 @@ class MediaPreviewFragment : Fragment() {
         } catch (e: Exception) {
             Toast.makeText(context, "Error opening file: ${e.message}", Toast.LENGTH_SHORT).show()
         }
-    }
+    }*/
 
-    private fun shareMedia() {
+
+
+/*    private fun shareMedia() {
         viewModel.getDownloadedFile(mediaUrl, fileName ?: "media")?.let { file ->
             try {
                 val uri = FileProvider.getUriForFile(
                     requireContext(),
-                    "${requireContext().packageName}.fileprovider",
+                    "${requireContext().packageName}.provider",
                     file
                 )
 
@@ -276,7 +318,7 @@ class MediaPreviewFragment : Fragment() {
                 viewModel.downloadMedia(url, fileName ?: "media")
             }
         }
-    }
+    }*/
 
     private fun notifySystemAboutNewFile(file: File) {
         val uri = Uri.fromFile(file)
@@ -284,7 +326,12 @@ class MediaPreviewFragment : Fragment() {
     }
 
     private fun getMimeType(fileName: String): String {
-        val extension = MimeTypeMap.getFileExtensionFromUrl(fileName)
+        // For PDF files
+        if (fileName.endsWith(".pdf", ignoreCase = true) || !fileName.contains(".")) {
+            return "application/pdf"
+        }
+
+        val extension = fileName.substringAfterLast('.', "")
         return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension) ?: "application/octet-stream"
     }
 

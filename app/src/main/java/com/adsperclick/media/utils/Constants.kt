@@ -143,6 +143,13 @@ object Constants {
         const val LAST_MSG_LEFT = 423
     }
 
+
+    object Time{
+        const val ONE_HOUR = 3600000L
+        const val TWO_HOUR = 7200000L
+    }
+
+
     object FIREBASE_FUNCTION_NAME{
         const val GET_USER_COUNT = "getUserCount"
         const val SEND_NOTIFICATION_TO_GROUP_MEMBERS = "sendNotificationToGroupMembers"
