@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -70,7 +71,17 @@ class HomeActivity : AppCompatActivity() {
             handleIntent(it)
         }
 
+        controlBottomPadding()
+
         requestNotificationPermission()
+    }
+
+    private fun controlBottomPadding(){
+        val bottomNavView = binding.bottomNavigation
+        bottomNavView.setOnApplyWindowInsetsListener { v, insets ->
+            v.setPadding(0, 0, 0, 0)
+            insets
+        }
     }
 
     private fun requestNotificationPermission() {
