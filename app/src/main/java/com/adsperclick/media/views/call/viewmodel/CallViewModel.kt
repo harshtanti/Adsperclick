@@ -29,8 +29,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CallViewModel @Inject constructor(
-    private val callRepository: CallRepository,
-    private val chatRepository: ChatRepository
+    private val callRepository: CallRepository
 ) : ViewModel() {
 
     var joinedUsers: MutableList<CallParticipant> = mutableListOf()
@@ -64,14 +63,12 @@ class CallViewModel @Inject constructor(
 
         try {
             viewModelScope.launch(Dispatchers.IO){
-                val result = chatRepository.removeUserFromCall(groupData, userData)
+                val result = callRepository.removeUserFromCall(groupData, userData)
                 _removeUserLiveData.postValue(ConsumableValue(result))
             }
         } catch (e : Exception){
             _removeUserLiveData.postValue(ConsumableValue(NetworkResult.Error(null, "Error ${e.message}")))
         }
     }
-
-
 
 }

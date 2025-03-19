@@ -214,7 +214,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                         Toast.makeText(context, "Error : ${response.message}", Toast.LENGTH_SHORT).show()
                     }
                     is NetworkResult.Loading -> {
-                        Toast.makeText(context, "Calling..", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Processing..", Toast.LENGTH_SHORT).show()
                     }
                 }
             }

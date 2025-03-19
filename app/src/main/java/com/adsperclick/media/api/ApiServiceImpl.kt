@@ -8,13 +8,17 @@ import com.adsperclick.media.data.dataModels.CallParticipant
 import com.adsperclick.media.data.dataModels.Company
 import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.GroupUser
+import com.adsperclick.media.data.dataModels.Message
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.Constants.DB.GROUPS
 import com.adsperclick.media.utils.Constants.DB.GROUP_CALL_LOG
+import com.adsperclick.media.utils.Constants.DB.MESSAGES
+import com.adsperclick.media.utils.Constants.DB.MESSAGES_INSIDE_MESSAGES
 import com.adsperclick.media.utils.Constants.DB.USERS
+import com.adsperclick.media.utils.UtilityFunctions
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
@@ -635,7 +639,14 @@ class ApiServiceImpl @Inject constructor(
         }
     }
 
-    override suspend fun removeUserFromCall(groupId: String, userId: String) :NetworkResult<Boolean>{
+    override suspend fun removeUserFromCall(groupData: GroupChatListingData, userData: User) :NetworkResult<Boolean>{
+
+        val groupId = groupData.groupId ?: ""
+        val groupName = groupData.groupName ?: ""
+        val userId = userData.userId ?: ""
+        val userName = userData.userName
+        val userProfileImgUrl = userData.userProfileImgUrl
+
         val groupDoc = db.collection(Constants.DB.GROUPS).document(groupId)
         val callLog = groupDoc.collection(Constants.DB.GROUP_CALL_LOG)
 
@@ -671,6 +682,24 @@ class ApiServiceImpl @Inject constructor(
 
             // If no participants are left, mark call as COMPLETED
             val updateMap = if (participants.isEmpty()) {
+
+                // participants empty = last person to leave call = trigger msg & notif
+                // Sending msg in group
+                val listOfGroupMemberId = groupData.listOfUsers?.map { it.userId } ?: emptyList()
+
+                CoroutineScope(Dispatchers.IO).launch {
+                    sendMessage("Ended the Call", groupId, userData, groupName,
+                        listOfGroupMemberId, Constants.MSG_TYPE.CALL)
+                }
+
+                // Sending notif to group members
+                CoroutineScope(Dispatchers.IO).launch {
+                    triggerNotificationToGroupMembers(
+                        groupId= groupId,
+                        groupName= groupName, msgText = "Call Ended", senderId = userId,
+                        msgType = Constants.MSG_TYPE.CALL, listOfGroupMemberId = listOfGroupMemberId)
+                }
+
                 mapOf(
                     "participants" to participants,
                     "status" to Constants.CALL.STATUS.COMPLETED,
@@ -736,6 +765,92 @@ class ApiServiceImpl @Inject constructor(
             Log.e("CallRepository", "Error listening for participant changes: ${e.message}")
             trySend(NetworkResult.Error(null, e.message ?: "Unknown error"))
             close()
+        }
+    }
+
+    suspend fun sendMessage(msgText: String, groupId: String, user: User, groupName: String,
+                            listOfGroupMemberId: List<String>, msgType: Int) {
+        val messagesRef = db.collection(MESSAGES)
+            .document(groupId)
+            .collection(MESSAGES_INSIDE_MESSAGES)
+
+        val msgId = messagesRef.document().id // Generate a unique ID for the message
+
+        val message = Message(
+            msgId = msgId,
+            message = msgText,
+            senderId = user.userId,
+            senderName = user.userName,
+            senderRole = user.role,
+            msgType = msgType,
+            groupId = groupId
+        )
+
+        messagesRef.document(msgId)
+            .set(message.toMapForFirestore()) // Convert to Map to use server timestamp
+            .addOnSuccessListener {
+                Log.d("Firestore", "Message sent successfully: $msgId")
+                // Now since our "Message" object is sent to server, it means the firestore
+                // timestamp is updated on it we'll get it back using the "msgId"
+                messagesRef.document(msgId).get()
+                    .addOnSuccessListener {
+                        val updatedMessage = it.toMessage()
+                        updatedMessage?.let { msg ->
+                            db.collection(GROUPS)
+                                .document(groupId)
+                                .update("lastSentMsg", msg) // ✅ Save correct message with timestamp
+                        }
+                    }
+            }
+            .addOnFailureListener { e ->
+                Log.e("Firestore", "Error sending message: ${e.message}")
+            }
+
+        // firestore.collection(Constants.DB.GROUPS).document(groupId).update("lastSentMsg", message)
+    }
+
+//    groupName, msgText, senderId, listOfGroupMemberId
+
+    suspend fun triggerNotificationToGroupMembers(
+        groupId: String, groupName:String, msgText: String, senderId: String,
+        msgType: Int, listOfGroupMemberId: List<String>)
+    {
+        val data = mapOf(
+            "groupId" to groupId,
+            "groupName" to groupName,
+            "msgText" to msgText,
+            "msgType" to msgType,
+            "senderId" to senderId,
+            "listOfGroupMemberId" to listOfGroupMemberId
+        )
+
+        try {
+            cloudFunctions
+                .getHttpsCallable(Constants.FIREBASE_FUNCTION_NAME.SEND_NOTIFICATION_TO_GROUP_MEMBERS)
+                .call(data)
+                .await()
+        } catch (ex: Exception){
+            Log.e("skt", "Error : $ex")
+        }
+    }
+
+    fun DocumentSnapshot.toMessage(): Message? {
+        return try {
+            val timestampLong = UtilityFunctions.timestampToLong(this.getTimestamp("timestamp"))     // Convert Firestore Timestamp -> Long
+
+            Message(
+                msgId = getString("msgId") ?: "null string",
+                message = getString("message"),
+                senderId = getString("senderId"),
+                senderName = getString("senderName"),
+                senderRole = getLong("senderRole")?.toInt(),
+                msgType = getLong("msgType")?.toInt(),
+                groupId = getString("groupId"),
+                timestamp = timestampLong // Store as Long (milliseconds)
+            )
+        } catch (e: Exception) {
+            Log.e("Firestore", "Error parsing Message: ${e.message}")
+            null
         }
     }
 
