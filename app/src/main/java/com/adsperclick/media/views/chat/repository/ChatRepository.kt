@@ -725,7 +725,7 @@ class ChatRepository @Inject constructor(
 
             // Add or update participant
             val newParticipant = CallParticipant(userId, userName,
-                userProfileImgUrl, System.currentTimeMillis(), isMuted = false, isSpeaking = false
+                userProfileImgUrl, System.currentTimeMillis(), muteOn = false, speakerOn = false
             )
 
             participants[userId] = newParticipant

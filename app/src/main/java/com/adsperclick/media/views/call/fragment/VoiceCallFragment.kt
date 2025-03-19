@@ -23,6 +23,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.registerReceiver
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.media.session.MediaButtonReceiver.handleIntent
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
@@ -30,6 +33,7 @@ import com.adsperclick.media.R
 import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.data.dataModels.CallParticipant
 import com.adsperclick.media.data.dataModels.GroupChatListingData
+import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.databinding.FragmentVoiceCallBinding
 import com.adsperclick.media.services.VoiceCallService
@@ -43,6 +47,8 @@ import io.agora.rtc2.Constants.USER_OFFLINE_QUIT
 import io.agora.rtc2.IRtcEngineEventHandler
 import io.agora.rtc2.RtcEngine
 import io.agora.rtc2.RtcEngineConfig
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
@@ -70,7 +76,7 @@ class VoiceCallFragment : Fragment() {
     private lateinit var participantAdapter: ParticipantAdapter
     private lateinit var currentUser: User
     private var groupChat: GroupChatListingData? = null
-    private var joinedUsers: MutableList<CallParticipant> = mutableListOf()
+    private var participantsUpdateJob: Job? = null
 
     // Agora engine instance
     private var agoraEngine: RtcEngine? = null
@@ -88,9 +94,6 @@ class VoiceCallFragment : Fragment() {
             val binder = service as VoiceCallService.LocalBinder
             voiceCallService = binder.getService()
             isServiceBound = true
-            /*groupChat?.groupName?.let {
-                updateServiceNotification("Connected to: $it")
-            }*/
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
@@ -121,16 +124,18 @@ class VoiceCallFragment : Fragment() {
                             activity?.runOnUiThread {
                                 binding.rvParticipants.gone()
                                 participantAdapter.submitList(mutableListOf())
-                                joinedUsers.clear()
+                                callViewModel.joinedUsers.clear()
                                 binding.tvCallStatus.text = "Call ended"
 
                                 // Notify user
                                 Toast.makeText(context, "Call ended from notification", Toast.LENGTH_SHORT).show()
 
                                 // Update Firebase or other backend
-                                groupChat?.groupId?.let { groupId ->
-                                    /*callViewModel.leaveCall(groupId)*/
-                                }
+                                channelName?.let { currentUser.userId?.let { it1 ->
+                                    callViewModel.removeUser(it,
+                                        it1
+                                    )
+                                } }
                                 agoraEngine?.leaveChannel()
                                 inChannel = false
                                 stopCallService()
@@ -172,13 +177,9 @@ class VoiceCallFragment : Fragment() {
     private val rtcEventHandler = object : IRtcEngineEventHandler() {
         override fun onJoinChannelSuccess(channel: String?, uid: Int, elapsed: Int) {
             Log.d(TAG, "Successfully joined channel: $channel, uid: $uid")
-            myUid = uid
             inChannel = true
             activity?.runOnUiThread {
                 binding.tvCallStatus.text = "Connected to ${groupChat?.groupName ?: "Group Call"}"
-
-                // Add current user to participants
-                /*callViewModel.addParticipant(currentUser.toCallParticipant())*/
 
                 // Update notification
                 groupChat?.groupName?.let {
@@ -203,8 +204,13 @@ class VoiceCallFragment : Fragment() {
                 inChannel = false
                 binding.rvParticipants.gone()
                 participantAdapter.submitList(mutableListOf())
-                joinedUsers.clear()
+                callViewModel.joinedUsers.clear()
                 binding.tvCallStatus.text = "Call ended"
+                channelName?.let { currentUser.userId?.let { it1 ->
+                    callViewModel.removeUser(it,
+                        it1
+                    )
+                } }
             }
         }
 
@@ -237,11 +243,14 @@ class VoiceCallFragment : Fragment() {
         groupChat = groupChatObjAsString?.let {
             Json.decodeFromString(GroupChatListingData.serializer(), it)
         }
-        channelName = "Anime"
-        /*channelName = groupChat?.groupId*/
-        token = "007eJxTYDiYVhF+q3h1SbCW3honmfN9C1mM/As2GliFTd2sVX0hTEuBwSzZMMnA0jDVzNg40STRKDHROM3U2CgtJTHV1NjY2Nww5uLN9IZARoYV3acYGKEQxGdlcMzLzE1lYAAA70QepA=="
-        /*token = arguments?.getString(Constants.TEMP_AGORA_TOKEN)*/
+        /*channelName = "Anime"*/
+        channelName = groupChat?.groupId
+        /*token = "007eJxTYDiYVhF+q3h1SbCW3honmfN9C1mM/As2GliFTd2sVX0hTEuBwSzZMMnA0jDVzNg40STRKDHROM3U2CgtJTHV1NjY2Nww5uLN9IZARoYV3acYGKEQxGdlcMzLzE1lYAAA70QepA=="*/
+        token = arguments?.getString(Constants.TEMP_AGORA_TOKEN)
         currentUser = tokenManager.getUser()!!
+        myUid = currentUser.agoraUserId!!
+        Log.d(TAG, "onCreate: $token")
+        Log.d(TAG, "onCreate: $channelName")
     }
 
     override fun onCreateView(
@@ -258,11 +267,7 @@ class VoiceCallFragment : Fragment() {
         // Initialize UI components
         setupUI()
 
-        // Setup call data
-        initializeCall()
-
-        // Set up observers
-        setupObservers()
+        observeParticipantChanges()
 
         // Restore state if returning from background
         if (savedInstanceState != null) {
@@ -302,6 +307,56 @@ class VoiceCallFragment : Fragment() {
 
         Log.d(TAG, "Registered END_CALL_FROM_NOTIFICATION receiver")
 
+
+    }
+
+    private fun observeParticipantChanges() {
+
+        // Cancel any existing job
+        participantsUpdateJob?.cancel()
+
+        // Start new collection
+        participantsUpdateJob = viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                channelName?.let {
+                    callViewModel.getCallParticipantsUpdates(it).collect { result ->
+                        when (result) {
+                            is NetworkResult.Success -> {
+                                val call = result.data
+                                // Update UI with new participant data
+                                if (call != null) {
+                                    updateParticipantsUI(call.participants)
+                                }
+                            }
+
+                            is NetworkResult.Error -> {
+                                // Handle error
+                                Toast.makeText(requireContext(),
+                                    "Error: ${result.message}",
+                                    Toast.LENGTH_SHORT).show()
+                            }
+
+                            is NetworkResult.Loading -> {
+                                // Show loading state if needed
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun updateParticipantsUI(participants: Map<String, CallParticipant>) {
+        // Convert map to list and sort by join time (most recent first)
+        val participantsList = participants.values.toMutableList().sortedBy { it.userName }
+
+        // Update your local list
+        callViewModel.joinedUsers.clear()
+        callViewModel.joinedUsers.addAll(participantsList)
+        Log.d(TAG, "Updated participants list: $participantsList")
+
+        // Submit to adapter
+        participantAdapter.submitList(participantsList)
 
     }
 
@@ -423,16 +478,17 @@ class VoiceCallFragment : Fragment() {
 
     private fun setupAndJoinChannel() {
         setupAgoraEngine()
-        val groupId = groupChat?.groupId ?: "Anime"
 
         // Start the call in Firebase
         /*callViewModel.startCall(groupId)*/
 
         // Join the channel
-        Log.d(TAG, "Joining channel with token: $token")
+        Log.d(TAG, "token: $token")
         token?.let { safeToken ->
-            Log.d(TAG, "Joining channel with token: $safeToken")
-            joinChannel(groupId, safeToken)
+            Log.d(TAG, "token: $safeToken")
+            channelName?.let {
+                Log.d(TAG, "channel: $it")
+                joinChannel(it, safeToken) }
         } ?: run {
             // If token is null, try to get it from ViewModel
             /*callViewModel.getUserCallToken(groupId)*/
@@ -485,11 +541,10 @@ class VoiceCallFragment : Fragment() {
         }
 
         // Use user ID from profile, fallback to 0 if not available
-        val uid = currentUser.userId?.toIntOrNull() ?: 0
-        Log.d(TAG, "Joining channel: $channelName with uid: $uid")
+        Log.d(TAG, "Joining channel: $channelName with uid: ${myUid}")
 
         try {
-            agoraEngine?.joinChannel(token, channelName, uid, options)
+            agoraEngine?.joinChannel(token, channelName, myUid, options)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to join channel: ${e.message}", e)
             showToast("Failed to join call: ${e.message}")
@@ -532,9 +587,11 @@ class VoiceCallFragment : Fragment() {
     private fun endCall() {
         if (inChannel) {
             agoraEngine?.leaveChannel()
-            groupChat?.groupId?.let { groupId ->
-                /*callViewModel.endCall(groupId)*/
-            }
+            channelName?.let { currentUser.userId?.let { it1 ->
+                callViewModel.removeUser(it,
+                    it1
+                )
+            } }
             inChannel = false
             stopCallService()
         }
@@ -695,9 +752,8 @@ class VoiceCallFragment : Fragment() {
             userName = this.userName ?: "Unknown User",
             userProfileImgUrl = this.userProfileImgUrl,
             joinedAt = System.currentTimeMillis(),
-            isMuted = false,
-            isSpeaking = false,
-            isActive = true
+            muteOn = false,
+            speakerOn = false
         )
     }
 }

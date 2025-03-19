@@ -13,14 +13,22 @@ import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.Constants.DB.GROUPS
+import com.adsperclick.media.utils.Constants.DB.GROUP_CALL_LOG
 import com.adsperclick.media.utils.Constants.DB.USERS
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Source
 import com.google.firebase.functions.FirebaseFunctions
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.io.File
 import javax.inject.Inject
@@ -627,12 +635,108 @@ class ApiServiceImpl @Inject constructor(
         }
     }
 
-    /*override suspend fun updateParticipantStatus(
-        user: User,
-        callId: String,
-        isMuted: Boolean
-    ): NetworkResult<Boolean> {
-        TODO("Not yet implemented")
-    }*/
+    override suspend fun removeUserFromCall(groupId: String, userId: String) :NetworkResult<Boolean>{
+        val groupDoc = db.collection(Constants.DB.GROUPS).document(groupId)
+        val callLog = groupDoc.collection(Constants.DB.GROUP_CALL_LOG)
+
+        try {
+            // Fetch latest ONGOING CALL
+            val querySnapshot = callLog
+                .whereEqualTo("status", Constants.CALL.STATUS.ONGOING)
+                .limit(1).get().await()
+
+            val ongoingCall: DocumentSnapshot? = when{
+                querySnapshot.documents.isEmpty() -> null
+                else -> querySnapshot.documents.firstOrNull()
+            }
+
+            if (ongoingCall == null) {
+                Log.w("CallRepository", "No ongoing call found.")
+                return NetworkResult.Error(null, "No ongoing call found.")
+            }
+
+            val callDocRef = callLog.document(ongoingCall.id)
+
+            // Fetch existing participants
+            val callData = callDocRef.get().await()
+            val participants = callData.get("participants") as? MutableMap<String, Any> ?: mutableMapOf()
+
+            if (!participants.containsKey(userId)) {
+                Log.w("CallRepository", "User $userId not found in call participants.")
+                return NetworkResult.Error(null, "User $userId not found in call participants.")
+            }
+
+            // Remove user from participants map
+            participants.remove(userId)
+
+            // If no participants are left, mark call as COMPLETED
+            val updateMap = if (participants.isEmpty()) {
+                mapOf(
+                    "participants" to participants,
+                    "status" to Constants.CALL.STATUS.COMPLETED,
+                    "endTime" to System.currentTimeMillis()
+                )
+            } else {
+                mapOf("participants" to participants)
+            }
+
+            // Update Firestore with modified participants
+            callDocRef.update(updateMap).await()        // Using updateMap "we will only touch these fields other remain same"
+            return NetworkResult.Success(true)
+        } catch (e: Exception) {
+            Log.e("CallRepository", "Error removing user from call: ${e.message}")
+            return NetworkResult.Error(null, "${e.message}")
+        }
+    }
+
+    override suspend fun listenParticipantChanges(groupId: String): Flow<NetworkResult<Call>> = callbackFlow {
+        try {
+            val groupDoc = db.collection(Constants.DB.GROUPS).document(groupId)
+            val callLog = groupDoc.collection(Constants.DB.GROUP_CALL_LOG)
+
+            // Query for the ongoing call
+            val querySnapshot = callLog
+                .whereEqualTo("status", Constants.CALL.STATUS.ONGOING)
+                .limit(1).get().await()
+
+            val reqdDoc = querySnapshot.documents.firstOrNull()
+
+            if (reqdDoc != null) {
+                // Set up the listener for the specific call document
+                val listenerRegistration = db.collection(Constants.DB.GROUPS)
+                    .document(groupId)
+                    .collection(Constants.DB.GROUP_CALL_LOG)
+                    .document(reqdDoc.id)
+                    .addSnapshotListener { snapshot, error ->
+                        if (error != null) {
+                            Log.e("Firestore", "Realtime updates error: ${error.message}")
+                            trySend(NetworkResult.Error(null, error.message ?: "Unknown error"))
+                            return@addSnapshotListener
+                        }
+
+                        if (snapshot != null && snapshot.exists()) {
+                            // Convert the snapshot to a Call object
+                            val call = snapshot.toObject(Call::class.java)
+                            if (call != null) {
+                                trySend(NetworkResult.Success(call))
+                            }
+                        }
+                    }
+
+                // Cancel the listener when the flow is closed
+                awaitClose {
+                    listenerRegistration.remove()
+                }
+            } else {
+                // No ongoing call found
+                trySend(NetworkResult.Error(null, "No ongoing call found"))
+                close()
+            }
+        } catch (e: Exception) {
+            Log.e("CallRepository", "Error listening for participant changes: ${e.message}")
+            trySend(NetworkResult.Error(null, e.message ?: "Unknown error"))
+            close()
+        }
+    }
 
 }

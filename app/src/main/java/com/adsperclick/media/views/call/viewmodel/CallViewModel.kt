@@ -4,17 +4,22 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.adsperclick.media.data.dataModels.Call
 import com.adsperclick.media.data.dataModels.CallParticipant
+import com.adsperclick.media.data.dataModels.CommonData
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.ConsumableValue
 import com.adsperclick.media.views.call.repository.CallRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
@@ -23,6 +28,8 @@ import javax.inject.Inject
 class CallViewModel @Inject constructor(
     private val callRepository: CallRepository
 ) : ViewModel() {
+
+    var joinedUsers: MutableList<CallParticipant> = mutableListOf()
 
     private val _userCallTokenLiveData = MutableLiveData<ConsumableValue<NetworkResult<Pair<String,String>>>>()
     val userCallTokenLiveData: LiveData<ConsumableValue<NetworkResult<Pair<String,String>>>> get() = _userCallTokenLiveData
@@ -39,6 +46,28 @@ class CallViewModel @Inject constructor(
             _userCallTokenLiveData.postValue(ConsumableValue(NetworkResult.Error(null, "Error ${e.message}")))
         }
     }
+
+    suspend fun getCallParticipantsUpdates(groupId: String): Flow<NetworkResult<Call>> {
+        return callRepository.listenParticipantChanges(groupId)
+            .flowOn(Dispatchers.IO)
+    }
+
+    private val _removeUserLiveData = MutableLiveData<ConsumableValue<NetworkResult<Boolean>>>()
+    val removeUserLiveData: LiveData<ConsumableValue<NetworkResult<Boolean>>> get() = _removeUserLiveData
+
+    fun removeUser(groupId:String,userId:String){
+        _removeUserLiveData.postValue(ConsumableValue(NetworkResult.Loading()))
+
+        try {
+            viewModelScope.launch(Dispatchers.IO){
+                val result = callRepository.removeUserFromCall(groupId,userId)
+                _removeUserLiveData.postValue(ConsumableValue(result))
+            }
+        } catch (e : Exception){
+            _removeUserLiveData.postValue(ConsumableValue(NetworkResult.Error(null, "Error ${e.message}")))
+        }
+    }
+
 
 
 }

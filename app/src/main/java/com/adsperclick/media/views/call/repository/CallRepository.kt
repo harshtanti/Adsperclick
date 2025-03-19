@@ -9,6 +9,7 @@ import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.utils.Constants.DB.GROUPS
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FieldValue
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -60,5 +61,7 @@ class CallRepository @Inject constructor(private val apiService: ApiService) {
     }*/
 
     suspend fun getUserCallToken(groupId: String) = apiService.getUserCallToken(groupId)
+    suspend fun listenParticipantChanges(groupId: String): Flow<NetworkResult<Call>> = apiService.listenParticipantChanges(groupId)
+    suspend fun removeUserFromCall(groupId: String, userId: String) = apiService.removeUserFromCall(groupId, userId)
 
 }

@@ -6,6 +6,7 @@ import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.data.dataModels.User
+import kotlinx.coroutines.flow.Flow
 import java.io.File
 
 interface ApiService {
@@ -32,5 +33,7 @@ interface ApiService {
     //Harsh
    /* suspend fun updateParticipantStatus(user: User,callId: String, isMuted: Boolean): NetworkResult<Boolean>*/
     suspend fun getUserCallToken(groupId: String):NetworkResult<Pair<String,String>>
+    suspend fun listenParticipantChanges(groupId: String): Flow<NetworkResult<Call>>
+    suspend fun removeUserFromCall(groupId: String, userId: String) :NetworkResult<Boolean>
 
 }
