@@ -639,6 +639,56 @@ class ApiServiceImpl @Inject constructor(
         }
     }
 
+    override suspend fun listenParticipantChanges(groupId: String): Flow<NetworkResult<Call>> = callbackFlow {
+        try {
+            val groupDoc = db.collection(Constants.DB.GROUPS).document(groupId)
+            val callLog = groupDoc.collection(Constants.DB.GROUP_CALL_LOG)
+
+            // Query for the ongoing call
+            val querySnapshot = callLog
+                .whereEqualTo("status", Constants.CALL.STATUS.ONGOING)
+                .limit(1).get().await()
+
+            val reqdDoc = querySnapshot.documents.firstOrNull()
+
+            if (reqdDoc != null) {
+                // Set up the listener for the specific call document
+                val listenerRegistration = db.collection(Constants.DB.GROUPS)
+                    .document(groupId)
+                    .collection(Constants.DB.GROUP_CALL_LOG)
+                    .document(reqdDoc.id)
+                    .addSnapshotListener { snapshot, error ->
+                        if (error != null) {
+                            Log.e("Firestore", "Realtime updates error: ${error.message}")
+                            trySend(NetworkResult.Error(null, error.message ?: "Unknown error"))
+                            return@addSnapshotListener
+                        }
+
+                        if (snapshot != null && snapshot.exists()) {
+                            // Convert the snapshot to a Call object
+                            val call = snapshot.toObject(Call::class.java)
+                            if (call != null) {
+                                trySend(NetworkResult.Success(call))
+                            }
+                        }
+                    }
+
+                // Cancel the listener when the flow is closed
+                awaitClose {
+                    listenerRegistration.remove()
+                }
+            } else {
+                // No ongoing call found
+                trySend(NetworkResult.Error(null, "No ongoing call found"))
+                close()
+            }
+        } catch (e: Exception) {
+            Log.e("CallRepository", "Error listening for participant changes: ${e.message}")
+            trySend(NetworkResult.Error(null, e.message ?: "Unknown error"))
+            close()
+        }
+    }
+
     override suspend fun removeUserFromCall(groupData: GroupChatListingData, userData: User) :NetworkResult<Boolean>{
 
         val groupId = groupData.groupId ?: ""
@@ -715,56 +765,6 @@ class ApiServiceImpl @Inject constructor(
         } catch (e: Exception) {
             Log.e("CallRepository", "Error removing user from call: ${e.message}")
             return NetworkResult.Error(null, "${e.message}")
-        }
-    }
-
-    override suspend fun listenParticipantChanges(groupId: String): Flow<NetworkResult<Call>> = callbackFlow {
-        try {
-            val groupDoc = db.collection(Constants.DB.GROUPS).document(groupId)
-            val callLog = groupDoc.collection(Constants.DB.GROUP_CALL_LOG)
-
-            // Query for the ongoing call
-            val querySnapshot = callLog
-                .whereEqualTo("status", Constants.CALL.STATUS.ONGOING)
-                .limit(1).get().await()
-
-            val reqdDoc = querySnapshot.documents.firstOrNull()
-
-            if (reqdDoc != null) {
-                // Set up the listener for the specific call document
-                val listenerRegistration = db.collection(Constants.DB.GROUPS)
-                    .document(groupId)
-                    .collection(Constants.DB.GROUP_CALL_LOG)
-                    .document(reqdDoc.id)
-                    .addSnapshotListener { snapshot, error ->
-                        if (error != null) {
-                            Log.e("Firestore", "Realtime updates error: ${error.message}")
-                            trySend(NetworkResult.Error(null, error.message ?: "Unknown error"))
-                            return@addSnapshotListener
-                        }
-
-                        if (snapshot != null && snapshot.exists()) {
-                            // Convert the snapshot to a Call object
-                            val call = snapshot.toObject(Call::class.java)
-                            if (call != null) {
-                                trySend(NetworkResult.Success(call))
-                            }
-                        }
-                    }
-
-                // Cancel the listener when the flow is closed
-                awaitClose {
-                    listenerRegistration.remove()
-                }
-            } else {
-                // No ongoing call found
-                trySend(NetworkResult.Error(null, "No ongoing call found"))
-                close()
-            }
-        } catch (e: Exception) {
-            Log.e("CallRepository", "Error listening for participant changes: ${e.message}")
-            trySend(NetworkResult.Error(null, e.message ?: "Unknown error"))
-            close()
         }
     }
 
