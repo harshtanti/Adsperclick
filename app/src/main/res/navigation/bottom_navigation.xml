@@ -19,6 +19,9 @@
         <action
             android:id="@+id/action_navigation_chat_to_selectUserFragment"
             app:destination="@id/new_group_navigation" />
+        <action
+            android:id="@+id/action_navigation_chat_to_voiceCallFragment"
+            app:destination="@id/voiceCallFragment" />
     </fragment>
 
     <fragment

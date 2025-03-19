@@ -180,7 +180,7 @@ object Constants {
     const val ROLE_T = "role"
 
     // Agora constants
-    const val AGORA_APP_ID = "your-agora-app-id" // Replace with your Agora App ID
+    const val AGORA_APP_ID = "8c35eee4a93346d2b3005f3f73e3c209" // Replace with your Agora App ID
 
     // Temporary token (for development only!) - Replace with your token from Agora console
     const val TEMP_AGORA_TOKEN = "006your-token-from-agora-console"

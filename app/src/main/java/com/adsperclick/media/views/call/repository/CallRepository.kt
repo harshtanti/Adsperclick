@@ -59,7 +59,6 @@ class CallRepository @Inject constructor(private val apiService: ApiService) {
         }
     }*/
 
-    suspend fun getLastCall(groupId: String, userId: String,call:Call) = apiService.getLastCall(groupId, userId,call)
-    /*suspend fun getUserCallToken(groupId: String) = apiService.getUserCallToken(groupId)*/
+    suspend fun getUserCallToken(groupId: String) = apiService.getUserCallToken(groupId)
 
 }

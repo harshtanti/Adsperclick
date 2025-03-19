@@ -208,6 +208,7 @@ class ChatFragment : Fragment(),View.OnClickListener {
 
             binding.btnTesting -> {
                 /*initiateGroupCall(testingGroupId)*/
+                findNavController().navigate(R.id.action_navigation_chat_to_voiceCallFragment)
             }
         }
     }

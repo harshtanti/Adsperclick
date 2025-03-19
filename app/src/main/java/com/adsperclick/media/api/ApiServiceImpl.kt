@@ -14,6 +14,7 @@ import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.Constants.DB.GROUPS
 import com.adsperclick.media.utils.Constants.DB.USERS
+import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Source
@@ -579,13 +580,7 @@ class ApiServiceImpl @Inject constructor(
         }
     }
 
-    override suspend fun updateParticipantStatus(
-        user: User,
-        callId: String,
-        isMuted: Boolean
-    ): NetworkResult<Boolean> {
-        TODO("Not yet implemented")
-    }
+
 
     override suspend fun updateCompanyServices(
         companyId: String,
@@ -604,14 +599,40 @@ class ApiServiceImpl @Inject constructor(
     }
 
 
-    override suspend fun getLastCall(groupId: String, userId: String, call:Call):NetworkResult<Boolean>{ //startVoiceCall, endVoiceCall, joinVoiceCall == getActiveCallInGroup, leaveVoiceCall
+    override suspend fun getUserCallToken(groupId: String): NetworkResult<Pair<String,String>> {
         return try {
-            val data = Call
-            db.collection(GROUPS).document(groupId)
-                .collection("calls").document(System.currentTimeMillis().toString()).set(data)
-            NetworkResult.Success(true)
-        } catch (ex: Exception){
-            NetworkResult.Error(null, ex.message ?: "Failed to call group")
+            // Prepare the data to send to the Cloud Function
+            val data = hashMapOf(
+                "groupId" to groupId
+            )
+
+            // Use Tasks.await() to wait for the Cloud Function result
+            val result = Tasks.await(
+                cloudFunctions
+                    .getHttpsCallable("generateAgoraToken")
+                    .call(data)
+            )
+
+            // Extract the result data
+            @Suppress("UNCHECKED_CAST")
+            val response = result.data as HashMap<String, Any>
+
+            val token = response["token"] as String
+            val channel = response["channel"] as String
+            // Note: channelName is received but not used in this function
+
+            NetworkResult.Success(Pair(token,channel))
+        } catch (e: Exception) {
+            NetworkResult.Error(null, e.message ?: "Failed to get user call token")
         }
     }
+
+    /*override suspend fun updateParticipantStatus(
+        user: User,
+        callId: String,
+        isMuted: Boolean
+    ): NetworkResult<Boolean> {
+        TODO("Not yet implemented")
+    }*/
+
 }

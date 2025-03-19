@@ -83,6 +83,11 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         setupAdapter()
         setUpListener()
         setupObservers()
+        val bottomNavView = binding.root
+        bottomNavView.setOnApplyWindowInsetsListener { v, insets ->
+            v.setPadding(0, 0, 0, 0)
+            insets
+        }
     }
 
     private fun setUpView(){
