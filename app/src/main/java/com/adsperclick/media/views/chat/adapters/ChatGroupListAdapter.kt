@@ -11,6 +11,8 @@ import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.databinding.ChatGroupListItemBinding
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.Constants.EMPTY
+import com.adsperclick.media.utils.Constants.ENDED_THE_CALL
+import com.adsperclick.media.utils.Constants.INITIATED_A_CALL
 import com.adsperclick.media.utils.Constants.MSG_TYPE.IMG_URL
 import com.adsperclick.media.utils.Constants.MSG_TYPE.PDF_DOC
 import com.adsperclick.media.utils.Constants.MSG_TYPE.VIDEO
@@ -49,6 +51,14 @@ class ChatGroupListAdapter(val onGroupChatClickListener: OnGroupChatClickListene
                     VIDEO -> {
                         drawable = R.drawable.ic_video_drawable_start
                         "Video"
+                    }
+                    Constants.MSG_TYPE.CALL ->{
+                        drawable = when(lastMsg.message){
+                            INITIATED_A_CALL -> R.drawable.ic_call_ongoing_drawable_start
+                            ENDED_THE_CALL -> R.drawable.ic_call_end
+                            else -> 0
+                        }
+                        lastMsg.message
                     }
                     else -> lastMsg.message
                 }

@@ -197,4 +197,7 @@ object Constants {
             const val VIDEO = "video_call"
         }
     }
+
+    const val INITIATED_A_CALL = "Initiated a Call"
+    const val ENDED_THE_CALL = "Ended the Call"
 }

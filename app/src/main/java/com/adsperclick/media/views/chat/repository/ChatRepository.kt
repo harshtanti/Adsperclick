@@ -26,6 +26,7 @@ import com.adsperclick.media.views.user.pagingsource.UserCommunityPagingSource
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.Constants.DB.CONFIG
 import com.adsperclick.media.utils.Constants.DB.GROUPS
+import com.adsperclick.media.utils.Constants.DB.GROUP_CALL_LOG
 import com.adsperclick.media.utils.Constants.DB.MESSAGES
 import com.adsperclick.media.utils.Constants.DB.MESSAGES_INSIDE_MESSAGES
 import com.adsperclick.media.utils.Constants.DB.MIN_APP_LEVEL_DOC
@@ -754,7 +755,6 @@ class ChatRepository @Inject constructor(
 
 
     suspend fun removeUserFromCall(groupData: GroupChatListingData, userData: User) :NetworkResult<Boolean>{
-
 
         val groupId = groupData.groupId ?: ""
         val groupName = groupData.groupName ?: ""

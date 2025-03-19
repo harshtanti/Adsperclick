@@ -13,6 +13,8 @@ import com.adsperclick.media.data.dataModels.Message
 import com.adsperclick.media.databinding.ChatMsgItemIncomingBinding
 import com.adsperclick.media.databinding.ChatMsgItemOutgoingBinding
 import com.adsperclick.media.utils.Constants
+import com.adsperclick.media.utils.Constants.ENDED_THE_CALL
+import com.adsperclick.media.utils.Constants.INITIATED_A_CALL
 import com.adsperclick.media.utils.Constants.ROLE.CLIENT
 import com.adsperclick.media.utils.Constants.TXT_MSG_TYPE.FIRST_MSG_BY_CURRENT_USER
 import com.adsperclick.media.utils.Constants.TXT_MSG_TYPE.FIRST_MSG_LEFT
@@ -145,6 +147,12 @@ class MessagesAdapter(private val currentUserId: String,
                                 binding.mediaTypeIcon.setImageResource(R.drawable.ic_image)
                                 binding.mediaFileName.text = "Document"
                             }
+
+                            Constants.MSG_TYPE.CALL -> {
+                                setupDocAndVideo()
+                                binding.mediaTypeIcon.setImageResource(R.drawable.call_end_24px)
+                                binding.mediaFileName.text = message.message
+                            }
                         }
 
 
@@ -228,6 +236,7 @@ class MessagesAdapter(private val currentUserId: String,
                         }
 
 
+                        var drawable = 0
                         when(message.msgType){
                             Constants.MSG_TYPE.TEXT -> setupText()
 
@@ -246,16 +255,29 @@ class MessagesAdapter(private val currentUserId: String,
 
                             Constants.MSG_TYPE.VIDEO -> {
                                 setupDocAndVideo()
-                                binding.mediaTypeIcon.setImageResource(R.drawable.ic_image)
+                                drawable = R.drawable.ic_image
                                 binding.mediaFileName.text = "Video"
                             }
 
                             Constants.MSG_TYPE.PDF_DOC -> {
                                 setupDocAndVideo()
-                                binding.mediaTypeIcon.setImageResource(R.drawable.ic_image)
+                                drawable = R.drawable.ic_image
                                 binding.mediaFileName.text = "Document"
                             }
+
+                            Constants.MSG_TYPE.CALL -> {
+                                setupDocAndVideo()
+                                drawable = when(message.message){
+                                    INITIATED_A_CALL -> R.drawable.ic_call_ongoing_drawable_start
+                                    ENDED_THE_CALL -> R.drawable.ic_call_end
+                                    else -> 0
+                                }
+                                binding.mediaFileName.text = message.message
+                            }
                         }
+
+                        binding.mediaTypeIcon.setImageResource(drawable)
+
 
 
                         if(msgRelativePosition == SINGLE_MSG_RIGHT || msgRelativePosition == FIRST_MSG_RIGHT){
