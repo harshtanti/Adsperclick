@@ -46,12 +46,12 @@ class ParticipantAdapter : ListAdapter<CallParticipant, ParticipantAdapter.Parti
 
                 // Update mic status icon
                 imgMicStatus.setImageResource(
-                    if (participant.isMuted) R.drawable.ic_mic_off
+                    if (participant.muteOn) R.drawable.ic_mic_off
                     else R.drawable.ic_mic
                 )
 
                 // Highlight if speaking
-                if (participant.isSpeaking) {
+                if (participant.speakerOn) {
                     participantLayout.background = ContextCompat.getDrawable(
                         itemView.context,
                         R.drawable.bg_speaking_participant

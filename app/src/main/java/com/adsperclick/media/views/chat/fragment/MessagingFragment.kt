@@ -83,6 +83,11 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         setupAdapter()
         setUpListener()
         setupObservers()
+        val bottomNavView = binding.root
+        bottomNavView.setOnApplyWindowInsetsListener { v, insets ->
+            v.setPadding(0, 0, 0, 0)
+            insets
+        }
     }
 
     private fun setUpView(){
@@ -182,9 +187,9 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                                 val gcObjAsString = Json.encodeToString(GroupChatListingData.serializer(), gc)
                                 putString(CLICKED_GROUP, gcObjAsString)
                             }
-                            putString("agoraToken", response.data)
+                            putString(Constants.TEMP_AGORA_TOKEN, response.data)
                         }
-                        /*findNavController().navigate(R.id.action_messagingFragment_to_voiceCallFragment, bundle)*/
+                        findNavController().navigate(R.id.action_messagingFragment_to_voiceCallFragment, bundle)
                         Toast.makeText(context, "Token: ${response.data}", Toast.LENGTH_SHORT).show()
                     }
 
