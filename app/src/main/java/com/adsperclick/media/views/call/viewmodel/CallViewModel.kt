@@ -9,10 +9,13 @@ import androidx.paging.cachedIn
 import com.adsperclick.media.data.dataModels.Call
 import com.adsperclick.media.data.dataModels.CallParticipant
 import com.adsperclick.media.data.dataModels.CommonData
+import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.NetworkResult
+import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.ConsumableValue
 import com.adsperclick.media.views.call.repository.CallRepository
+import com.adsperclick.media.views.chat.repository.ChatRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -26,7 +29,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CallViewModel @Inject constructor(
-    private val callRepository: CallRepository
+    private val callRepository: CallRepository,
+    private val chatRepository: ChatRepository
 ) : ViewModel() {
 
     var joinedUsers: MutableList<CallParticipant> = mutableListOf()
@@ -55,12 +59,12 @@ class CallViewModel @Inject constructor(
     private val _removeUserLiveData = MutableLiveData<ConsumableValue<NetworkResult<Boolean>>>()
     val removeUserLiveData: LiveData<ConsumableValue<NetworkResult<Boolean>>> get() = _removeUserLiveData
 
-    fun removeUser(groupId:String,userId:String){
+    fun removeUser(groupData: GroupChatListingData, userData : User){
         _removeUserLiveData.postValue(ConsumableValue(NetworkResult.Loading()))
 
         try {
             viewModelScope.launch(Dispatchers.IO){
-                val result = callRepository.removeUserFromCall(groupId,userId)
+                val result = chatRepository.removeUserFromCall(groupData, userData)
                 _removeUserLiveData.postValue(ConsumableValue(result))
             }
         } catch (e : Exception){

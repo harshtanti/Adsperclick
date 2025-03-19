@@ -287,11 +287,12 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                 }
             }
 
-
             binding.includeTopBar.btnCallEnd ->{
-                groupChat?.groupId?.let {groupId->
-                    currentUser.userId?.let { userId ->
-                        chatViewModel.LeaveCall(groupId, userId) } }
+                groupChat?.let { groupData->
+                    currentUser.let { userData->
+                        chatViewModel.LeaveCall(groupData , userData )
+                    }
+                }
             }
         }
     }

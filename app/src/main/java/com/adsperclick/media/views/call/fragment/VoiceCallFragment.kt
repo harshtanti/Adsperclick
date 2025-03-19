@@ -131,11 +131,8 @@ class VoiceCallFragment : Fragment() {
                                 Toast.makeText(context, "Call ended from notification", Toast.LENGTH_SHORT).show()
 
                                 // Update Firebase or other backend
-                                channelName?.let { currentUser.userId?.let { it1 ->
-                                    callViewModel.removeUser(it,
-                                        it1
-                                    )
-                                } }
+                                groupChat?.let { tokenManager.getUser()
+                                    ?.let { it1 -> callViewModel.removeUser(it, it1) } }
                                 agoraEngine?.leaveChannel()
                                 inChannel = false
                                 stopCallService()
@@ -206,11 +203,14 @@ class VoiceCallFragment : Fragment() {
                 participantAdapter.submitList(mutableListOf())
                 callViewModel.joinedUsers.clear()
                 binding.tvCallStatus.text = "Call ended"
-                channelName?.let { currentUser.userId?.let { it1 ->
-                    callViewModel.removeUser(it,
-                        it1
-                    )
-                } }
+//                channelName?.let { currentUser.userId?.let { it1 ->
+//                    callViewModel.removeUser(it,
+//                        it1
+//                    )
+//                } }
+
+                groupChat?.let { tokenManager.getUser()
+                    ?.let { it1 -> callViewModel.removeUser(it, it1) } }
             }
         }
 
@@ -587,11 +587,8 @@ class VoiceCallFragment : Fragment() {
     private fun endCall() {
         if (inChannel) {
             agoraEngine?.leaveChannel()
-            channelName?.let { currentUser.userId?.let { it1 ->
-                callViewModel.removeUser(it,
-                    it1
-                )
-            } }
+            groupChat?.let { tokenManager.getUser()
+                ?.let { it1 -> callViewModel.removeUser(it, it1) } }
             inChannel = false
             stopCallService()
         }

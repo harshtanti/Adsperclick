@@ -52,6 +52,7 @@ object Constants {
         const val PDF_DOC = 220
         const val VIDEO = 240
         const val DOCUMENT= 320
+        const val CALL = 360
     }
 
 
@@ -196,4 +197,7 @@ object Constants {
             const val VIDEO = "video_call"
         }
     }
+
+    const val INITIATED_A_CALL = "Initiated a Call"
+    const val ENDED_THE_CALL = "Ended the Call"
 }
