@@ -65,7 +65,7 @@
         android:layout_width="@dimen/DP24"
         android:layout_height="@dimen/DP16"
         android:layout_marginEnd="@dimen/DP15"
-        android:visibility="gone"
+        android:visibility="visible"
         android:background="@drawable/ic_add_group"
         app:backgroundTint="@null"
         app:layout_constraintBottom_toBottomOf="@+id/btnNotifications"

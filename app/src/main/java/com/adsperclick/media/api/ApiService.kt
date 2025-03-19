@@ -1,5 +1,6 @@
 package com.adsperclick.media.api
 
+import com.adsperclick.media.data.dataModels.Call
 import com.adsperclick.media.data.dataModels.Company
 import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.NetworkResult
@@ -26,5 +27,11 @@ interface ApiService {
     suspend fun getGroupDetails(groupId: String): NetworkResult<GroupChatListingData>
     suspend fun addGroupMember(groupId: String, userSet: MutableSet<String>): NetworkResult<Boolean>
 //    suspend fun uploadFile(groupId: String, userSet: MutableSet<String>): NetworkResult<Boolean>
+
+    //Saumya
+    suspend fun getLastCall(groupId: String, userId: String,call:Call):NetworkResult<Boolean>
+
+    //Harsh
+    suspend fun updateParticipantStatus(user: User,callId: String, isMuted: Boolean): NetworkResult<Boolean>
 
 }

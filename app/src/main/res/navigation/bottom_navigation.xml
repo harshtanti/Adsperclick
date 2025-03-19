@@ -95,6 +95,9 @@
         <action
             android:id="@+id/action_messagingFragment_to_mediaPreviewFragment"
             app:destination="@id/mediaPreviewFragment" />
+        <action
+            android:id="@+id/action_messagingFragment_to_voiceCallFragment"
+            app:destination="@id/voiceCallFragment" />
     </fragment>
 
     <navigation android:id="@+id/new_group_navigation"
@@ -127,4 +130,8 @@
             android:id="@+id/action_groupProfileFragment_to_selectUserFragment"
             app:destination="@id/new_group_navigation" />
     </fragment>
+    <fragment
+        android:id="@+id/voiceCallFragment"
+        android:name="com.adsperclick.media.views.call.fragment.VoiceCallFragment"
+        android:label="VoiceCallFragment" />
 </navigation>

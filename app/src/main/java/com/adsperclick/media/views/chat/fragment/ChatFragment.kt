@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -111,24 +112,11 @@ class ChatFragment : Fragment(),View.OnClickListener {
         horizontalServiceListAdapter.submitList(user?.listOfServicesAssigned)
 
 
-        chatGroupListAdapter = ChatGroupListAdapter(object : ChatGroupListAdapter.OnGroupChatClickListener{
-            override fun onItemClick(groupChat : GroupChatListingData) {
+        val currentTime = if(user?.role == Constants.ROLE.ADMIN){
+            tokenManager.getServerMinusDeviceTime() + System.currentTimeMillis()     // To get serverTime
+        } else {-1L}
 
-                // We'll convert the "GroupChatListingData" object to "String" using the below function,
-                // later this "String" will be converted back to object of "GroupChatListingData"
-                val groupChatObjToString = Json.encodeToString(GroupChatListingData.serializer(), groupChat)
-                val lastSeenForEachUserInSelectedGroup = lastSeenForEachUserEachGroup?.get(groupChat.groupId.toString())
-
-                val lastSeen = lastSeenForEachUserInSelectedGroup?.find { it.first == user?.userId }?.second
-
-                val bundle = Bundle()
-                bundle.putString(CLICKED_GROUP, groupChatObjToString)
-                if (lastSeen != null) {
-                    bundle.putLong(LAST_SEEN_GROUP_TIME, lastSeen)
-                }
-                findNavController().navigate(R.id.action_navigation_chat_to_messagingFragment, bundle)
-            }
-        })
+        chatGroupListAdapter = ChatGroupListAdapter(onClickingGroupChatItem, currentTime)
         binding.rvGroupChatList.adapter = chatGroupListAdapter
         chatViewModel.startListeningToGroups(user?.listOfGroupsAssigned ?: listOf())
     }
@@ -143,7 +131,7 @@ class ChatFragment : Fragment(),View.OnClickListener {
         if(isClient){
             binding.rvHorizontalForServiceList.gone()       // List of services an employee is assigned,
                                                             // makes no sense for a client
-        }
+        } else binding.rvHorizontalForServiceList.visible()
     }
 
     private fun setUpListener(){
@@ -161,6 +149,7 @@ class ChatFragment : Fragment(),View.OnClickListener {
                     is NetworkResult.Success ->{
                         response.data?.let {listOfGroups->
                             listOfGroupChat = listOfGroups
+                            /*testingGroupId = listOfGroups[0].groupId.toString()*/
                             updateAdapterWithListOfGroupsHavingSelectedService()
                             arguments?.let { arg ->         // If no arguments r passed it will come as null (normal scenario, when not coming via notification)
                                 val groupId = arg.getString(ID_OF_GROUP_TO_OPEN)
@@ -180,7 +169,6 @@ class ChatFragment : Fragment(),View.OnClickListener {
                                     findNavController().navigate(R.id.action_navigation_chat_to_messagingFragment, bundle)
                                 }
                             }
-//                            updateAdapterWithListOfGroupsHavingSelectedService()
                         }
                     }
 
@@ -217,8 +205,13 @@ class ChatFragment : Fragment(),View.OnClickListener {
             binding.addDetails -> {
                 findNavController().navigate(R.id.action_navigation_chat_to_selectUserFragment)
             }
+
+            binding.btnTesting -> {
+                /*initiateGroupCall(testingGroupId)*/
+            }
         }
     }
+
 
     fun updateAdapterWithListOfGroupsHavingSelectedService(){
         var listOfDesiredGroupChats = when(selectedService){
@@ -306,5 +299,37 @@ class ChatFragment : Fragment(),View.OnClickListener {
             windowInsetsCallback = null
         }
     }
+
+    private val onClickingGroupChatItem = object : ChatGroupListAdapter.OnGroupChatClickListener{
+        override fun onItemClick(groupChat : GroupChatListingData) {
+
+            // We'll convert the "GroupChatListingData" object to "String" using the below function,
+            // later this "String" will be converted back to object of "GroupChatListingData"
+            val groupChatObjToString = Json.encodeToString(GroupChatListingData.serializer(), groupChat)
+            val lastSeenForEachUserInSelectedGroup = lastSeenForEachUserEachGroup?.get(groupChat.groupId.toString())
+
+            val lastSeen = lastSeenForEachUserInSelectedGroup?.find { it.first == user?.userId }?.second
+
+            val bundle = Bundle()
+            bundle.putString(CLICKED_GROUP, groupChatObjToString)
+            if (lastSeen != null) {
+                bundle.putLong(LAST_SEEN_GROUP_TIME, lastSeen)
+            }
+            findNavController().navigate(R.id.action_navigation_chat_to_messagingFragment, bundle)
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+    }
+
+    override fun onStop() {
+        super.onStop()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+    }
+
 }
 

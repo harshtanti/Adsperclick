@@ -22,7 +22,10 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import android.app.AlertDialog
+import android.text.Editable
+import android.text.TextWatcher
 import android.widget.Toast
+import androidx.core.widget.doAfterTextChanged
 import com.adsperclick.media.data.dataModels.NetworkResult
 
 private const val ARG_PARAM1 = "param1"
@@ -129,7 +132,6 @@ class CommonFragment : Fragment(), View.OnClickListener {
         }
         adapter.setData(tabName,listener)
         binding.rvUser.adapter=adapter
-        collectUiData(searchTxt,tabName)
     }
 
     private fun showDeleteConfirmationDialog(serviceName: String, serviceId: String) {
@@ -172,7 +174,7 @@ class CommonFragment : Fragment(), View.OnClickListener {
     }
 
     private fun setUpSearching(){
-        binding.etSearchBar.addTextChangedListener { text ->
+        /*binding.etSearchBar.doAfterTextChanged { text ->
             handler.removeCallbacksAndMessages(null) // Remove previous callbacks
             val query = text.toString().trim() // Trim spaces
 
@@ -180,16 +182,50 @@ class CommonFragment : Fragment(), View.OnClickListener {
                 query.isNotEmpty() && query.length >= 3 -> {
                     handler.postDelayed({
                         collectUiData(query, tabName)
-                    }, 500) // Delay search by 500ms
+                    }, 200) // Delay search by 200ms
                 }
-                query.isEmpty() && query.length < 3 -> {
+                query.length == 2 -> {
                     collectUiData(Constants.EMPTY, tabName) // Reset list if input is empty
                 }
+                query.isEmpty() -> {
+                    context?.showToast("Search must have at least 3 characters")
+                }
                 else -> {
-                    context?.showToast("Search must have at least 3 characters") // Show min char message
+
                 }
             }
-        }
+        }*/
+        binding.etSearchBar.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+                handler.removeCallbacksAndMessages(null) // Remove previous callbacks
+                val query = s.toString().trim() // Trim spaces
+
+                when {
+                    query.isNotEmpty() && query.length >= 3 -> {
+                        handler.postDelayed({
+                            collectUiData(query, tabName)
+                        }, 200) // Delay search by 200ms
+                        binding.etSearchBar.error = null
+                    }
+                    query.isNotEmpty() && query.length < 3 -> {
+                        binding.etSearchBar.error = "Search must have at least 3 characters"
+                    }
+                    query.isEmpty() -> {
+                        collectUiData(Constants.EMPTY, tabName)
+                        binding.etSearchBar.error = null
+                    }
+                    else -> {
+
+                    }
+                }
+            }
+        })
     }
 
     private fun collectUiData(searchTxt:String,tabName:String) {

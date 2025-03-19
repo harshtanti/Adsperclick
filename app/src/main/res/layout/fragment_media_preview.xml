@@ -25,7 +25,7 @@
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/toolbar"
         app:layout_constraintBottom_toTopOf="@id/controlsContainer"
-        tools:visibility="visible" />
+        tools:visibility="gone" />
 
     <!-- Video Preview -->
     <com.google.android.exoplayer2.ui.PlayerView
@@ -33,10 +33,13 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:visibility="gone"
+        tools:visibility="visible"
         app:layout_constraintTop_toBottomOf="@id/toolbar"
         app:layout_constraintBottom_toTopOf="@id/controlsContainer"
         app:show_buffering="when_playing"
         app:show_shuffle_button="false"
+        android:layout_marginBottom="@dimen/DP20"
+        android:layout_marginHorizontal="@dimen/DP20"
         app:use_controller="true" />
 
     <!-- Document Preview -->
@@ -49,6 +52,7 @@
         android:padding="24dp"
         android:background="#21252B"
         android:visibility="gone"
+        tools:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/toolbar"
         app:layout_constraintBottom_toTopOf="@id/controlsContainer"
         app:layout_constraintVertical_bias="0.3">
@@ -99,6 +103,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="16dp"
+        android:visibility="gone"
         android:background="@color/Black_7"
         app:layout_constraintBottom_toBottomOf="parent">
 

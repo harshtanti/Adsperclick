@@ -33,8 +33,6 @@
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
-
-
     <application
         android:name=".applicationCommonView.AdsperclickApplication"
         android:allowBackup="true"
@@ -46,11 +44,14 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Adsperclick"
         tools:targetApi="31">
+        <activity
+            android:name=".views.chat.fragment.PdfWebViewActivity"
+            android:exported="false" />
 
         <service
             android:name=".services.FCM_Service"
-            android:exported="false"
             android:enabled="true"
+            android:exported="false"
             android:permission="android.permission.BIND_JOB_SERVICE">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />

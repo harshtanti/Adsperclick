@@ -25,10 +25,10 @@ class MediaPreviewViewModel @Inject constructor(
     val downloadState: LiveData<DownloadState> = _downloadState
 
     private val context = getApplication<Application>()
-//    private val downloadDirectory: File = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
-//        ?: File(context.filesDir, "downloads").also { it.mkdirs() }
+    private val downloadDirectory: File = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+        ?: File(context.filesDir, "downloads").also { it.mkdirs() }
 
-    val downloadDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+//    val downloadDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 //    val file = File(downloadDirectory, "myfile.jpg")
 
     sealed class DownloadState {
@@ -139,3 +139,4 @@ class MediaPreviewViewModel @Inject constructor(
         return sanitized
     }
 }
+

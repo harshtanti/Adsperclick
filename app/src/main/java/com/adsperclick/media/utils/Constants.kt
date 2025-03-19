@@ -11,6 +11,7 @@ object Constants {
     const val USER_IDENTITY = "user_identity"
     const val IS_USER_SIGNED_IN = "is_user_signed_in"
     const val SERVER_MINUS_DEVICE_TIME = "Diff bw server-device for syncing"
+    const val AGORA_USER_ID = "AgoraUserId"     // This ID uniquely identifies each person on call
     const val EMPTY = ""
     const val SPACE = " "
 
@@ -69,6 +70,8 @@ object Constants {
     const val GALLERY_VISIBLE = "gallery"
     const val VIDEO_VISIBLE = "video"
     const val DELETE_VISIBLE = "delete"
+    const val CLOSE_VISIBLE = "close"
+    const val HEADING_VISIBLE = "heading"
 
     val REQUIRED_PERMISSIONS_CAMERA  = when {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> {
@@ -124,6 +127,7 @@ object Constants {
         const val CONFIG = "config"
         const val SERVER_TIME_DOC = "serverTime"        //Within config collection it is a document (To fetch server-side time and sync it with device time)
         const val MIN_APP_LEVEL_DOC = "minAppLevel"      //Within config collection it is a document"
+        const val GROUP_CALL_LOG = "call_log"
     }
 
     object TXT_MSG_TYPE{
@@ -142,6 +146,13 @@ object Constants {
         const val MIDDLE_MSG_LEFT = 323
         const val LAST_MSG_LEFT = 423
     }
+
+
+    object Time{
+        const val ONE_HOUR = 3600000L
+        const val TWO_HOUR = 7200000L
+    }
+
 
     object FIREBASE_FUNCTION_NAME{
         const val GET_USER_COUNT = "getUserCount"
@@ -163,5 +174,26 @@ object Constants {
 
         const val ITS_A_BROADCAST_NOTIFICATION = "Not a group, It's a broadcast notification"
         const val ID_OF_GROUP_TO_OPEN = "This contains groupId for group to open in chat fragment"
+    }
+
+    const val CLICKED_GROUP_T = "clicked_group"
+    const val ROLE_T = "role"
+
+    // Agora constants
+    const val AGORA_APP_ID = "your-agora-app-id" // Replace with your Agora App ID
+
+    // Temporary token (for development only!) - Replace with your token from Agora console
+    const val TEMP_AGORA_TOKEN = "006your-token-from-agora-console"
+
+
+    object CALL{
+        object STATUS{
+            const val ONGOING = "ongoing_call"
+            const val COMPLETED = "completed_call"
+        }
+        object TYPE{
+            const val VOICE = "voice_call"
+            const val VIDEO = "video_call"
+        }
     }
 }

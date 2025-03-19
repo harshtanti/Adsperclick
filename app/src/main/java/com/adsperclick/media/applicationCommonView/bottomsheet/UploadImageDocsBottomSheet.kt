@@ -32,13 +32,15 @@ class UploadImageDocsBottomSheet : BottomSheetDialogFragment(), View.OnClickList
     private var cameraImageUri: Uri? = null
     private var listener: OnSelectListener? = null
     private var selectedTypeList = listOf<String>()
+    private var title:String? = null
 
     companion object {
         @JvmStatic
-        fun createBottomsheet(listener: OnSelectListener,selectedTypeList: ArrayList<String>) =
+        fun createBottomsheet(listener: OnSelectListener,selectedTypeList: ArrayList<String>,title:String?) =
             UploadImageDocsBottomSheet().apply {
                 this.listener = listener
                 this.selectedTypeList = selectedTypeList
+                this.title=title
             }
     }
 
@@ -59,12 +61,15 @@ class UploadImageDocsBottomSheet : BottomSheetDialogFragment(), View.OnClickList
     }
 
     private fun setUpView() {
+        binding.tvTitle.text = title?:"Profile Picture"
         val visibilityMap = mapOf(
-            Constants.CAMERA_VISIBLE to binding.btnCamera,
-            Constants.GALLERY_VISIBLE to binding.btnGallery,
-            Constants.PDF_VISIBLE to binding.btnDoc,
+            Constants.CAMERA_VISIBLE to binding.groupCamera,
+            Constants.GALLERY_VISIBLE to binding.groupGallery,
+            Constants.PDF_VISIBLE to binding.groupDoc,
             Constants.DELETE_VISIBLE to binding.btnDelete,
-            Constants.VIDEO_VISIBLE to binding.btnVideo
+            Constants.VIDEO_VISIBLE to binding.groupVideo,
+            Constants.CLOSE_VISIBLE to binding.btnClose,
+            Constants.HEADING_VISIBLE to binding.tvTitle
         )
 
         visibilityMap.forEach { (type, view) ->

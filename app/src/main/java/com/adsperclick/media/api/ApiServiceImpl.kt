@@ -2,6 +2,9 @@ package com.adsperclick.media.api
 
 import android.net.Uri
 import android.util.Log
+import com.adsperclick.media.applicationCommonView.TokenManager
+import com.adsperclick.media.data.dataModels.Call
+import com.adsperclick.media.data.dataModels.CallParticipant
 import com.adsperclick.media.data.dataModels.Company
 import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.GroupUser
@@ -14,6 +17,7 @@ import com.adsperclick.media.utils.Constants.DB.USERS
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Source
+import com.google.firebase.functions.FirebaseFunctions
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import kotlinx.coroutines.tasks.await
@@ -26,6 +30,9 @@ class ApiServiceImpl @Inject constructor(
     private val storageRef: StorageReference,
     private val fs: FirebaseStorage
 ) : ApiService {
+
+    @Inject
+    lateinit var cloudFunctions: FirebaseFunctions
 
     override suspend fun getServiceList(): NetworkResult<ArrayList<Service>> {
         return try {
@@ -572,6 +579,14 @@ class ApiServiceImpl @Inject constructor(
         }
     }
 
+    override suspend fun updateParticipantStatus(
+        user: User,
+        callId: String,
+        isMuted: Boolean
+    ): NetworkResult<Boolean> {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun updateCompanyServices(
         companyId: String,
         services: List<Service>
@@ -588,4 +603,15 @@ class ApiServiceImpl @Inject constructor(
         }
     }
 
+
+    override suspend fun getLastCall(groupId: String, userId: String, call:Call):NetworkResult<Boolean>{ //startVoiceCall, endVoiceCall, joinVoiceCall == getActiveCallInGroup, leaveVoiceCall
+        return try {
+            val data = Call
+            db.collection(GROUPS).document(groupId)
+                .collection("calls").document(System.currentTimeMillis().toString()).set(data)
+            NetworkResult.Success(true)
+        } catch (ex: Exception){
+            NetworkResult.Error(null, ex.message ?: "Failed to call group")
+        }
+    }
 }

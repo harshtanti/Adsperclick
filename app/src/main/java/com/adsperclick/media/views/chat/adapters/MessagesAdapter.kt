@@ -73,6 +73,7 @@ class MessagesAdapter(private val currentUserId: String,
         fun bind(message: Message, msgRelativePosition: Int) {
 
             val formattedDate = formatMessageTimestamp(message.timestamp!!)
+            var isExtraMarginRequired =false
 
             when (binding) {
                 is ChatMsgItemIncomingBinding -> {
@@ -81,13 +82,72 @@ class MessagesAdapter(private val currentUserId: String,
                         dateStamp?.let {
                             tvDateStamp.visible()
                             tvDateStamp.text = it
+                            isExtraMarginRequired =true
                         }?: run{tvDateStamp.gone()}
                         if(showUnreadStamp){
                             binding.tvUnread.visible()
                             showUnreadStamp = false
+                            isExtraMarginRequired =true
                         } else {binding.tvUnread.gone()}
-                        textMessageIncoming.text = message.message
-                        tvTime.text = formattedDate
+
+
+                        fun setupText(){
+                            // Show text message, hide media preview
+                            textMessageIncoming.visible()
+                            mediaPreviewContainer.gone()
+                            groupImage.gone()
+                            textMessageIncoming.text = message.message
+                            tvTime.visible()
+                            tvTime.text = formattedDate             // We'll show date in this tv
+                        }
+
+                        fun setupImage(){
+                            textMessageIncoming.gone()
+                            tvTime.gone()
+                            mediaPreviewContainer.gone()
+                            groupImage.visible()
+                            tvTimeInsideImg.text = formattedDate    // We'll show date in this tv
+                        }
+
+                        fun setupDocAndVideo(){
+                            textMessageIncoming.gone()
+                            tvTime.gone()
+                            mediaPreviewContainer.visible()
+                            groupImage.gone()
+                            mediaFileSize.text = formattedDate       // We'll show date in this tv
+                        }
+
+
+                        when(message.msgType){
+                            Constants.MSG_TYPE.TEXT -> setupText()
+
+                            Constants.MSG_TYPE.IMG_URL -> {
+                                setupImage()
+                                Glide.with(binding.imgSharedInGroup)
+                                    .load(message.message)
+                                    .diskCacheStrategy(DiskCacheStrategy.ALL) // Caches both full-size & resized images
+                                    .override(200, 200)  // Resize image to exactly match ImageView dimensions + This prevents out-of-memory problem and makes app faster, as that particular size img is rendered now
+                                    .centerCrop()
+                                    .placeholder(R.drawable.ic_image)
+                                    .error(R.drawable.logout_red)
+                                    .into(binding.imgSharedInGroup)     // .into()      For thread safety, glide internally uses Non-UI thread to load images
+                                // and prevent UI from hanging
+                            }
+
+                            Constants.MSG_TYPE.VIDEO -> {
+                                setupDocAndVideo()
+                                binding.mediaTypeIcon.setImageResource(R.drawable.ic_image)
+                                binding.mediaFileName.text = "Video"
+                            }
+
+                            Constants.MSG_TYPE.PDF_DOC -> {
+                                setupDocAndVideo()
+                                binding.mediaTypeIcon.setImageResource(R.drawable.ic_image)
+                                binding.mediaFileName.text = "Document"
+                            }
+                        }
+
+
 
                         if(msgRelativePosition == SINGLE_MSG_LEFT || msgRelativePosition == FIRST_MSG_LEFT){
                             tvSenderName.text = message.senderName
@@ -111,12 +171,12 @@ class MessagesAdapter(private val currentUserId: String,
                             }
                             MIDDLE_MSG_LEFT -> {
                                 viewIncomingMsgs.setBackgroundResource(R.drawable.bubble_middle_msg_grey_left)
-                                rootLayoutParams.topMargin = dpToPx(0)  // Extra margin for entire item
+                                rootLayoutParams.topMargin = dpToPx(if(isExtraMarginRequired) 10 else 0)  // Extra margin for entire item
 
                             }
                             LAST_MSG_LEFT -> {
                                 viewIncomingMsgs.setBackgroundResource(R.drawable.bubble_last_msg_grey_left)
-                                rootLayoutParams.topMargin = dpToPx(0)  // Extra margin for entire item
+                                rootLayoutParams.topMargin = dpToPx(if(isExtraMarginRequired) 10 else 0)  // Extra margin for entire item
                             }
                             SINGLE_MSG_LEFT -> {
                                 viewIncomingMsgs.setBackgroundResource(R.drawable.bubble_single_msg_grey)
@@ -131,10 +191,12 @@ class MessagesAdapter(private val currentUserId: String,
                         dateStamp?.let {
                             tvDateStamp.visible()
                             tvDateStamp.text = it
+                            isExtraMarginRequired = true
                         } ?: run{tvDateStamp.gone()}
 
                         if(showUnreadStamp){
                             binding.tvUnread.visible()
+                            isExtraMarginRequired = true
                             showUnreadStamp = false
                         } else {binding.tvUnread.gone()}
 
@@ -213,6 +275,7 @@ class MessagesAdapter(private val currentUserId: String,
                         tvTimeOutgoing.setTextColor(textColor)
 
 
+
                         val rootLayoutParams = root.layoutParams as ViewGroup.MarginLayoutParams
                         fun dpToPx(dp: Int): Int {
                             val scale = root.context.resources.displayMetrics.density
@@ -226,11 +289,11 @@ class MessagesAdapter(private val currentUserId: String,
                             }
                             MIDDLE_MSG_BY_CURRENT_USER -> {
                                 viewOutgoingMsgs.setBackgroundResource(R.drawable.bubble_middle_msg_blue)
-                                rootLayoutParams.topMargin = dpToPx(0)  // Extra margin for entire item
+                                rootLayoutParams.topMargin = dpToPx(if(isExtraMarginRequired) 10 else 0)  // Extra margin for entire item
                             }
                             LAST_MSG_BY_CURRENT_USER -> {
                                 viewOutgoingMsgs.setBackgroundResource(R.drawable.bubble_last_msg_blue)
-                                rootLayoutParams.topMargin = dpToPx(0)  // Extra margin for entire item
+                                rootLayoutParams.topMargin = dpToPx(if(isExtraMarginRequired) 10 else 0)  // Extra margin for entire item
                             }
                             SINGLE_MSG_BY_CURRENT_USER -> {
                                 viewOutgoingMsgs.setBackgroundResource(R.drawable.bubble_single_msg_blue)
@@ -243,11 +306,11 @@ class MessagesAdapter(private val currentUserId: String,
                             }
                             MIDDLE_MSG_RIGHT-> {
                                 viewOutgoingMsgs.setBackgroundResource(R.drawable.bubble_middle_msg_dark_grey_right)
-                                rootLayoutParams.topMargin = dpToPx(0)  // Extra margin for entire item
+                                rootLayoutParams.topMargin = dpToPx(if(isExtraMarginRequired) 10 else 0)  // Extra margin for entire item
                             }
                             LAST_MSG_RIGHT-> {
                                 viewOutgoingMsgs.setBackgroundResource(R.drawable.bubble_last_msg_dark_grey_right)
-                                rootLayoutParams.topMargin = dpToPx(0)  // Extra margin for entire item
+                                rootLayoutParams.topMargin = dpToPx(if(isExtraMarginRequired) 10 else 0)  // Extra margin for entire item
                             }
                             SINGLE_MSG_RIGHT -> {
                                 viewOutgoingMsgs.setBackgroundResource(R.drawable.bubble_single_msg_dark_grey)

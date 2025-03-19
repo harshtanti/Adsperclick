@@ -19,7 +19,6 @@ import com.adsperclick.media.views.chat.repository.ChatRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
@@ -236,4 +235,40 @@ class ChatViewModel@Inject constructor(
         }
     }
 
+    private val _getAgoraTokenLiveData = MutableLiveData<ConsumableValue<NetworkResult<String>>>()
+    val getAgoraTokenLiveData: LiveData<ConsumableValue<NetworkResult<String>>> = _getAgoraTokenLiveData
+
+    fun getAgoraCallToken(groupData : GroupChatListingData, userData : User){
+
+        viewModelScope.launch(Dispatchers.IO) {
+            _getAgoraTokenLiveData.postValue(ConsumableValue(NetworkResult.Loading()))
+
+            // Prepare the data to send to the Cloud Function
+            val data = hashMapOf(
+                "groupId" to (groupData.groupId ?: ""),
+                "groupName" to (groupData.groupName ?: ""),
+                "agoraUserId" to userData.agoraUserId.toString(),
+                "userId" to (userData.userId ?: "")
+            )
+
+            launch {
+                chatRepository.addUserToCall(groupData, userData)
+            }
+
+            val result = chatRepository.getAgoraCallToken(data)
+            _getAgoraTokenLiveData.postValue(ConsumableValue(result))
+        }
+    }
+
+    private val _userLeftCallLiveData = MutableLiveData<ConsumableValue<NetworkResult<Boolean>>>()
+    val userLeftCallLiveData: LiveData<ConsumableValue<NetworkResult<Boolean>>> = _userLeftCallLiveData
+    fun LeaveCall(groupId: String, userId: String){
+
+        viewModelScope.launch(Dispatchers.IO) {
+            val result = chatRepository.removeUserFromCall(groupId, userId)
+            _userLeftCallLiveData.postValue(ConsumableValue(result))
+        }
+    }
+
 }
+
