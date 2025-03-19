@@ -131,16 +131,10 @@ class VoiceCallFragment : Fragment() {
                                 Toast.makeText(context, "Call ended from notification", Toast.LENGTH_SHORT).show()
 
                                 // Update Firebase or other backend
-                                groupChat?.let { tokenManager.getUser()
-                                    ?.let { it1 -> callViewModel.removeUser(it, it1) } }
+                                groupChat?.let { callViewModel.removeUser(it, currentUser) }
                                 agoraEngine?.leaveChannel()
                                 inChannel = false
                                 stopCallService()
-
-                                // Navigate back after a short delay
-                                binding.root.postDelayed({
-                                    findNavController().popBackStack()
-                                }, 1000)
                             }
                         } catch (e: Exception) {
                             Log.e(TAG, "Error leaving channel: ${e.message}", e)
@@ -203,14 +197,7 @@ class VoiceCallFragment : Fragment() {
                 participantAdapter.submitList(mutableListOf())
                 callViewModel.joinedUsers.clear()
                 binding.tvCallStatus.text = "Call ended"
-//                channelName?.let { currentUser.userId?.let { it1 ->
-//                    callViewModel.removeUser(it,
-//                        it1
-//                    )
-//                } }
-
-                groupChat?.let { tokenManager.getUser()
-                    ?.let { it1 -> callViewModel.removeUser(it, it1) } }
+                groupChat?.let { callViewModel.removeUser(it, currentUser) }
             }
         }
 
@@ -243,14 +230,10 @@ class VoiceCallFragment : Fragment() {
         groupChat = groupChatObjAsString?.let {
             Json.decodeFromString(GroupChatListingData.serializer(), it)
         }
-        /*channelName = "Anime"*/
         channelName = groupChat?.groupId
-        /*token = "007eJxTYDiYVhF+q3h1SbCW3honmfN9C1mM/As2GliFTd2sVX0hTEuBwSzZMMnA0jDVzNg40STRKDHROM3U2CgtJTHV1NjY2Nww5uLN9IZARoYV3acYGKEQxGdlcMzLzE1lYAAA70QepA=="*/
         token = arguments?.getString(Constants.TEMP_AGORA_TOKEN)
         currentUser = tokenManager.getUser()!!
         myUid = currentUser.agoraUserId!!
-        Log.d(TAG, "onCreate: $token")
-        Log.d(TAG, "onCreate: $channelName")
     }
 
     override fun onCreateView(
@@ -344,6 +327,23 @@ class VoiceCallFragment : Fragment() {
                 }
             }
         }
+
+        callViewModel.removeUserLiveData.observe(viewLifecycleOwner) { consumableValue ->
+            consumableValue.handle { response->
+                when(response){
+                    is NetworkResult.Success ->{
+                        findNavController().popBackStack()
+                        Toast.makeText(context, "User Left call!", Toast.LENGTH_SHORT).show()
+                    }
+                    is NetworkResult.Error -> {
+                        Toast.makeText(context, "Error : ${response.message}", Toast.LENGTH_SHORT).show()
+                    }
+                    is NetworkResult.Loading -> {
+                        Toast.makeText(context, "Processing..", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
     }
 
     private fun updateParticipantsUI(participants: Map<String, CallParticipant>) {
@@ -413,16 +413,6 @@ class VoiceCallFragment : Fragment() {
         }
     }
 
-    private fun initializeCall() {
-        /*callViewModel.initializeCall()*/
-    }
-
-    private fun setupObservers() {
-        /*callViewModel.participants.observe(viewLifecycleOwner) { participants ->
-            participantAdapter.submitList(participants)
-        }*/
-    }
-
     private fun setupUI() {
         // Set up group name
         binding.tvCallStatus.text = "Connecting to ${groupChat?.groupName ?: "Group Call"}"
@@ -478,9 +468,6 @@ class VoiceCallFragment : Fragment() {
 
     private fun setupAndJoinChannel() {
         setupAgoraEngine()
-
-        // Start the call in Firebase
-        /*callViewModel.startCall(groupId)*/
 
         // Join the channel
         Log.d(TAG, "token: $token")
@@ -587,12 +574,10 @@ class VoiceCallFragment : Fragment() {
     private fun endCall() {
         if (inChannel) {
             agoraEngine?.leaveChannel()
-            groupChat?.let { tokenManager.getUser()
-                ?.let { it1 -> callViewModel.removeUser(it, it1) } }
             inChannel = false
             stopCallService()
+            groupChat?.let { callViewModel.removeUser(it, currentUser) }
         }
-        findNavController().popBackStack()
     }
 
     private fun startCallService() {

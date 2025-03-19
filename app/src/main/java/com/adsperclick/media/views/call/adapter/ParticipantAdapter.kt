@@ -31,19 +31,18 @@ class ParticipantAdapter : ListAdapter<CallParticipant, ParticipantAdapter.Parti
             with(binding) {
                 tvUserName.text = participant.userName
                 // Display user avatar
-                participant.userProfileImgUrl?.let { url ->
+                if (participant.userProfileImgUrl.isNullOrEmpty().not()){
                     UtilityFunctions.loadImageWithGlide(
                         imgUserAvatar.context,
                         imgUserAvatar,
-                        url
+                        participant.userProfileImgUrl
                     )
-                } ?: run {
+                }else{
                     UtilityFunctions.setInitialsDrawable(
                         imgUserAvatar,
                         participant.userName
                     )
                 }
-
                 // Update mic status icon
                 imgMicStatus.setImageResource(
                     if (participant.muteOn) R.drawable.ic_mic_off

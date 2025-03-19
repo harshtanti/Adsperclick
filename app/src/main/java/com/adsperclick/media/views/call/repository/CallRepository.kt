@@ -4,6 +4,7 @@ import android.util.Log
 import com.adsperclick.media.api.ApiService
 import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.data.dataModels.Call
+import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.utils.Constants.DB.GROUPS
@@ -62,6 +63,6 @@ class CallRepository @Inject constructor(private val apiService: ApiService) {
 
     suspend fun getUserCallToken(groupId: String) = apiService.getUserCallToken(groupId)
     suspend fun listenParticipantChanges(groupId: String): Flow<NetworkResult<Call>> = apiService.listenParticipantChanges(groupId)
-    suspend fun removeUserFromCall(groupId: String, userId: String) = apiService.removeUserFromCall(groupId, userId)
+    suspend fun removeUserFromCall(groupData: GroupChatListingData, userData: User) = apiService.removeUserFromCall(groupData, userData)
 
 }
