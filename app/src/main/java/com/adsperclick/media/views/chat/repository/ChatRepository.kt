@@ -632,11 +632,11 @@ class ChatRepository @Inject constructor(
             val response = cloudFunctions.getHttpsCallable("generateAgoraToken").call(data).await()
 
             // Extract the result data
-            val result = response.getData() as HashMap<String, String>
+            val result = response.getData() as HashMap<String, String?>
 
             // Update shared pref if "agoraUserId" is fetched for first time
             if(tokenManager.getUser()?.agoraUserId == null){
-                val userObj = tokenManager.getUser()?.copy(agoraUserId = result["agoraUserId"]?.toInt())
+                val userObj = tokenManager.getUser()?.copy(agoraUserId = result["agoraUserId"]?.toIntOrNull())
                 userObj?.let {user->
                     tokenManager.saveUser(user)
                 }

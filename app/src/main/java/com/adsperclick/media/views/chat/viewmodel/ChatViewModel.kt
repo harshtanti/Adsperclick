@@ -247,7 +247,7 @@ class ChatViewModel@Inject constructor(
             val data = hashMapOf(
                 "groupId" to (groupData.groupId ?: ""),
                 "groupName" to (groupData.groupName ?: ""),
-                "agoraUserId" to userData.agoraUserId.toString(),
+                "agoraUserId" to (userData.agoraUserId ?: "").toString(),
                 "userId" to (userData.userId ?: "")
             )
 
