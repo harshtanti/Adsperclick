@@ -24,14 +24,11 @@ import com.adsperclick.media.utils.Constants.LAST_SEEN_GROUP_TIME
 import com.adsperclick.media.utils.Constants.MSG_TYPE.IMG_URL
 import com.adsperclick.media.utils.Constants.MSG_TYPE.PDF_DOC
 import com.adsperclick.media.utils.Constants.MSG_TYPE.VIDEO
-import com.adsperclick.media.utils.Constants.PDF_VISIBLE
-import com.adsperclick.media.utils.Constants.VIDEO_VISIBLE
 import com.adsperclick.media.utils.UtilityFunctions
 import com.adsperclick.media.views.chat.adapters.MessagesAdapter
 import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
 import com.google.firebase.database.ChildEventListener
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 import javax.inject.Inject
@@ -138,6 +135,8 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         binding.includeTextSender.btnCamera.setOnClickListener(this)
         binding.includeTopBar.container.setOnClickListener(this)
         binding.includeTopBar.btnBack.setOnClickListener(this)
+        binding.includeTopBar.btnCall.setOnClickListener(this)
+        binding.includeTopBar.btnCallEnd.setOnClickListener(this)
     }
 
     private fun setupObservers(){
@@ -172,6 +171,49 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                 }
             }
         }
+
+        chatViewModel.getAgoraTokenLiveData.observe(viewLifecycleOwner) { consumableValue ->
+            consumableValue.handle { response->
+
+                when(response){
+                    is NetworkResult.Success ->{
+                        val bundle = Bundle().apply {
+                            groupChat?.let { gc ->
+                                val gcObjAsString = Json.encodeToString(GroupChatListingData.serializer(), gc)
+                                putString(CLICKED_GROUP, gcObjAsString)
+                            }
+                            putString("agoraToken", response.data)
+                        }
+                        /*findNavController().navigate(R.id.action_messagingFragment_to_voiceCallFragment, bundle)*/
+                        Toast.makeText(context, "Token: ${response.data}", Toast.LENGTH_SHORT).show()
+                    }
+
+                    is NetworkResult.Error -> {
+                        Toast.makeText(context, "Error : ${response.message}", Toast.LENGTH_SHORT).show()
+                    }
+                    is NetworkResult.Loading -> {
+                        Toast.makeText(context, "Calling..", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+
+        chatViewModel.userLeftCallLiveData.observe(viewLifecycleOwner) { consumableValue ->
+            consumableValue.handle { response->
+                when(response){
+                    is NetworkResult.Success ->{
+                        Toast.makeText(context, "User Left call!", Toast.LENGTH_SHORT).show()
+                    }
+
+                    is NetworkResult.Error -> {
+                        Toast.makeText(context, "Error : ${response.message}", Toast.LENGTH_SHORT).show()
+                    }
+                    is NetworkResult.Loading -> {
+                        Toast.makeText(context, "Calling..", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
     }
 
 
@@ -193,7 +235,6 @@ class MessagingFragment : Fragment(),View.OnClickListener {
     override fun onDestroyView() {
         super.onDestroyView()
         chatViewModel.stopRealtimeListening()
-        // firestore call to update lastSeenMsgId
     }
 
     override fun onClick(v: View?) {
@@ -228,6 +269,24 @@ class MessagingFragment : Fragment(),View.OnClickListener {
 
             binding.includeTopBar.btnBack -> {
                 findNavController().navigateUp()
+            }
+
+            binding.includeTopBar.btnCall ->{
+//                groupChat?.groupId?.let {groupId->
+//                    currentUser.userId?.let { userId ->
+//                    chatViewModel.getAgoraCallToken(groupId, groupChat.groupName, userId, currentUser.agoraUserId) } }
+                groupChat?.let { groupData->
+                    currentUser.let { userData->
+                        chatViewModel.getAgoraCallToken(groupData , userData )
+                    }
+                }
+            }
+
+
+            binding.includeTopBar.btnCallEnd ->{
+                groupChat?.groupId?.let {groupId->
+                    currentUser.userId?.let { userId ->
+                        chatViewModel.LeaveCall(groupId, userId) } }
             }
         }
     }
@@ -271,8 +330,6 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                 openPdfInWebView(message.message)       // For online viewing of all kinds of docs using "google's doc rendering tool"
                 return
             }
-
-
 
             val fileName = if(message.msgType == IMG_URL) "Image" else "Video"
             // Navigate to preview fragment

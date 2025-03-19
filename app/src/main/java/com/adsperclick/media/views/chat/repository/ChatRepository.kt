@@ -11,9 +11,10 @@ import androidx.paging.PagingData
 import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.api.ApiService
 import com.adsperclick.media.api.MessagesDao
+import com.adsperclick.media.data.dataModels.Call
+import com.adsperclick.media.data.dataModels.CallParticipant
 import com.adsperclick.media.data.dataModels.CommonData
 import com.adsperclick.media.data.dataModels.GroupChatListingData
-import com.adsperclick.media.data.dataModels.GroupUser
 import com.adsperclick.media.data.dataModels.Message
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.NotificationMsg
@@ -36,6 +37,7 @@ import com.adsperclick.media.utils.Constants.MSG_TYPE.VIDEO
 import com.adsperclick.media.utils.ConsumableValue
 import com.adsperclick.media.utils.UtilityFunctions
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -622,6 +624,178 @@ class ChatRepository @Inject constructor(
     }
 
 
+
+    suspend fun getAgoraCallToken(data : HashMap<String,String>):NetworkResult<String> {
+        try {
+            // Call the Cloud Function
+            val response = cloudFunctions.getHttpsCallable("generateAgoraToken").call(data).await()
+
+            // Extract the result data
+            val result = response.getData() as HashMap<String, String>
+
+            // Update shared pref if "agoraUserId" is fetched for first time
+            if(tokenManager.getUser()?.agoraUserId == null){
+                val userObj = tokenManager.getUser()?.copy(agoraUserId = result["agoraUserId"]?.toInt())
+                userObj?.let {user->
+                    tokenManager.saveUser(user)
+                }
+            }
+            // Return the token
+            result["token"]?.let { token->
+                return NetworkResult.Success(token)
+            } ?: run {
+                return NetworkResult.Error(null, "Failed to obtain token")
+            }
+        } catch (e: Exception){
+            Log.e("skt", e.message ?: "Failed to call group")
+            return NetworkResult.Error(null, e.message ?: "Failed to call group")
+        }
+    }
+
+
+
+
+//    suspend fun addUserToCall(data: HashMap<String, String>) {
+//        try {
+//
+////            cloudFunctions.getHttpsCallable("addUserToCall").call(data).await()
+//
+//
+//
+//        } catch (e:Exception){
+//            Log.e("skt", e.message ?: "Failed to call group")
+//        }
+//    }
+
+    suspend fun addUserToCall(groupData: GroupChatListingData, userData: User) {
+
+        val groupId = groupData.groupId ?: ""
+        val groupName = groupData.groupName ?: ""
+        val userId = userData.userId ?: ""
+        val userName = userData.userName
+        val userProfileImgUrl = userData.userProfileImgUrl
+
+        val groupDoc = firestore.collection(Constants.DB.GROUPS).document(groupId)
+        val callLog = groupDoc.collection(Constants.DB.GROUP_CALL_LOG)
+
+        try {
+            // Fetch latest ONGOING CALL (Only one call should be ongoing in a group at a time)
+            val querySnapshot = callLog
+                .whereEqualTo("status", Constants.CALL.STATUS.ONGOING)
+                .limit(1)
+                .get()
+                .await()
+
+            val ongoingCall: DocumentSnapshot? = when{
+                querySnapshot.documents.isEmpty() -> null
+                else -> querySnapshot.documents.firstOrNull()
+            }
+
+            val callDocRef: DocumentReference
+
+            if (ongoingCall == null) {
+                // No ongoing call, user is initiating the call, so we'll create call object and also send msg in group
+
+                // Sending msg in group
+            /*    sendMessage(msgText: String, groupId: String, user: User, groupName: String,
+                    listOfGroupMemberId: List<String>, msgType: Int)*/
+//                sendMessage("Call Initiated", groupId, userData, groupName, listOf(userId), Constants.MSG_TYPE.TEXT)
+
+
+                // Creating Call object
+                callDocRef = callLog.document() // Auto-generate document ID
+
+                val newCall = Call(callDocRef.id, groupId, System.currentTimeMillis(), null,
+                    userId, userName, Constants.CALL.STATUS.ONGOING, Constants.CALL.TYPE.VOICE, hashMapOf())
+
+                callDocRef.set(newCall).await()
+            } else {
+                // Ongoing call found, get reference
+                callDocRef = callLog.document(ongoingCall.id)
+            }
+
+            // Fetch existing participants
+            val callData = callDocRef.get().await()
+            val participants = callData.get("participants") as? MutableMap<String, Any> ?: mutableMapOf()
+
+            if(participants.containsKey(userId)){
+                Log.d("skt", "User already in call, mf trying to join from another phone!")
+                return
+            }
+
+            // Add or update participant
+            val newParticipant = CallParticipant(userId, userName,
+                userProfileImgUrl, System.currentTimeMillis(), isMuted = false, isSpeaking = false
+            )
+
+            participants[userId] = newParticipant
+
+            // Update Firestore with the modified participants map
+            callDocRef.update("participants", participants).await()
+
+            Log.d("CallRepository", "Participant added: $newParticipant")
+
+        } catch (e: Exception) {
+            Log.e("CallRepository", "Error adding user to call: ${e.message}")
+        }
+    }
+
+
+
+
+    suspend fun removeUserFromCall(groupId: String, userId: String) :NetworkResult<Boolean>{
+        val groupDoc = firestore.collection(Constants.DB.GROUPS).document(groupId)
+        val callLog = groupDoc.collection(Constants.DB.GROUP_CALL_LOG)
+
+        try {
+            // Fetch latest ONGOING CALL
+            val querySnapshot = callLog
+                .whereEqualTo("status", Constants.CALL.STATUS.ONGOING)
+                .limit(1).get().await()
+
+            val ongoingCall: DocumentSnapshot? = when{
+                querySnapshot.documents.isEmpty() -> null
+                else -> querySnapshot.documents.firstOrNull()
+            }
+
+            if (ongoingCall == null) {
+                Log.w("CallRepository", "No ongoing call found.")
+                return NetworkResult.Error(null, "No ongoing call found.")
+            }
+
+            val callDocRef = callLog.document(ongoingCall.id)
+
+            // Fetch existing participants
+            val callData = callDocRef.get().await()
+            val participants = callData.get("participants") as? MutableMap<String, Any> ?: mutableMapOf()
+
+            if (!participants.containsKey(userId)) {
+                Log.w("CallRepository", "User $userId not found in call participants.")
+                return NetworkResult.Error(null, "User $userId not found in call participants.")
+            }
+
+            // Remove user from participants map
+            participants.remove(userId)
+
+            // If no participants are left, mark call as COMPLETED
+            val updateMap = if (participants.isEmpty()) {
+                mapOf(
+                    "participants" to participants,
+                    "status" to Constants.CALL.STATUS.COMPLETED,
+                    "endTime" to System.currentTimeMillis()
+                )
+            } else {
+                mapOf("participants" to participants)
+            }
+
+            // Update Firestore with modified participants
+            callDocRef.update(updateMap).await()        // Using updateMap "we will only touch these fields other remain same"
+            return NetworkResult.Success(true)
+        } catch (e: Exception) {
+            Log.e("CallRepository", "Error removing user from call: ${e.message}")
+            return NetworkResult.Error(null, "${e.message}")
+        }
+    }
 
 
     suspend fun getServiceList() = apiService.getServiceList()
