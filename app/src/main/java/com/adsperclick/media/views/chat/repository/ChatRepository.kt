@@ -696,11 +696,21 @@ class ChatRepository @Inject constructor(
             if (ongoingCall == null) {
                 // No ongoing call, user is initiating the call, so we'll create call object and also send msg in group
 
-                // Sending msg in group
-            /*    sendMessage(msgText: String, groupId: String, user: User, groupName: String,
-                    listOfGroupMemberId: List<String>, msgType: Int)*/
-//                sendMessage("Call Initiated", groupId, userData, groupName, listOf(userId), Constants.MSG_TYPE.TEXT)
+                val listOfGroupMemberId = groupData.listOfUsers?.map { it.userId } ?: emptyList()
 
+                // Sending msg in group
+                CoroutineScope(Dispatchers.IO).launch {
+                    sendMessage("Initiated a Call", groupId, userData, groupName,
+                        listOfGroupMemberId, Constants.MSG_TYPE.CALL)
+                }
+
+                // Sending notif to group members
+                CoroutineScope(Dispatchers.IO).launch {
+                    triggerNotificationToGroupMembers(
+                        groupId= groupId,
+                        groupName= groupName, msgText = "Initiated a Call", senderId = userId,
+                        msgType = Constants.MSG_TYPE.CALL, listOfGroupMemberId = listOfGroupMemberId)
+                }
 
                 // Creating Call object
                 callDocRef = callLog.document() // Auto-generate document ID
@@ -743,7 +753,15 @@ class ChatRepository @Inject constructor(
 
 
 
-    suspend fun removeUserFromCall(groupId: String, userId: String) :NetworkResult<Boolean>{
+    suspend fun removeUserFromCall(groupData: GroupChatListingData, userData: User) :NetworkResult<Boolean>{
+
+
+        val groupId = groupData.groupId ?: ""
+        val groupName = groupData.groupName ?: ""
+        val userId = userData.userId ?: ""
+        val userName = userData.userName
+        val userProfileImgUrl = userData.userProfileImgUrl
+
         val groupDoc = firestore.collection(Constants.DB.GROUPS).document(groupId)
         val callLog = groupDoc.collection(Constants.DB.GROUP_CALL_LOG)
 
@@ -779,6 +797,24 @@ class ChatRepository @Inject constructor(
 
             // If no participants are left, mark call as COMPLETED
             val updateMap = if (participants.isEmpty()) {
+
+                // participants empty = last person to leave call = trigger msg & notif
+                // Sending msg in group
+                val listOfGroupMemberId = groupData.listOfUsers?.map { it.userId } ?: emptyList()
+
+                CoroutineScope(Dispatchers.IO).launch {
+                    sendMessage("Ended the Call", groupId, userData, groupName,
+                        listOfGroupMemberId, Constants.MSG_TYPE.CALL)
+                }
+
+                // Sending notif to group members
+                CoroutineScope(Dispatchers.IO).launch {
+                    triggerNotificationToGroupMembers(
+                        groupId= groupId,
+                        groupName= groupName, msgText = "Call Ended", senderId = userId,
+                        msgType = Constants.MSG_TYPE.CALL, listOfGroupMemberId = listOfGroupMemberId)
+                }
+
                 mapOf(
                     "participants" to participants,
                     "status" to Constants.CALL.STATUS.COMPLETED,
