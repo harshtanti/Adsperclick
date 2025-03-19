@@ -30,7 +30,6 @@ interface ApiService {
 
     //Saumya
     suspend fun getLastCall(groupId: String, userId: String,call:Call):NetworkResult<Boolean>
-    /*suspend fun getUserCallToken(groupId: String):NetworkResult<String>*/
 
     //Harsh
     suspend fun updateParticipantStatus(user: User,callId: String, isMuted: Boolean): NetworkResult<Boolean>

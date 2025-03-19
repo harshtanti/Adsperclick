@@ -17,12 +17,13 @@ data class User(
     var listOfServicesAssigned : List<Service>? = null,           // This field can be used for both
     val selfCompanyId : String? = null,
     val selfCompanyName : String? = null,
-    val selfCompanyGstNumber : String? = null,// For clients only, name of company the client is associated with
+    val selfCompanyGstNumber : String? = null,      // For clients only, name of company the client is associated with
     val associationDate : String? = null,
     val mobileNo : String? = null,
     var fcmTokenListOfDevices : List<String> ? = null,
     val lastNotificationSeenTime : Long ?= null,
-    val userPhoneNumber : String ?= null
+    val userPhoneNumber : String ?= null,
+    val agoraUserId : Int ?= null
 ){
     constructor() : this(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,null,null,null)
 }

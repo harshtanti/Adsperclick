@@ -11,6 +11,7 @@ object Constants {
     const val USER_IDENTITY = "user_identity"
     const val IS_USER_SIGNED_IN = "is_user_signed_in"
     const val SERVER_MINUS_DEVICE_TIME = "Diff bw server-device for syncing"
+    const val AGORA_USER_ID = "AgoraUserId"     // This ID uniquely identifies each person on call
     const val EMPTY = ""
     const val SPACE = " "
 
@@ -126,6 +127,7 @@ object Constants {
         const val CONFIG = "config"
         const val SERVER_TIME_DOC = "serverTime"        //Within config collection it is a document (To fetch server-side time and sync it with device time)
         const val MIN_APP_LEVEL_DOC = "minAppLevel"      //Within config collection it is a document"
+        const val GROUP_CALL_LOG = "call_log"
     }
 
     object TXT_MSG_TYPE{
@@ -182,4 +184,16 @@ object Constants {
 
     // Temporary token (for development only!) - Replace with your token from Agora console
     const val TEMP_AGORA_TOKEN = "006your-token-from-agora-console"
+
+
+    object CALL{
+        object STATUS{
+            const val ONGOING = "ongoing_call"
+            const val COMPLETED = "completed_call"
+        }
+        object TYPE{
+            const val VOICE = "voice_call"
+            const val VIDEO = "video_call"
+        }
+    }
 }

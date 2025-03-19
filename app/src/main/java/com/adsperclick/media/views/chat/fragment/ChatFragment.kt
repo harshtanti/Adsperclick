@@ -318,5 +318,18 @@ class ChatFragment : Fragment(),View.OnClickListener {
             findNavController().navigate(R.id.action_navigation_chat_to_messagingFragment, bundle)
         }
     }
+
+    override fun onPause() {
+        super.onPause()
+    }
+
+    override fun onStop() {
+        super.onStop()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+    }
+
 }
 

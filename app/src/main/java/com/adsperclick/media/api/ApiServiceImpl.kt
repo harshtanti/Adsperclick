@@ -614,30 +614,4 @@ class ApiServiceImpl @Inject constructor(
             NetworkResult.Error(null, ex.message ?: "Failed to call group")
         }
     }
-
-    /*override suspend fun getUserCallToken(groupId: String):NetworkResult<String> {
-        // Prepare the data to send to the Cloud Function
-        val data = hashMapOf(
-            "groupId" to groupId
-        )
-
-        // Call the Cloud Function
-        cloudFunctions
-            .getHttpsCallable("generateAgoraToken")
-            .call(data)
-            .addOnSuccessListener { result ->
-                // Extract the result data
-                @Suppress("UNCHECKED_CAST")
-                val response = result.getData() as HashMap<String, Any>
-
-                val token = response["token"]
-                val channelName = response["channelName"]
-                NetworkResult.Success("Ok")
-
-            }
-            .addOnFailureListener { exception ->
-                NetworkResult.Error(null, exception.message ?: "Failed to call group")
-            }
-    }*/
-
 }
