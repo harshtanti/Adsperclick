@@ -16,6 +16,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity.RECEIVER_NOT_EXPORTED
 import androidx.core.app.ActivityCompat
@@ -38,6 +39,7 @@ import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.databinding.FragmentVoiceCallBinding
 import com.adsperclick.media.services.VoiceCallService
 import com.adsperclick.media.utils.Constants
+import com.adsperclick.media.utils.DialogUtils
 import com.adsperclick.media.utils.gone
 import com.adsperclick.media.views.call.adapters.ParticipantAdapter
 import com.adsperclick.media.views.call.viewmodel.CallViewModel
@@ -504,6 +506,39 @@ class VoiceCallFragment : Fragment() {
         binding.btnEndCall.setOnClickListener {
             endCall()
         }
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+            showEndCallConfirmationDialog()
+        }
+    }
+
+    private fun showEndCallConfirmationDialog() {
+        val dialogListener = object : DialogUtils.DialogButtonClickListener {
+            override fun onPositiveButtonClickedData(data: String) {
+            }
+
+            override fun onPositiveButtonClicked() {
+                if (inChannel) {
+                    endCall()
+                }
+                findNavController().popBackStack()
+            }
+
+            override fun onNegativeButtonClicked() {
+
+            }
+
+            override fun onCloseButtonClicked() {
+
+            }
+        }
+
+        DialogUtils.showDeleteDetailsDialog(
+            requireContext(),
+            dialogListener,
+            getString(R.string.are_you_sure_you_want_to_end_this_call),
+            getString(R.string.yes_end),
+            getString(R.string.no_cancel)
+        )
     }
 
     private fun checkPermissions() {
