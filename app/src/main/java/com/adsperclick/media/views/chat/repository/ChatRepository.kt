@@ -32,6 +32,8 @@ import com.adsperclick.media.utils.Constants.DB.MESSAGES_INSIDE_MESSAGES
 import com.adsperclick.media.utils.Constants.DB.MIN_APP_LEVEL_DOC
 import com.adsperclick.media.utils.Constants.DB.SERVER_TIME_DOC
 import com.adsperclick.media.utils.Constants.DEFAULT_SERVICE
+import com.adsperclick.media.utils.Constants.ENDED_THE_CALL
+import com.adsperclick.media.utils.Constants.INITIATED_A_CALL
 import com.adsperclick.media.utils.Constants.MSG_TYPE.IMG_URL
 import com.adsperclick.media.utils.Constants.MSG_TYPE.PDF_DOC
 import com.adsperclick.media.utils.Constants.MSG_TYPE.VIDEO
@@ -739,9 +741,22 @@ class ChatRepository @Inject constructor(
         }
     }
 
-    suspend fun getLastCallMsg(groupId: String): Message?{
+    suspend fun getLastCallMsg(groupId: String): NetworkResult<Boolean> {
+        return try {
+            val lastMsgJob = CoroutineScope(Dispatchers.IO).async {
+                messagesDao.getLastMsgOfGivenType(groupId, Constants.MSG_TYPE.CALL)
+            }
 
-        return messagesDao.getLastMsgOfGivenType(groupId, Constants.MSG_TYPE.CALL)
+            val lastMsg = lastMsgJob.await()
+            lastMsg?.let { msg ->
+                if (msg.message == INITIATED_A_CALL) {
+                    NetworkResult.Success(true)
+                } else NetworkResult.Success(false)
+            } ?: NetworkResult.Success(false)
+        } catch (e: Throwable) {
+            Log.e("skt", "Error", e)
+            NetworkResult.Error(null, e.localizedMessage ?: "Unknown error")
+        }
     }
 
 

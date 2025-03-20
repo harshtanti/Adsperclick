@@ -32,6 +32,8 @@ import com.adsperclick.media.utils.Constants.MSG_TYPE.IMG_URL
 import com.adsperclick.media.utils.Constants.MSG_TYPE.PDF_DOC
 import com.adsperclick.media.utils.Constants.MSG_TYPE.VIDEO
 import com.adsperclick.media.utils.UtilityFunctions
+import com.adsperclick.media.utils.gone
+import com.adsperclick.media.utils.visible
 import com.adsperclick.media.views.chat.adapters.MessagesAdapter
 import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
 import com.airbnb.lottie.LottieCompositionFactory
@@ -96,8 +98,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         setupAdapter()
         setUpListener()
         setupObservers()
-//        checkIfCallIsOngoing()
-        UtilityFunctions.setupLottieAnimation("calling.json", binding.includeTopBar.btnCallLottie) // Initialize Lottie animation for btnCallEnd
+//        UtilityFunctions.setupLottieAnimation("calling.json", binding.includeTopBar.btnCallLottie) // Initialize Lottie animation for btnCallEnd
 
 //        val bottomNavView = binding.root
 //        bottomNavView.setOnApplyWindowInsetsListener { v, insets ->
@@ -129,6 +130,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         groupChat?.groupId?.let { groupId->
             chatViewModel.setGroupId(groupId)   // Group Id is set, "messages" live-data gets active, and it starts listening for realtime updates in room-db, realtime room-db updates are sent to adapter via observer here
             chatViewModel.fetchAllNewMessages(groupId)      // To fetch all the unread messages for this group in one single go!
+            chatViewModel.isCallOngoing(groupId)
         }
 
         listofGroupMemberId = groupChat?.listOfUsers?.map { it.userId } ?: emptyList()
@@ -183,6 +185,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
 
             val oldLastMessagePosition = adapter.itemCount - 1
             idOfLastMsgInGroup = response.lastOrNull()?.msgId
+            chatViewModel.checkIfLastMsgRelatedToCall(response.lastOrNull())
             adapter.submitList(response) {
                 binding.rvChat.scrollToPosition(adapter.itemCount - 1)
 
@@ -235,6 +238,28 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                 }
             }
         }
+
+        chatViewModel.isCallOngoingLiveData.observe(viewLifecycleOwner) { consumableValue ->
+            consumableValue.handle { response->
+                when(response){
+                    is NetworkResult.Success ->{
+                        if(response.data == true){
+                            handleCallIcon(true)
+                            Toast.makeText(context, "Call ongoing!", Toast.LENGTH_SHORT).show()
+                        } else handleCallIcon(false)
+                    }
+
+                    is NetworkResult.Error -> {
+                        Toast.makeText(context, "Error : ${response.message}", Toast.LENGTH_SHORT).show()
+                    }
+                    is NetworkResult.Loading -> {
+                        Toast.makeText(context, "Processing..", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+
+
     }
 
     private fun checkCallPermissions(callback: (Boolean) -> Unit) {
@@ -503,9 +528,17 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         }
     }
 
-
-    private fun checkIfCallIsOngoing(){
-
+    fun handleCallIcon(isCallOngoing: Boolean){
+        with(binding.includeTopBar){
+            if(isCallOngoing){
+                btnCall.gone()
+                btnCallLottie.visible()
+                UtilityFunctions.setupLottieAnimation("calling.json", btnCallLottie)
+            } else{
+                btnCall.visible()
+                btnCallLottie.gone()
+            }
+        }
     }
 
     // To open PDF directly using firebase download URL (Firebase download url is a web-url link

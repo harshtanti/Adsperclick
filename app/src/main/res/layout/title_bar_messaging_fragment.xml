@@ -47,7 +47,6 @@
             android:textSize="@dimen/SP25"
             android:maxLines="2"
             app:layout_constraintBottom_toBottomOf="@+id/imgProfileDp"
-            app:layout_constraintEnd_toStartOf="@id/btnCallLottie"
             app:layout_constraintStart_toEndOf="@id/imgProfileDp"
             app:layout_constraintTop_toTopOf="@+id/imgProfileDp"
             tools:text="Group Name" />
@@ -67,13 +66,12 @@
 
     <com.airbnb.lottie.LottieAnimationView
         android:id="@+id/btnCallLottie"
-        android:layout_width="45dp"
-        android:layout_height="45dp"
+        android:layout_width="55dp"
+        android:layout_height="55dp"
         android:layout_marginEnd="@dimen/DP10"
         android:visibility="gone"
         tools:visibility="visible"
         android:backgroundTint="@color/transparent"
-        android:src="@drawable/call_end_24px"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/btnCall"
         app:layout_constraintTop_toTopOf="parent" />
