@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.content.res.Resources
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -33,8 +34,14 @@ import com.adsperclick.media.utils.Constants.MSG_TYPE.VIDEO
 import com.adsperclick.media.utils.UtilityFunctions
 import com.adsperclick.media.views.chat.adapters.MessagesAdapter
 import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
+import com.airbnb.lottie.LottieCompositionFactory
+import com.airbnb.lottie.LottieDrawable
 import com.google.firebase.database.ChildEventListener
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import java.io.File
 import javax.inject.Inject
@@ -89,11 +96,14 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         setupAdapter()
         setUpListener()
         setupObservers()
-        val bottomNavView = binding.root
-        bottomNavView.setOnApplyWindowInsetsListener { v, insets ->
-            v.setPadding(0, 0, 0, 0)
-            insets
-        }
+//        checkIfCallIsOngoing()
+        UtilityFunctions.setupLottieAnimation("calling.json", binding.includeTopBar.btnCallLottie) // Initialize Lottie animation for btnCallEnd
+
+//        val bottomNavView = binding.root
+//        bottomNavView.setOnApplyWindowInsetsListener { v, insets ->
+//            v.setPadding(0, 0, 0, 50)
+//            insets
+//        }
     }
 
     private fun setUpView(){
@@ -147,7 +157,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         binding.includeTopBar.container.setOnClickListener(this)
         binding.includeTopBar.btnBack.setOnClickListener(this)
         binding.includeTopBar.btnCall.setOnClickListener(this)
-        binding.includeTopBar.btnCallEnd.setOnClickListener(this)
+        binding.includeTopBar.btnCallLottie.setOnClickListener(this)
     }
 
     private fun setupObservers(){
@@ -374,6 +384,10 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         chatViewModel.stopRealtimeListening()
     }
 
+
+
+
+
     override fun onClick(v: View?) {
         when(v){
 
@@ -408,7 +422,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                 findNavController().navigateUp()
             }
 
-            binding.includeTopBar.btnCall ->{
+            binding.includeTopBar.btnCall, binding.includeTopBar.btnCallLottie ->{
                 // Check permissions first before attempting to get token or navigate
                 checkCallPermissions { permissionsGranted ->
                     if (permissionsGranted) {
@@ -423,13 +437,13 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                 }
             }
 
-            binding.includeTopBar.btnCallEnd ->{
-                groupChat?.let { groupData->
-                    currentUser.let { userData->
-                        chatViewModel.LeaveCall(groupData , userData )
-                    }
-                }
-            }
+//            binding.includeTopBar.btnCallEnd ->{
+//                groupChat?.let { groupData->
+//                    currentUser.let { userData->
+//                        chatViewModel.LeaveCall(groupData , userData )
+//                    }
+//                }
+//            }
         }
     }
 
@@ -487,6 +501,11 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                 bundle
             )
         }
+    }
+
+
+    private fun checkIfCallIsOngoing(){
+
     }
 
     // To open PDF directly using firebase download URL (Firebase download url is a web-url link

@@ -50,6 +50,7 @@ import com.google.firebase.functions.FirebaseFunctions
 import com.google.firebase.storage.StorageReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -654,20 +655,6 @@ class ChatRepository @Inject constructor(
     }
 
 
-
-
-//    suspend fun addUserToCall(data: HashMap<String, String>) {
-//        try {
-//
-////            cloudFunctions.getHttpsCallable("addUserToCall").call(data).await()
-//
-//
-//
-//        } catch (e:Exception){
-//            Log.e("skt", e.message ?: "Failed to call group")
-//        }
-//    }
-
     suspend fun addUserToCall(groupData: GroupChatListingData, userData: User) {
 
         val groupId = groupData.groupId ?: ""
@@ -750,6 +737,11 @@ class ChatRepository @Inject constructor(
         } catch (e: Exception) {
             Log.e("CallRepository", "Error adding user to call: ${e.message}")
         }
+    }
+
+    suspend fun getLastCallMsg(groupId: String): Message?{
+
+        return messagesDao.getLastMsgOfGivenType(groupId, Constants.MSG_TYPE.CALL)
     }
 
 

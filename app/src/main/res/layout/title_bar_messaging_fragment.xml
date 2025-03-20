@@ -24,7 +24,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/btnCall"
+        app:layout_constraintEnd_toStartOf="@+id/btnCallLottie"
         app:layout_constraintStart_toEndOf="@id/btnBack"
         app:layout_constraintTop_toTopOf="parent">
         <com.google.android.material.imageview.ShapeableImageView
@@ -47,7 +47,7 @@
             android:textSize="@dimen/SP25"
             android:maxLines="2"
             app:layout_constraintBottom_toBottomOf="@+id/imgProfileDp"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btnCallLottie"
             app:layout_constraintStart_toEndOf="@id/imgProfileDp"
             app:layout_constraintTop_toTopOf="@+id/imgProfileDp"
             tools:text="Group Name" />
@@ -65,11 +65,13 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <androidx.appcompat.widget.AppCompatImageButton
-        android:id="@+id/btnCallEnd"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/btnCallLottie"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
         android:layout_marginEnd="@dimen/DP10"
+        android:visibility="gone"
+        tools:visibility="visible"
         android:backgroundTint="@color/transparent"
         android:src="@drawable/call_end_24px"
         app:layout_constraintBottom_toBottomOf="parent"

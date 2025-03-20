@@ -269,5 +269,17 @@ class ChatViewModel@Inject constructor(
             _userLeftCallLiveData.postValue(ConsumableValue(result))
         }
     }
+
+//    private val _isCallOngoingLiveData = MutableLiveData<ConsumableValue<NetworkResult<Boolean>>>()
+//    val isCallOngoingLiveData: LiveData<ConsumableValue<NetworkResult<Boolean>>> = _isCallOngoingLiveData
+//    fun isCallOngoing(groupData: GroupChatListingData, userData: User){
+//
+//        viewModelScope.launch(Dispatchers.IO) {
+//            val result = chatRepository.getLastCallMsg(groupData, userData)
+//            _userLeftCallLiveData.postValue(ConsumableValue(result))
+//        }
+//    }
+
+
 }
 

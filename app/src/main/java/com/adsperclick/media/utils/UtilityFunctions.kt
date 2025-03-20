@@ -40,6 +40,13 @@ import android.util.TypedValue
 import android.webkit.MimeTypeMap
 import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.data.dataModels.GroupChatListingData
+import com.airbnb.lottie.LottieAnimationView
+import com.airbnb.lottie.LottieCompositionFactory
+import com.airbnb.lottie.LottieDrawable
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.nio.file.Files
 import java.nio.file.Paths
 import javax.inject.Inject
@@ -523,4 +530,22 @@ object UtilityFunctions {
         val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
         return capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) || capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
     }
+
+
+    fun setupLottieAnimation(assetName: String, lottieView: LottieAnimationView) {
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                val result = withContext(Dispatchers.IO) {
+                    LottieCompositionFactory.fromAssetSync(lottieView.context, assetName)
+                }
+
+                result.value?.let { composition ->
+                    lottieView.setComposition(composition)
+                    lottieView.repeatCount = LottieDrawable.INFINITE // Infinite loop
+                    lottieView.playAnimation()
+                }
+            } catch (e: Exception) { e.printStackTrace() }
+        }
+    }
+
 }

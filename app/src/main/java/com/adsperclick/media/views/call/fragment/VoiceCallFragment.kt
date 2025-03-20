@@ -223,7 +223,7 @@ class VoiceCallFragment : Fragment() {
                 participantAdapter.submitList(mutableListOf())
                 callViewModel.joinedUsers.clear()
                 binding.tvCallStatus.text = "Call ended"
-                groupChat?.let { callViewModel.removeUser(it, currentUser) }
+//                groupChat?.let { callViewModel.removeUser(it, currentUser) }
             }
         }
 
