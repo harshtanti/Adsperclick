@@ -64,5 +64,5 @@ class CallRepository @Inject constructor(private val apiService: ApiService) {
     suspend fun getUserCallToken(groupId: String) = apiService.getUserCallToken(groupId)
     suspend fun listenParticipantChanges(groupId: String): Flow<NetworkResult<Call>> = apiService.listenParticipantChanges(groupId)
     suspend fun removeUserFromCall(groupData: GroupChatListingData, userData: User) = apiService.removeUserFromCall(groupData, userData)
-
+    suspend fun updateUserCallStatus(groupId: String, userId: String, isMuted: Boolean?, isSpeaking: Boolean?) = apiService.updateUserCallStatus(groupId, userId, isMuted, isSpeaking)
 }

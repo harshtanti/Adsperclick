@@ -83,6 +83,7 @@ class VoiceCallFragment : Fragment() {
     private var muteOn = false
     private var speakerOn = false
     private var inChannel = false
+    private var isCurrentlySpeaking = false
 
     // Service variables
     private var voiceCallService: VoiceCallService? = null
@@ -151,16 +152,36 @@ class VoiceCallFragment : Fragment() {
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
-        val allGranted = permissions.entries.all { it.value }
-        if (allGranted) {
+        // Check which permissions were granted and which were denied
+        val deniedPermissions = permissions.filter { !it.value }.keys
+
+        if (deniedPermissions.isEmpty()) {
+            // All requested permissions were granted
             setupAndJoinChannel()
         } else {
+            // Some permissions were denied
             Toast.makeText(
                 requireContext(),
-                "Voice call permissions are required to make a call",
+                "Some permissions were denied. Voice call functionality may be limited.",
                 Toast.LENGTH_SHORT
             ).show()
-            findNavController().popBackStack()
+
+            // Check if we have at least the critical permission (RECORD_AUDIO)
+            if (ContextCompat.checkSelfPermission(
+                    requireContext(),
+                    Manifest.permission.RECORD_AUDIO
+                ) == PackageManager.PERMISSION_GRANTED) {
+                // We at least have microphone permission, so we can proceed
+                setupAndJoinChannel()
+            } else {
+                // Can't proceed without microphone permission
+                Toast.makeText(
+                    requireContext(),
+                    "Microphone permission is required for voice calls",
+                    Toast.LENGTH_SHORT
+                ).show()
+                findNavController().popBackStack()
+            }
         }
     }
 
@@ -215,9 +236,36 @@ class VoiceCallFragment : Fragment() {
         ) {
             activity?.runOnUiThread {
                 speakers?.forEach { speaker ->
-                    // Update who is speaking (volume > 50)
-                    val isSpeaking = speaker.volume > 50
-                    /*callViewModel.updateParticipantSpeakingStatus(speaker.uid.toString(), isSpeaking)*/
+                    // Only process for local user (uid = 0 in Agora's callback)
+                    if (speaker.uid == 0 && !muteOn) {
+                        // Determine speaking status
+                        val isSpeaking = speaker.volume > 10
+
+                        // Only update if speaking state has changed
+                        if (isSpeaking != isCurrentlySpeaking) {
+                            Log.d(
+                                TAG,
+                                "Speaking state changed: $isCurrentlySpeaking -> $isSpeaking, volume: ${speaker.volume}"
+                            )
+
+                            // Update the tracked state
+                            isCurrentlySpeaking = isSpeaking
+
+                            // Make the call only on state change
+                            channelName?.let {
+                                currentUser.userId?.let { it1 ->
+                                    callViewModel.updateUserCallStatus(
+                                        it,
+                                        it1, null, isSpeaking = isSpeaking
+                                    )
+                                }
+                            }
+                        }
+
+                        // You can still update your visual indicator on every event
+                        // for smooth visualization, without making a backend call
+                        // updateAudioVisualizer(speaker.volume)
+                    }
                 }
             }
         }
@@ -344,6 +392,20 @@ class VoiceCallFragment : Fragment() {
                 }
             }
         }
+
+        callViewModel.updateUserCallStatusLiveData.observe(viewLifecycleOwner) { consumableValue ->
+            consumableValue.handle { response->
+                when(response){
+                    is NetworkResult.Success ->{
+                    }
+                    is NetworkResult.Error -> {
+                        Toast.makeText(context, "Error : ${response.message}", Toast.LENGTH_SHORT).show()
+                    }
+                    is NetworkResult.Loading -> {
+                    }
+                }
+            }
+        }
     }
 
     private fun updateParticipantsUI(participants: Map<String, CallParticipant>) {
@@ -423,6 +485,7 @@ class VoiceCallFragment : Fragment() {
             adapter = participantAdapter
             layoutManager = GridLayoutManager(requireContext(), 2)
         }
+        updateSpeakerButtonUI()
 
         // Set up call control buttons
         binding.btnMute.setOnClickListener {
@@ -439,31 +502,106 @@ class VoiceCallFragment : Fragment() {
     }
 
     private fun checkPermissions() {
-        val permissions = mutableListOf(
+        val neededPermissions = mutableListOf(
             Manifest.permission.RECORD_AUDIO
         )
 
         // Add Bluetooth permissions for Android 12+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            permissions.add(Manifest.permission.BLUETOOTH_CONNECT)
+            neededPermissions.add(Manifest.permission.BLUETOOTH_CONNECT)
         }
 
         // Check for notification permission on Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+            neededPermissions.add(Manifest.permission.POST_NOTIFICATIONS)
         }
 
-        val allGranted = permissions.all {
-            ContextCompat.checkSelfPermission(requireContext(), it) == PackageManager.PERMISSION_GRANTED
+        // Separate permissions into three categories
+        val grantedPermissions = mutableListOf<String>()
+        val deniedPermissions = mutableListOf<String>() // Previously denied
+        val permissionsToRequest = mutableListOf<String>() // Never asked or don't ask again
+
+        // Check each permission's status
+        for (permission in neededPermissions) {
+            when {
+                ContextCompat.checkSelfPermission(requireContext(), permission) ==
+                        PackageManager.PERMISSION_GRANTED -> {
+                    grantedPermissions.add(permission)
+                }
+                ActivityCompat.shouldShowRequestPermissionRationale(requireActivity(), permission) -> {
+                    // Permission was previously denied but "Don't ask again" wasn't selected
+                    deniedPermissions.add(permission)
+                }
+                else -> {
+                    // Permission has never been asked for, or "Don't ask again" was selected
+                    permissionsToRequest.add(permission)
+                }
+            }
         }
 
-        if (allGranted) {
-            Log.d(TAG, "All permissions granted")
-            setupAndJoinChannel()
-        } else {
-            Log.d(TAG, "permissions not granted")
-            requestPermissionLauncher.launch(permissions.toTypedArray())
+        when {
+            // All permissions granted
+            deniedPermissions.isEmpty() && permissionsToRequest.isEmpty() -> {
+                Log.d(TAG, "All permissions granted")
+                setupAndJoinChannel()
+            }
+            // Some permissions were denied before
+            deniedPermissions.isNotEmpty() -> {
+                // Show explanation for each denied permission
+                showPermissionExplanationDialog(deniedPermissions, permissionsToRequest)
+            }
+            // Some permissions have never been requested or "Don't ask again" was selected
+            permissionsToRequest.isNotEmpty() -> {
+                Log.d(TAG, "Requesting permissions: $permissionsToRequest")
+                requestPermissionLauncher.launch(permissionsToRequest.toTypedArray())
+            }
         }
+    }
+
+    private fun showPermissionExplanationDialog(deniedPermissions: List<String>, permissionsToRequest: List<String>) {
+        // Create a readable list of what permissions are needed
+        val permissionMessages = mutableListOf<String>()
+
+        if (deniedPermissions.contains(Manifest.permission.RECORD_AUDIO)) {
+            permissionMessages.add("• Microphone access is needed to make voice calls")
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            deniedPermissions.contains(Manifest.permission.BLUETOOTH_CONNECT)) {
+            permissionMessages.add("• Bluetooth permission is needed for headset support")
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            deniedPermissions.contains(Manifest.permission.POST_NOTIFICATIONS)) {
+            permissionMessages.add("• Notification permission is needed for call notifications")
+        }
+
+        val message = "The following permissions are required:\n\n" +
+                permissionMessages.joinToString("\n") +
+                "\n\nPlease grant these permissions to continue."
+
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("Permissions Required")
+            .setMessage(message)
+            .setPositiveButton("Request Again") { _, _ ->
+                // Request the denied permissions again
+                if (deniedPermissions.isNotEmpty()) {
+                    requestPermissionLauncher.launch(deniedPermissions.toTypedArray())
+                }
+            }
+            .setNegativeButton("Open Settings") { _, _ ->
+                // Direct to app settings for permissions that can't be requested directly
+                val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                val uri = android.net.Uri.fromParts("package", requireActivity().packageName, null)
+                intent.data = uri
+                startActivity(intent)
+            }
+            .setNeutralButton("Cancel") { _, _ ->
+                // Go back to previous screen
+                findNavController().popBackStack()
+            }
+            .setCancelable(false)
+            .show()
     }
 
     private fun setupAndJoinChannel() {
@@ -505,6 +643,7 @@ class VoiceCallFragment : Fragment() {
                 io.agora.rtc2.Constants.AUDIO_PROFILE_DEFAULT,
                 io.agora.rtc2.Constants.AUDIO_SCENARIO_CHATROOM
             )
+            agoraEngine?.setEnableSpeakerphone(speakerOn)
 
             // Enable audio volume indicator
             agoraEngine?.enableAudioVolumeIndication(500, 3, true)
@@ -531,6 +670,7 @@ class VoiceCallFragment : Fragment() {
         Log.d(TAG, "Joining channel: $channelName with uid: ${myUid}")
 
         try {
+            agoraEngine?.setEnableSpeakerphone(speakerOn)
             agoraEngine?.joinChannel(token, channelName, myUid, options)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to join channel: ${e.message}", e)
@@ -545,6 +685,12 @@ class VoiceCallFragment : Fragment() {
 
         // Update current user's mute status in the participants list
         /*callViewModel.updateParticipantMuteStatus(currentUser.userId ?: "", muteOn)*/
+        channelName?.let {
+            currentUser.userId?.let { it1 ->
+                callViewModel.updateUserCallStatus(it,
+                    it1, isMuted = muteOn,null)
+            }
+        }
 
         showToast(if (muteOn) "Microphone muted" else "Microphone unmuted")
     }

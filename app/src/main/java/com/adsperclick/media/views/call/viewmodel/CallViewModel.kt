@@ -71,4 +71,21 @@ class CallViewModel @Inject constructor(
         }
     }
 
+    private val _updateUserCallStatusLiveData = MutableLiveData<ConsumableValue<NetworkResult<Boolean>>>()
+    val updateUserCallStatusLiveData: LiveData<ConsumableValue<NetworkResult<Boolean>>> get() = _updateUserCallStatusLiveData
+
+    fun updateUserCallStatus(groupId: String, userId: String, isMuted: Boolean? = null, isSpeaking: Boolean? = null){
+        _updateUserCallStatusLiveData.postValue(ConsumableValue(NetworkResult.Loading()))
+
+        try {
+            viewModelScope.launch(Dispatchers.IO){
+                val result = callRepository.updateUserCallStatus(groupId, userId, isMuted, isSpeaking)
+                _updateUserCallStatusLiveData.postValue(ConsumableValue(result))
+            }
+        } catch (e : Exception){
+            _updateUserCallStatusLiveData.postValue(ConsumableValue(NetworkResult.Error(null, "Error ${e.message}")))
+        }
+    }
+
+
 }

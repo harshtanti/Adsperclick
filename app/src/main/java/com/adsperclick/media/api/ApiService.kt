@@ -35,5 +35,6 @@ interface ApiService {
     suspend fun getUserCallToken(groupId: String):NetworkResult<Pair<String,String>>
     suspend fun listenParticipantChanges(groupId: String): Flow<NetworkResult<Call>>
     suspend fun removeUserFromCall(groupData: GroupChatListingData, userData: User) :NetworkResult<Boolean>
+    suspend fun updateUserCallStatus(groupId: String, userId: String, isMuted: Boolean?, isSpeaking: Boolean?): NetworkResult<Boolean>
 
 }
