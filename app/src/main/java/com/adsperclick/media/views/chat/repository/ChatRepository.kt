@@ -675,6 +675,7 @@ class ChatRepository @Inject constructor(
         val userId = userData.userId ?: ""
         val userName = userData.userName
         val userProfileImgUrl = userData.userProfileImgUrl
+        val agoraUserId = userData.agoraUserId
 
         val groupDoc = firestore.collection(Constants.DB.GROUPS).document(groupId)
         val callLog = groupDoc.collection(Constants.DB.GROUP_CALL_LOG)
@@ -736,7 +737,7 @@ class ChatRepository @Inject constructor(
 
             // Add or update participant
             val newParticipant = CallParticipant(userId, userName,
-                userProfileImgUrl, System.currentTimeMillis(), muteOn = false, speakerOn = false
+                userProfileImgUrl, System.currentTimeMillis(), muteOn = false, speakerOn = false,agoraUserId
             )
 
             participants[userId] = newParticipant

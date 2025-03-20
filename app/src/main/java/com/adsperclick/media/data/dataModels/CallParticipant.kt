@@ -9,5 +9,6 @@ data class CallParticipant(
     val userProfileImgUrl: String? = null,
     val joinedAt: Long = 0,
     val muteOn: Boolean = false,
-    val speakerOn: Boolean = false
+    val speakerOn: Boolean = false,
+    val agoraUserId: Int? = null
 )
