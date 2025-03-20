@@ -247,7 +247,7 @@ class ChatViewModel@Inject constructor(
             val data = hashMapOf(
                 "groupId" to (groupData.groupId ?: ""),
                 "groupName" to (groupData.groupName ?: ""),
-                "agoraUserId" to userData.agoraUserId.toString(),
+                "agoraUserId" to (userData.agoraUserId ?: "").toString(),
                 "userId" to (userData.userId ?: "")
             )
 
@@ -262,13 +262,12 @@ class ChatViewModel@Inject constructor(
 
     private val _userLeftCallLiveData = MutableLiveData<ConsumableValue<NetworkResult<Boolean>>>()
     val userLeftCallLiveData: LiveData<ConsumableValue<NetworkResult<Boolean>>> = _userLeftCallLiveData
-    fun LeaveCall(groupId: String, userId: String){
+    fun LeaveCall(groupData: GroupChatListingData, userData: User){
 
         viewModelScope.launch(Dispatchers.IO) {
-            val result = chatRepository.removeUserFromCall(groupId, userId)
+            val result = chatRepository.removeUserFromCall(groupData, userData)
             _userLeftCallLiveData.postValue(ConsumableValue(result))
         }
     }
-
 }
 

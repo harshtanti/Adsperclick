@@ -87,7 +87,9 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
 
 
         // Below line prevents notification when user is using the app/ ie app is in foreground
-        if(AdsperclickApplication.appLifecycleObserver.isAppInForeground && groupId != ITS_A_BROADCAST_NOTIFICATION){
+        if(AdsperclickApplication.appLifecycleObserver.isAppInForeground
+            && groupId != ITS_A_BROADCAST_NOTIFICATION
+            && msgType != Constants.MSG_TYPE.CALL){
             return      // Don't show any notification if app is in use,
         }
 

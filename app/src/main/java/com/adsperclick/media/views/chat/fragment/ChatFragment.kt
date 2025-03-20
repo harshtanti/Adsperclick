@@ -207,7 +207,6 @@ class ChatFragment : Fragment(),View.OnClickListener {
             }
 
             binding.btnTesting -> {
-                /*initiateGroupCall(testingGroupId)*/
             }
         }
     }

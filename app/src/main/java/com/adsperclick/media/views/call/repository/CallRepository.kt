@@ -4,11 +4,13 @@ import android.util.Log
 import com.adsperclick.media.api.ApiService
 import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.data.dataModels.Call
+import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.utils.Constants.DB.GROUPS
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FieldValue
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -59,7 +61,8 @@ class CallRepository @Inject constructor(private val apiService: ApiService) {
         }
     }*/
 
-    suspend fun getLastCall(groupId: String, userId: String,call:Call) = apiService.getLastCall(groupId, userId,call)
-    /*suspend fun getUserCallToken(groupId: String) = apiService.getUserCallToken(groupId)*/
+    suspend fun getUserCallToken(groupId: String) = apiService.getUserCallToken(groupId)
+    suspend fun listenParticipantChanges(groupId: String): Flow<NetworkResult<Call>> = apiService.listenParticipantChanges(groupId)
+    suspend fun removeUserFromCall(groupData: GroupChatListingData, userData: User) = apiService.removeUserFromCall(groupData, userData)
 
 }

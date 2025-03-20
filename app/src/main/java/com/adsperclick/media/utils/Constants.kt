@@ -52,6 +52,7 @@ object Constants {
         const val PDF_DOC = 220
         const val VIDEO = 240
         const val DOCUMENT= 320
+        const val CALL = 360
     }
 
 
@@ -180,7 +181,7 @@ object Constants {
     const val ROLE_T = "role"
 
     // Agora constants
-    const val AGORA_APP_ID = "your-agora-app-id" // Replace with your Agora App ID
+    const val AGORA_APP_ID = "9a5d155555ca420193c5fdfbb4f1184d" // Replace with your Agora App ID
 
     // Temporary token (for development only!) - Replace with your token from Agora console
     const val TEMP_AGORA_TOKEN = "006your-token-from-agora-console"
@@ -196,4 +197,7 @@ object Constants {
             const val VIDEO = "video_call"
         }
     }
+
+    const val INITIATED_A_CALL = "Initiated a Call"
+    const val ENDED_THE_CALL = "Ended the Call"
 }

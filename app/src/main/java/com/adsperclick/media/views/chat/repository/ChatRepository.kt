@@ -26,6 +26,7 @@ import com.adsperclick.media.views.user.pagingsource.UserCommunityPagingSource
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.Constants.DB.CONFIG
 import com.adsperclick.media.utils.Constants.DB.GROUPS
+import com.adsperclick.media.utils.Constants.DB.GROUP_CALL_LOG
 import com.adsperclick.media.utils.Constants.DB.MESSAGES
 import com.adsperclick.media.utils.Constants.DB.MESSAGES_INSIDE_MESSAGES
 import com.adsperclick.media.utils.Constants.DB.MIN_APP_LEVEL_DOC
@@ -631,11 +632,11 @@ class ChatRepository @Inject constructor(
             val response = cloudFunctions.getHttpsCallable("generateAgoraToken").call(data).await()
 
             // Extract the result data
-            val result = response.getData() as HashMap<String, String>
+            val result = response.getData() as HashMap<String, String?>
 
             // Update shared pref if "agoraUserId" is fetched for first time
             if(tokenManager.getUser()?.agoraUserId == null){
-                val userObj = tokenManager.getUser()?.copy(agoraUserId = result["agoraUserId"]?.toInt())
+                val userObj = tokenManager.getUser()?.copy(agoraUserId = result["agoraUserId"]?.toIntOrNull())
                 userObj?.let {user->
                     tokenManager.saveUser(user)
                 }
@@ -696,11 +697,21 @@ class ChatRepository @Inject constructor(
             if (ongoingCall == null) {
                 // No ongoing call, user is initiating the call, so we'll create call object and also send msg in group
 
-                // Sending msg in group
-            /*    sendMessage(msgText: String, groupId: String, user: User, groupName: String,
-                    listOfGroupMemberId: List<String>, msgType: Int)*/
-//                sendMessage("Call Initiated", groupId, userData, groupName, listOf(userId), Constants.MSG_TYPE.TEXT)
+                val listOfGroupMemberId = groupData.listOfUsers?.map { it.userId } ?: emptyList()
 
+                // Sending msg in group
+                CoroutineScope(Dispatchers.IO).launch {
+                    sendMessage("Initiated a Call", groupId, userData, groupName,
+                        listOfGroupMemberId, Constants.MSG_TYPE.CALL)
+                }
+
+                // Sending notif to group members
+                CoroutineScope(Dispatchers.IO).launch {
+                    triggerNotificationToGroupMembers(
+                        groupId= groupId,
+                        groupName= groupName, msgText = "Initiated a Call", senderId = userId,
+                        msgType = Constants.MSG_TYPE.CALL, listOfGroupMemberId = listOfGroupMemberId)
+                }
 
                 // Creating Call object
                 callDocRef = callLog.document() // Auto-generate document ID
@@ -725,7 +736,7 @@ class ChatRepository @Inject constructor(
 
             // Add or update participant
             val newParticipant = CallParticipant(userId, userName,
-                userProfileImgUrl, System.currentTimeMillis(), isMuted = false, isSpeaking = false
+                userProfileImgUrl, System.currentTimeMillis(), muteOn = false, speakerOn = false
             )
 
             participants[userId] = newParticipant
@@ -743,60 +754,7 @@ class ChatRepository @Inject constructor(
 
 
 
-    suspend fun removeUserFromCall(groupId: String, userId: String) :NetworkResult<Boolean>{
-        val groupDoc = firestore.collection(Constants.DB.GROUPS).document(groupId)
-        val callLog = groupDoc.collection(Constants.DB.GROUP_CALL_LOG)
-
-        try {
-            // Fetch latest ONGOING CALL
-            val querySnapshot = callLog
-                .whereEqualTo("status", Constants.CALL.STATUS.ONGOING)
-                .limit(1).get().await()
-
-            val ongoingCall: DocumentSnapshot? = when{
-                querySnapshot.documents.isEmpty() -> null
-                else -> querySnapshot.documents.firstOrNull()
-            }
-
-            if (ongoingCall == null) {
-                Log.w("CallRepository", "No ongoing call found.")
-                return NetworkResult.Error(null, "No ongoing call found.")
-            }
-
-            val callDocRef = callLog.document(ongoingCall.id)
-
-            // Fetch existing participants
-            val callData = callDocRef.get().await()
-            val participants = callData.get("participants") as? MutableMap<String, Any> ?: mutableMapOf()
-
-            if (!participants.containsKey(userId)) {
-                Log.w("CallRepository", "User $userId not found in call participants.")
-                return NetworkResult.Error(null, "User $userId not found in call participants.")
-            }
-
-            // Remove user from participants map
-            participants.remove(userId)
-
-            // If no participants are left, mark call as COMPLETED
-            val updateMap = if (participants.isEmpty()) {
-                mapOf(
-                    "participants" to participants,
-                    "status" to Constants.CALL.STATUS.COMPLETED,
-                    "endTime" to System.currentTimeMillis()
-                )
-            } else {
-                mapOf("participants" to participants)
-            }
-
-            // Update Firestore with modified participants
-            callDocRef.update(updateMap).await()        // Using updateMap "we will only touch these fields other remain same"
-            return NetworkResult.Success(true)
-        } catch (e: Exception) {
-            Log.e("CallRepository", "Error removing user from call: ${e.message}")
-            return NetworkResult.Error(null, "${e.message}")
-        }
-    }
-
+    suspend fun removeUserFromCall(groupData: GroupChatListingData, userData: User) = apiService.removeUserFromCall(groupData,userData)
 
     suspend fun getServiceList() = apiService.getServiceList()
 

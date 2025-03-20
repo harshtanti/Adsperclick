@@ -8,6 +8,6 @@ data class CallParticipant(
     val userName: String? = null,
     val userProfileImgUrl: String? = null,
     val joinedAt: Long = 0,
-    val isMuted: Boolean = false,
-    val isSpeaking: Boolean = false
+    val muteOn: Boolean = false,
+    val speakerOn: Boolean = false
 )

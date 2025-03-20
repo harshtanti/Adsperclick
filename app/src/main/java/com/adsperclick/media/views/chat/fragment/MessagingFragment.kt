@@ -83,6 +83,11 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         setupAdapter()
         setUpListener()
         setupObservers()
+        val bottomNavView = binding.root
+        bottomNavView.setOnApplyWindowInsetsListener { v, insets ->
+            v.setPadding(0, 0, 0, 0)
+            insets
+        }
     }
 
     private fun setUpView(){
@@ -182,9 +187,9 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                                 val gcObjAsString = Json.encodeToString(GroupChatListingData.serializer(), gc)
                                 putString(CLICKED_GROUP, gcObjAsString)
                             }
-                            putString("agoraToken", response.data)
+                            putString(Constants.TEMP_AGORA_TOKEN, response.data)
                         }
-                        /*findNavController().navigate(R.id.action_messagingFragment_to_voiceCallFragment, bundle)*/
+                        findNavController().navigate(R.id.action_messagingFragment_to_voiceCallFragment, bundle)
                         Toast.makeText(context, "Token: ${response.data}", Toast.LENGTH_SHORT).show()
                     }
 
@@ -209,7 +214,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                         Toast.makeText(context, "Error : ${response.message}", Toast.LENGTH_SHORT).show()
                     }
                     is NetworkResult.Loading -> {
-                        Toast.makeText(context, "Calling..", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Processing..", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -282,11 +287,12 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                 }
             }
 
-
             binding.includeTopBar.btnCallEnd ->{
-                groupChat?.groupId?.let {groupId->
-                    currentUser.userId?.let { userId ->
-                        chatViewModel.LeaveCall(groupId, userId) } }
+                groupChat?.let { groupData->
+                    currentUser.let { userData->
+                        chatViewModel.LeaveCall(groupData , userData )
+                    }
+                }
             }
         }
     }

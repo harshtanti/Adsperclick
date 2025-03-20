@@ -6,6 +6,7 @@ import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.data.dataModels.User
+import kotlinx.coroutines.flow.Flow
 import java.io.File
 
 interface ApiService {
@@ -28,10 +29,11 @@ interface ApiService {
     suspend fun addGroupMember(groupId: String, userSet: MutableSet<String>): NetworkResult<Boolean>
 //    suspend fun uploadFile(groupId: String, userSet: MutableSet<String>): NetworkResult<Boolean>
 
-    //Saumya
-    suspend fun getLastCall(groupId: String, userId: String,call:Call):NetworkResult<Boolean>
 
     //Harsh
-    suspend fun updateParticipantStatus(user: User,callId: String, isMuted: Boolean): NetworkResult<Boolean>
+   /* suspend fun updateParticipantStatus(user: User,callId: String, isMuted: Boolean): NetworkResult<Boolean>*/
+    suspend fun getUserCallToken(groupId: String):NetworkResult<Pair<String,String>>
+    suspend fun listenParticipantChanges(groupId: String): Flow<NetworkResult<Call>>
+    suspend fun removeUserFromCall(groupData: GroupChatListingData, userData: User) :NetworkResult<Boolean>
 
 }
