@@ -78,6 +78,9 @@ class VoiceCallFragment : Fragment() {
     private var groupChat: GroupChatListingData? = null
     private var participantsUpdateJob: Job? = null
 
+
+
+
     // Agora engine instance
     private var agoraEngine: RtcEngine? = null
     private var muteOn = false
@@ -235,37 +238,33 @@ class VoiceCallFragment : Fragment() {
             totalVolume: Int
         ) {
             activity?.runOnUiThread {
-                speakers?.forEach { speaker ->
-                    // Only process for local user (uid = 0 in Agora's callback)
-                    if (speaker.uid == 0 && !muteOn) {
-                        // Determine speaking status
+                if (speakers != null && callViewModel.joinedUsers.isNotEmpty()) {
+                    speakers.forEach { speaker ->
                         val isSpeaking = speaker.volume > 10
 
-                        // Only update if speaking state has changed
-                        if (isSpeaking != isCurrentlySpeaking) {
-                            Log.d(
-                                TAG,
-                                "Speaking state changed: $isCurrentlySpeaking -> $isSpeaking, volume: ${speaker.volume}"
-                            )
-
-                            // Update the tracked state
-                            isCurrentlySpeaking = isSpeaking
-
-                            // Make the call only on state change
-                            channelName?.let {
-                                currentUser.userId?.let { it1 ->
-                                    callViewModel.updateUserCallStatus(
-                                        it,
-                                        it1, null, isSpeaking = isSpeaking
-                                    )
-                                }
+                        // For local user, use the known local uid
+                        if (speaker.uid == 0) {
+                            if (!muteOn) {
+                                callViewModel.speakingMap[myUid] = isSpeaking
+                                Log.d(TAG, "Local user speaking: $isSpeaking, volume: ${speaker.volume}")
                             }
+                        } else {
+                            // For remote users, use the uid directly
+                            callViewModel.speakingMap[speaker.uid] = isSpeaking
+                            Log.d(TAG, "Remote user ${speaker.uid} speaking: $isSpeaking, volume: ${speaker.volume}")
                         }
-
-                        // You can still update your visual indicator on every event
-                        // for smooth visualization, without making a backend call
-                        // updateAudioVisualizer(speaker.volume)
                     }
+                }
+                val updatedList = callViewModel.joinedUsers.map { participant ->
+                    // Get the Agora ID for this participant
+
+                    val isSpeaking = callViewModel.speakingMap[participant.agoraUserId] ?: false
+
+                    // Create new participant with updated speaking status
+                    participant.copy(speakerOn = isSpeaking)
+                }
+                if (updatedList != participantAdapter.currentList) {
+                    participantAdapter.submitList(updatedList)
                 }
             }
         }
@@ -416,6 +415,12 @@ class VoiceCallFragment : Fragment() {
         callViewModel.joinedUsers.clear()
         callViewModel.joinedUsers.addAll(participantsList)
         Log.d(TAG, "Updated participants list: $participantsList")
+        // First set all to not speaking
+        callViewModel.speakingMap.clear()
+        callViewModel.joinedUsers.forEach { participant ->
+            val agoraId = participant.agoraUserId?:0
+            callViewModel.speakingMap[agoraId] = false
+        }
 
         // Submit to adapter
         participantAdapter.submitList(participantsList)

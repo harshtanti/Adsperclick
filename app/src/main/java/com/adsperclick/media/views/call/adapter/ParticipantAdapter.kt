@@ -69,7 +69,7 @@ class ParticipantAdapter : ListAdapter<CallParticipant, ParticipantAdapter.Parti
                     )
 
                     // Hide audio wave indicator
-                    audioWaveIndicator.visibility = View.GONE
+                    audioWaveIndicator.visibility = View.INVISIBLE
                 }
             }
         }
