@@ -93,11 +93,6 @@ dependencies {
     implementation("com.google.android.exoplayer:exoplayer:2.18.1")
 //    PhotoView for zoomable images: Add
     implementation("com.github.chrisbanes:PhotoView:2.3.0")
-
+    //Agora
     implementation(libs.voice.sdk)
-    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation ("com.squareup.okhttp3:okhttp:4.10.0")
-    implementation ("com.squareup.okhttp3:logging-interceptor:4.10.0")
-    implementation ("de.hdodenhof:circleimageview:3.1.0")
 }

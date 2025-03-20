@@ -854,4 +854,69 @@ class ApiServiceImpl @Inject constructor(
         }
     }
 
+    /**
+     * Updates a user's call status in real-time (mute and speaking status)
+     *
+     * @param groupId The ID of the group where the call is taking place
+     * @param userId The ID of the user whose status is being updated
+     * @param isMuted Whether the user's microphone is muted
+     * @param isSpeaking Whether the user is currently speaking (based on volume threshold)
+     */
+    override suspend fun updateUserCallStatus(groupId: String, userId: String, isMuted: Boolean?, isSpeaking: Boolean?): NetworkResult<Boolean> {
+        return try {
+            // Get reference to the ongoing call
+            val groupDoc = db.collection(Constants.DB.GROUPS).document(groupId)
+            val callLog = groupDoc.collection(Constants.DB.GROUP_CALL_LOG)
+
+            // Find the ongoing call
+            val querySnapshot = callLog
+                .whereEqualTo("status", Constants.CALL.STATUS.ONGOING)
+                .limit(1)
+                .get()
+                .await()
+
+            val ongoingCall = querySnapshot.documents.firstOrNull() ?: run {
+                return NetworkResult.Error(false, "No ongoing call found to update user status")
+            }
+
+            val callDocRef = callLog.document(ongoingCall.id)
+
+            // Get current participants
+            val callData = callDocRef.get().await()
+            val participants = callData.get("participants") as? MutableMap<String, Any> ?: run {
+                return NetworkResult.Error(false, "Failed to get participants map")
+            }
+
+            // Get the specific user's data
+            val participantData = participants[userId] as? Map<String, Any> ?: run {
+                return NetworkResult.Error(false, "User $userId not found in call participants")
+            }
+
+            // Create updated participant with new states
+            val updatedParticipant = participantData.toMutableMap()
+
+            // Only update what's provided
+            isMuted?.let { updatedParticipant["muteOn"] = it }
+            isSpeaking?.let { updatedParticipant["speakerOn"] = it }
+
+            // Update only if there are changes
+            if (
+                (isMuted != null && isMuted != participantData["muteOn"]) ||
+                (isSpeaking != null && isSpeaking != participantData["speakerOn"])
+            ) {
+                // Update the participant in the map
+                participants[userId] = updatedParticipant
+
+                // Update Firestore with the modified participants map
+                callDocRef.update("participants", participants).await()
+                return NetworkResult.Success(true)
+            } else {
+                // No changes needed
+                return NetworkResult.Error(false, "Error updating user call status")
+            }
+        } catch (e: Exception) {
+            return NetworkResult.Error(false, e.message ?: "Error updating user call status")
+        }
+    }
+
 }

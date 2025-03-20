@@ -30,6 +30,7 @@ class ParticipantAdapter : ListAdapter<CallParticipant, ParticipantAdapter.Parti
         fun bind(participant: CallParticipant) {
             with(binding) {
                 tvUserName.text = participant.userName
+
                 // Display user avatar
                 if (participant.userProfileImgUrl.isNullOrEmpty().not()){
                     UtilityFunctions.loadImageWithGlide(
@@ -43,23 +44,32 @@ class ParticipantAdapter : ListAdapter<CallParticipant, ParticipantAdapter.Parti
                         participant.userName
                     )
                 }
+
                 // Update mic status icon
                 imgMicStatus.setImageResource(
                     if (participant.muteOn) R.drawable.ic_mic_off
                     else R.drawable.ic_mic
                 )
 
-                // Highlight if speaking
+                // Highlight if speaking with blue border and show audio wave indicator
                 if (participant.speakerOn) {
+                    // Apply speaking background (blue border)
                     participantLayout.background = ContextCompat.getDrawable(
                         itemView.context,
                         R.drawable.bg_speaking_participant
                     )
+
+                    // Show audio wave indicator
+                    audioWaveIndicator.visibility = View.VISIBLE
                 } else {
+                    // Apply regular background (no border)
                     participantLayout.background = ContextCompat.getDrawable(
                         itemView.context,
                         R.drawable.bg_participant
                     )
+
+                    // Hide audio wave indicator
+                    audioWaveIndicator.visibility = View.GONE
                 }
             }
         }

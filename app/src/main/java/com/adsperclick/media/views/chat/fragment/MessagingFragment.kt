@@ -1,12 +1,18 @@
 package com.adsperclick.media.views.chat.fragment
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -221,6 +227,132 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         }
     }
 
+    private fun checkCallPermissions(callback: (Boolean) -> Unit) {
+        val neededPermissions = mutableListOf(
+            Manifest.permission.RECORD_AUDIO
+        )
+
+        // Add Bluetooth permissions for Android 12+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            neededPermissions.add(Manifest.permission.BLUETOOTH_CONNECT)
+        }
+
+        // Check for notification permission on Android 13+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            neededPermissions.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+
+        // Separate permissions into categories
+        val grantedPermissions = mutableListOf<String>()
+        val deniedPermissions = mutableListOf<String>() // Previously denied
+        val permissionsToRequest = mutableListOf<String>() // Never asked or don't ask again
+
+        // Check each permission's status
+        for (permission in neededPermissions) {
+            when {
+                ContextCompat.checkSelfPermission(requireContext(), permission) ==
+                        PackageManager.PERMISSION_GRANTED -> {
+                    grantedPermissions.add(permission)
+                }
+                ActivityCompat.shouldShowRequestPermissionRationale(requireActivity(), permission) -> {
+                    // Permission was previously denied but "Don't ask again" wasn't selected
+                    deniedPermissions.add(permission)
+                }
+                else -> {
+                    // Permission has never been asked for, or "Don't ask again" was selected
+                    permissionsToRequest.add(permission)
+                }
+            }
+        }
+
+        when {
+            // All permissions granted
+            deniedPermissions.isEmpty() && permissionsToRequest.isEmpty() -> {
+                callback(true)
+            }
+            // Some permissions were denied before
+            deniedPermissions.isNotEmpty() -> {
+                // Show explanation for each denied permission
+                showPermissionExplanationDialog(deniedPermissions, permissionsToRequest, callback)
+            }
+            // Some permissions have never been requested or "Don't ask again" was selected
+            permissionsToRequest.isNotEmpty() -> {
+                requestCallPermissions(permissionsToRequest.toTypedArray(), callback)
+            }
+        }
+    }
+
+    private fun showPermissionExplanationDialog(
+        deniedPermissions: List<String>,
+        permissionsToRequest: List<String>,
+        callback: (Boolean) -> Unit
+    ) {
+        // Create a readable list of what permissions are needed
+        val permissionMessages = mutableListOf<String>()
+
+        if (deniedPermissions.contains(Manifest.permission.RECORD_AUDIO)) {
+            permissionMessages.add("• Microphone access is needed to make voice calls")
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            deniedPermissions.contains(Manifest.permission.BLUETOOTH_CONNECT)) {
+            permissionMessages.add("• Bluetooth permission is needed for headset support")
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            deniedPermissions.contains(Manifest.permission.POST_NOTIFICATIONS)) {
+            permissionMessages.add("• Notification permission is needed for call notifications")
+        }
+
+        val message = "The following permissions are required:\n\n" +
+                permissionMessages.joinToString("\n") +
+                "\n\nPlease grant these permissions to continue."
+
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("Permissions Required")
+            .setMessage(message)
+            .setPositiveButton("Request Again") { _, _ ->
+                // Request the denied permissions again
+                if (deniedPermissions.isNotEmpty()) {
+                    requestCallPermissions(deniedPermissions.toTypedArray(), callback)
+                }
+            }
+            .setNegativeButton("Open Settings") { _, _ ->
+                // Direct to app settings for permissions that can't be requested directly
+                val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                val uri = android.net.Uri.fromParts("package", requireActivity().packageName, null)
+                intent.data = uri
+                startActivity(intent)
+                // Return false since we don't know if they'll grant permissions in settings
+                callback(false)
+            }
+            .setNeutralButton("Cancel") { _, _ ->
+                // User canceled, don't proceed with call
+                callback(false)
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    // Add this at the class level
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        // All microphone permission is essential
+        val microphoneGranted = permissions[Manifest.permission.RECORD_AUDIO] == true
+
+        callPermissionCallback?.invoke(microphoneGranted)
+    }
+
+    // Add this property at the class level
+    private var callPermissionCallback: ((Boolean) -> Unit)? = null
+
+    private fun requestCallPermissions(permissions: Array<String>, callback: (Boolean) -> Unit) {
+        // Store callback to be used when permission result comes back
+        callPermissionCallback = callback
+        requestPermissionLauncher.launch(permissions)
+    }
+
 
     override fun onPause() {
         super.onPause()
@@ -277,13 +409,17 @@ class MessagingFragment : Fragment(),View.OnClickListener {
             }
 
             binding.includeTopBar.btnCall ->{
-//                groupChat?.groupId?.let {groupId->
-//                    currentUser.userId?.let { userId ->
-//                    chatViewModel.getAgoraCallToken(groupId, groupChat.groupName, userId, currentUser.agoraUserId) } }
-                groupChat?.let { groupData->
-                    currentUser.let { userData->
-                        chatViewModel.getAgoraCallToken(groupData , userData )
+                // Check permissions first before attempting to get token or navigate
+                checkCallPermissions { permissionsGranted ->
+                    if (permissionsGranted) {
+                        // Permissions are granted, proceed with call
+                        groupChat?.let { groupData ->
+                            currentUser.let { userData ->
+                                chatViewModel.getAgoraCallToken(groupData, userData)
+                            }
+                        }
                     }
+                    // If permissions not granted, the checkCallPermissions function will handle showing dialogs
                 }
             }
 
