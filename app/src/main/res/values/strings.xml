@@ -74,5 +74,9 @@
     <string name="you_cannot_remove_yourself">You cannot remove yourself</string>
     <string name="add_members">Add Members</string>
     <string name="profile">Profile</string>
+    <string name="are_you_sure_you_want_to_end_this_call">Are you sure you want to end this call?</string>
+    <string name="yes_end">Yes, End Call</string>
+
+
 
 </resources>

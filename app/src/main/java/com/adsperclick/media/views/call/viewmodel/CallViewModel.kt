@@ -33,6 +33,7 @@ class CallViewModel @Inject constructor(
 ) : ViewModel() {
 
     var joinedUsers: MutableList<CallParticipant> = mutableListOf()
+    val speakingMap = mutableMapOf<Int, Boolean>()
 
     private val _userCallTokenLiveData = MutableLiveData<ConsumableValue<NetworkResult<Pair<String,String>>>>()
     val userCallTokenLiveData: LiveData<ConsumableValue<NetworkResult<Pair<String,String>>>> get() = _userCallTokenLiveData

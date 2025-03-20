@@ -57,7 +57,7 @@
             android:layout_width="match_parent"
             android:layout_height="24dp"
             android:layout_marginTop="8dp"
-            android:visibility="gone"
+            android:visibility="invisible"
             app:layout_constraintTop_toBottomOf="@id/imgMicStatus"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
