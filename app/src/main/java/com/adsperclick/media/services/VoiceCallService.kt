@@ -105,6 +105,8 @@ class VoiceCallService : Service() {
                     enableVibration(false)
                     lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
                     setShowBadge(true)
+                    // Make it harder to disable in channel settings
+                    importance = NotificationManager.IMPORTANCE_HIGH
                 }
 
                 notificationManager.createNotificationChannel(channel)
@@ -152,6 +154,10 @@ class VoiceCallService : Service() {
             .setCategory(NotificationCompat.CATEGORY_CALL)
             .setUsesChronometer(true)
             .setWhen(System.currentTimeMillis())
+            .setOnlyAlertOnce(true)
+            .setAutoCancel(false)// Make it non-dismissible
+            .setDeleteIntent(null)
+            .setOngoing(true) // Ensure it's set as ongoing
             .build()
 
         // Start foreground service with notification
@@ -207,8 +213,26 @@ class VoiceCallService : Service() {
             .setCategory(NotificationCompat.CATEGORY_CALL)
             .setUsesChronometer(true)
             .setWhen(System.currentTimeMillis())
+            .setOnlyAlertOnce(true)// Make it non-dismissible
+            .setAutoCancel(false)
+            .setDeleteIntent(null)
+            .setOngoing(true) // Ensure it's set as ongoing
             .build()
 
         notificationManager.notify(NOTIFICATION_ID, notification)
+    }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        Log.d("CallService", "App removed from recents, ending call")
+
+        // Broadcast the end call event
+        val broadcastIntent = Intent(ACTION_END_CALL_FROM_NOTIFICATION)
+        sendBroadcast(broadcastIntent)
+
+        // Stop the service
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopSelf()
+        isCallActive = false
     }
 }

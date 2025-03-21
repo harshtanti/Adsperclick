@@ -211,22 +211,6 @@ class SelectUserFragment : Fragment(), View.OnClickListener {
     override fun onClick(v: View?) {
         when(v){
             binding.header.btnSave -> {
-                /*if (isFromGroupProfile){
-                    if(viewModel.selectedUserSetTotal.size==1 && viewModel.selectedUserSetTotal.first()!=groupCompanyName){
-                        Toast.makeText(context,"Please! Select clients of only $groupCompanyName",Toast.LENGTH_SHORT).show()
-                    }else if (singleCompany()){
-                        addMembersInGroup()
-                        findNavController().popBackStack()
-                    }else{
-                        Toast.makeText(context,"Selected Clients can be of only one company",Toast.LENGTH_SHORT).show()
-                    }
-                }else{
-                    if(singleCompany()){
-                        findNavController().navigate(R.id.action_selectUserFragment_to_newGroupFragment)
-                    }else{
-                        Toast.makeText(context,"Selected Clients can be of only one company",Toast.LENGTH_SHORT).show()
-                    }
-                }*/
                 when {
                     isFromGroupProfile && !groupCompanyName.isNullOrEmpty() && viewModel.selectedUserSetTotal.size == 1 && viewModel.selectedUserSetTotal.first() != groupCompanyName -> {
                         Toast.makeText(context, "Please! Select clients of only $groupCompanyName", Toast.LENGTH_SHORT).show()
@@ -253,5 +237,4 @@ class SelectUserFragment : Fragment(), View.OnClickListener {
             }
         }
     }
-
 }
