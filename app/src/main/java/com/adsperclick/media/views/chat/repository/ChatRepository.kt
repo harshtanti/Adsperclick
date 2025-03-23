@@ -24,6 +24,7 @@ import com.adsperclick.media.di.VersionProvider
 import com.adsperclick.media.views.chat.pagingsource.NotificationsPagingSource
 import com.adsperclick.media.views.user.pagingsource.UserCommunityPagingSource
 import com.adsperclick.media.utils.Constants
+import com.adsperclick.media.utils.Constants.CURRENT_USER
 import com.adsperclick.media.utils.Constants.DB.CONFIG
 import com.adsperclick.media.utils.Constants.DB.GROUPS
 import com.adsperclick.media.utils.Constants.DB.GROUP_CALL_LOG
@@ -34,6 +35,7 @@ import com.adsperclick.media.utils.Constants.DB.SERVER_TIME_DOC
 import com.adsperclick.media.utils.Constants.DEFAULT_SERVICE
 import com.adsperclick.media.utils.Constants.ENDED_THE_CALL
 import com.adsperclick.media.utils.Constants.INITIATED_A_CALL
+import com.adsperclick.media.utils.Constants.LAST_SEEN_TIME_EACH_USER_EACH_GROUP
 import com.adsperclick.media.utils.Constants.MSG_TYPE.IMG_URL
 import com.adsperclick.media.utils.Constants.MSG_TYPE.PDF_DOC
 import com.adsperclick.media.utils.Constants.MSG_TYPE.VIDEO
@@ -163,12 +165,10 @@ class ChatRepository @Inject constructor(
 
             val userRef = firestore.collection(Constants.DB.USERS).document(userId)
 
-            userRef.update("lastNotificationSeenTime", System.currentTimeMillis())
+            val time = UtilityFunctions.getTime()
+            userRef.update("lastNotificationSeenTime", time)
                 .addOnSuccessListener {
-                    Log.d("skt", "Successfully updated lastNotificationSeenTime")
-                }
-                .addOnFailureListener { e ->
-                    Log.d("skt", "Failed to update lastNotificationSeenTime: ${e.message}")
+                    CURRENT_USER?.lastNotificationSeenTime = time
                 }
 
         } catch (e: Exception) {
@@ -228,6 +228,8 @@ class ChatRepository @Inject constructor(
 
             user?.let {
                 // Write code for when new "User" object obtained from backend successfully
+                fetchLastSeenTimeForEachUserInEachGroup(it.listOfGroupsAssigned?: listOf())
+
                 tokenManager.saveUser(it) // Update SharedPreferences
                 return ConsumableValue(NetworkResult.Success(it))  // Notify UI with updated user
             } ?: return ConsumableValue(NetworkResult.Error(null, "Failed to parse user data"))
@@ -255,7 +257,8 @@ class ChatRepository @Inject constructor(
             val snapshot = docRef.get().await()
             snapshot.getTimestamp(SERVER_TIME_DOC)?.let { serverTime ->
                 val timeDiff = UtilityFunctions.timestampToLong(serverTime) - System.currentTimeMillis()
-                tokenManager.setServerMinusDeviceTime(timeDiff)
+                // Some timeDiff coz of time taken to fetch server-side time, so we ignore upto 1 sec
+                if(timeDiff > 1000L) tokenManager.setServerMinusDeviceTime(timeDiff)
             }
         } catch (e: Exception) {
             when (e) {
@@ -291,35 +294,37 @@ class ChatRepository @Inject constructor(
     // ---------------------------------------------------------------------------------------------------------------------------------------------------
 
     private val _lastSeenForEachUserEachGroupLiveData =
-        MutableLiveData<ConsumableValue<NetworkResult<Map<String, List<Pair<String, Long?>>>>>>()
+        MutableLiveData<NetworkResult<Map<String, MutableMap<String, Long?>>>>()
     val lastSeenForEachUserEachGroupLiveData:
-            LiveData<ConsumableValue<NetworkResult<Map<String, List<Pair<String, Long?>>>>>> get() = _lastSeenForEachUserEachGroupLiveData
+            LiveData<NetworkResult<Map<String, MutableMap<String, Long?>>>>
+        get() = _lastSeenForEachUserEachGroupLiveData
 
-    private fun fetchLastSeenTimeForEachUserInEachGroup(listOfGroupChatId: List<String>){
-        firestore.collectionGroup("GroupMembersLastSeenTime")
-            .get()
-            .addOnSuccessListener { querySnapshot ->
-                val lastSeenData = mutableMapOf<String, MutableList<Pair<String, Long?>>>()
 
-                for (doc in querySnapshot.documents) {
-                    val groupId = doc.reference.parent.parent?.id // Get the groupId from the parent document
+    suspend fun fetchLastSeenTimeForEachUserInEachGroup(
+        listOfGroupChatId: List<String>
+    ): NetworkResult<Map<String, MutableMap<String, Long?>>> {
+        return try {
+            val querySnapshot = firestore.collectionGroup("GroupMembersLastSeenTime").get().await()
+            val lastSeenData = mutableMapOf<String, MutableMap<String, Long?>>()
 
-                    if(groupId in listOfGroupChatId){
-                        val userId = doc.id
-                        val lastSeenTimestamp = doc.getTimestamp("lastSeenTime")
-                        val timestampInLong = UtilityFunctions.timestampToLong(lastSeenTimestamp)
+            for (doc in querySnapshot.documents) {
+                val groupId = doc.reference.parent.parent?.id // Get the groupId from the parent document
 
-                        groupId?.let {
-                            lastSeenData.getOrPut(groupId) { mutableListOf() }
-                                .add(userId to timestampInLong)
-                        }
+                if (groupId in listOfGroupChatId) {
+                    val userId = doc.id
+                    val lastSeenTimestamp = doc.getTimestamp("lastSeenTime")
+                    val timestampInLong = UtilityFunctions.timestampToLong(lastSeenTimestamp)
+
+                    groupId?.let {
+                        lastSeenData.getOrPut(groupId) { mutableMapOf() }[userId] = timestampInLong
                     }
                 }
-                _lastSeenForEachUserEachGroupLiveData.postValue(ConsumableValue(NetworkResult.Success(lastSeenData)))
             }
-            .addOnFailureListener(){
-                _lastSeenForEachUserEachGroupLiveData.postValue(ConsumableValue(NetworkResult.Error(null, "Error: ${it.message}")))
-            }
+            LAST_SEEN_TIME_EACH_USER_EACH_GROUP = lastSeenData
+            NetworkResult.Success(lastSeenData)
+        } catch (e: Exception) {
+            NetworkResult.Error(null, "Error: ${e.message}")
+        }
     }
 
 
@@ -328,7 +333,9 @@ class ChatRepository @Inject constructor(
 
     suspend fun listenToGroupChatUpdates(listOfGroupChatId: List<String>) {
 
-        fetchLastSeenTimeForEachUserInEachGroup(listOfGroupChatId)      // The lines below will
+        // Just for knowledge if "fetchLastSeenTimeForEachUserInEachGroup" was here..
+        // fetchLastSeenTimeForEachUserInEachGroup(listOfGroupChatId)
+        // The lines below will
         // execute immediately and will not wait for this function to return because we are not
         // using "await()" in the above function, we are using "call-backs" i.e. onSuccessListener
 
@@ -706,7 +713,7 @@ class ChatRepository @Inject constructor(
                 // Creating Call object
                 callDocRef = callLog.document() // Auto-generate document ID
 
-                val newCall = Call(callDocRef.id, groupId, System.currentTimeMillis(), null,
+                val newCall = Call(callDocRef.id, groupId, UtilityFunctions.getTime(), null,
                     userId, userName, Constants.CALL.STATUS.ONGOING, Constants.CALL.TYPE.VOICE, hashMapOf())
 
                 callDocRef.set(newCall).await()
@@ -726,7 +733,7 @@ class ChatRepository @Inject constructor(
 
             // Add or update participant
             val newParticipant = CallParticipant(userId, userName,
-                userProfileImgUrl, System.currentTimeMillis(), muteOn = false, speakerOn = false,agoraUserId
+                userProfileImgUrl, UtilityFunctions.getTime(), muteOn = false, speakerOn = false,agoraUserId
             )
 
             participants[userId] = newParticipant
@@ -743,11 +750,13 @@ class ChatRepository @Inject constructor(
 
     suspend fun getLastCallMsg(groupId: String): NetworkResult<Boolean> {
         return try {
-            val lastMsgJob = CoroutineScope(Dispatchers.IO).async {
-                messagesDao.getLastMsgOfGivenType(groupId, Constants.MSG_TYPE.CALL)
-            }
+//            val lastMsgJob = CoroutineScope(Dispatchers.IO).async {
+//                messagesDao.getLastMsgOfGivenType(groupId, Constants.MSG_TYPE.CALL)
+//            }
+//
+//            val lastMsg = lastMsgJob.await()
+              val lastMsg = messagesDao.getLastMsgOfGivenType(groupId, Constants.MSG_TYPE.CALL)
 
-            val lastMsg = lastMsgJob.await()
             lastMsg?.let { msg ->
                 if (msg.message == INITIATED_A_CALL) {
                     NetworkResult.Success(true)

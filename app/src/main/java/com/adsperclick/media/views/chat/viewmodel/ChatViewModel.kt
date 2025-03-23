@@ -21,7 +21,9 @@ import com.adsperclick.media.views.chat.repository.ChatRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 
@@ -57,10 +59,12 @@ class ChatViewModel@Inject constructor(
             val syncUserJob = async { chatRepository.syncUser()}
             val syncTimeJob = async { chatRepository.syncDeviceTime()}
             val isAcceptableVersionJob = async{ chatRepository.isCurrentVersionAcceptable() }
+            val animationPlayTimer = async{ delay(2100) }
 
             val userObjectFromBackend = syncUserJob.await()
             val isAcceptableVersion = isAcceptableVersionJob.await()
             syncTimeJob.await()
+            animationPlayTimer.await()      // To make sure animation is also completed before we post result
 
             if(isAcceptableVersion.not()){
                 _userLiveData.postValue(ConsumableValue

@@ -13,6 +13,7 @@ import com.adsperclick.media.R
 import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.databinding.FragmentNotificationListingBinding
 import com.adsperclick.media.utils.Constants
+import com.adsperclick.media.utils.Constants.CURRENT_USER
 import com.adsperclick.media.utils.gone
 import com.adsperclick.media.views.chat.adapters.NotificationsPagingAdapter
 import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
@@ -94,7 +95,7 @@ class NotificationListingFragment : Fragment(), View.OnClickListener {
     }
 
     private fun updateLastNotificationSeenTime(){
-        chatViewModel.lastTimeWhenNotificationsWereLoaded = tokenManager.getUser()?.lastNotificationSeenTime ?: 0L
+        chatViewModel.lastTimeWhenNotificationsWereLoaded = CURRENT_USER?.lastNotificationSeenTime ?: 0L
         chatViewModel.updateLastNotificationSeenTime()
     }
 }

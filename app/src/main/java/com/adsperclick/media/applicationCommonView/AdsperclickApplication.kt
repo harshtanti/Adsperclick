@@ -1,6 +1,8 @@
 package com.adsperclick.media.applicationCommonView
 
 import android.app.Application
+import androidx.emoji2.bundled.BundledEmojiCompatConfig
+import androidx.emoji2.text.EmojiCompat
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.google.firebase.FirebaseApp
@@ -40,5 +42,11 @@ class AdsperclickApplication : Application() {
 
         appLifecycleObserver = AppLifecycleObserver()
         ProcessLifecycleOwner.get().lifecycle.addObserver(appLifecycleObserver)
+
+
+        // Initialize EmojiCompat with Bundled Configuration
+        val config = BundledEmojiCompatConfig(this)
+            .setReplaceAll(true) // Ensures emojis are replaced with compatible ones
+        EmojiCompat.init(config)
     }
 }

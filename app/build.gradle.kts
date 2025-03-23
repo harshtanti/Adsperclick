@@ -102,4 +102,9 @@ dependencies {
     implementation ("de.hdodenhof:circleimageview:3.1.0")
 
     implementation ("com.airbnb.android:lottie:6.1.0")
+
+    implementation ("androidx.emoji2:emoji2:1.3.0") // Latest EmojiCompat Library
+    implementation ("androidx.emoji2:emoji2-views:1.3.0") // Support for EditText & TextView
+    implementation ("androidx.emoji2:emoji2-bundled:1.3.0") // Bundled Emoji support
+
 }

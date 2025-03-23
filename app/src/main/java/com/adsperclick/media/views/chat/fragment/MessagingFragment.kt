@@ -1,19 +1,27 @@
 package com.adsperclick.media.views.chat.fragment
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.content.res.Resources
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import android.text.method.ScrollingMovementMethod
+import android.view.KeyEvent
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -29,21 +37,18 @@ import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.Constants.CLICKED_GROUP
 import com.adsperclick.media.utils.Constants.LAST_SEEN_GROUP_TIME
 import com.adsperclick.media.utils.Constants.MSG_TYPE.IMG_URL
+import com.adsperclick.media.utils.Constants.MSG_TYPE.MEDIATOR_ANNOUNCEMENT
 import com.adsperclick.media.utils.Constants.MSG_TYPE.PDF_DOC
 import com.adsperclick.media.utils.Constants.MSG_TYPE.VIDEO
+import com.adsperclick.media.utils.DialogUtils
 import com.adsperclick.media.utils.UtilityFunctions
 import com.adsperclick.media.utils.gone
 import com.adsperclick.media.utils.visible
 import com.adsperclick.media.views.chat.adapters.MessagesAdapter
 import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
-import com.airbnb.lottie.LottieCompositionFactory
-import com.airbnb.lottie.LottieDrawable
+import com.adsperclick.media.views.homeActivity.SharedHomeViewModel
 import com.google.firebase.database.ChildEventListener
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import java.io.File
 import javax.inject.Inject
@@ -54,6 +59,8 @@ class MessagingFragment : Fragment(),View.OnClickListener {
 
     lateinit var binding: FragmentMessagingBinding
     private val chatViewModel: ChatViewModel by viewModels()
+    private val sharedViewModel: SharedHomeViewModel by activityViewModels()
+    private var showCallDialog = true       // We only show it once
 
     @Inject
     lateinit var tokenManager: TokenManager
@@ -65,7 +72,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
     private lateinit var currentUser: User
     private var groupChat :GroupChatListingData? = null
     private lateinit var listofGroupMemberId: List<String>
-    private var idOfLastMsgInGroup : String?= null
+    private var lastMsgInGroup : Message?= null
     var lastTimeVisitedThisGroupTimestamp :Long?= null
 
     private val bottomSheetSelectables = arrayListOf(Constants.CLOSE_VISIBLE,Constants.HEADING_VISIBLE,Constants.CAMERA_VISIBLE,
@@ -80,7 +87,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
             }
 
         lastTimeVisitedThisGroupTimestamp = arguments?.getLong(LAST_SEEN_GROUP_TIME)
-        currentUser = tokenManager.getUser() ?: User()      // Empty "User" data-class if not found, everything is null by default
+        currentUser = sharedViewModel.userData ?: User()      // Empty "User" data-class if not found, everything is null by default
     }
 
     override fun onCreateView(
@@ -98,13 +105,6 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         setupAdapter()
         setUpListener()
         setupObservers()
-//        UtilityFunctions.setupLottieAnimation("calling.json", binding.includeTopBar.btnCallLottie) // Initialize Lottie animation for btnCallEnd
-
-//        val bottomNavView = binding.root
-//        bottomNavView.setOnApplyWindowInsetsListener { v, insets ->
-//            v.setPadding(0, 0, 0, 50)
-//            insets
-//        }
     }
 
     private fun setUpView(){
@@ -155,11 +155,13 @@ class MessagingFragment : Fragment(),View.OnClickListener {
     private fun setUpListener(){
 
         binding.includeTextSender.btnSendMsg.setOnClickListener(this)
-        binding.includeTextSender.btnCamera.setOnClickListener(this)
+        binding.includeTextSender.btnShareMedia.setOnClickListener(this)
+        binding.includeTextSender.btnEmoji.setOnClickListener(this)
         binding.includeTopBar.container.setOnClickListener(this)
         binding.includeTopBar.btnBack.setOnClickListener(this)
         binding.includeTopBar.btnCall.setOnClickListener(this)
         binding.includeTopBar.btnCallLottie.setOnClickListener(this)
+        binding.includeTopBar.btnVideoCall.setOnClickListener(this)
     }
 
     private fun setupObservers(){
@@ -184,9 +186,14 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         chatViewModel.messages.observe(viewLifecycleOwner) { response ->
 
             val oldLastMessagePosition = adapter.itemCount - 1
-            idOfLastMsgInGroup = response.lastOrNull()?.msgId
+            lastMsgInGroup = response.lastOrNull()
             chatViewModel.checkIfLastMsgRelatedToCall(response.lastOrNull())
-            adapter.submitList(response) {
+
+            val modifiedResponse = response.toMutableList().apply {
+                add(0, Constants.READING_MODE_MSG)
+            }.toList() // Convert back to List<T>
+
+            adapter.submitList(modifiedResponse) {
                 binding.rvChat.scrollToPosition(adapter.itemCount - 1)
 
                 // Ensure previous last message updates (To update the chat bubble of previous message
@@ -209,7 +216,6 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                             putString(Constants.TEMP_AGORA_TOKEN, response.data)
                         }
                         findNavController().navigate(R.id.action_messagingFragment_to_voiceCallFragment, bundle)
-                        Toast.makeText(context, "Token: ${response.data}", Toast.LENGTH_SHORT).show()
                     }
 
                     is NetworkResult.Error -> {
@@ -225,16 +231,11 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         chatViewModel.userLeftCallLiveData.observe(viewLifecycleOwner) { consumableValue ->
             consumableValue.handle { response->
                 when(response){
-                    is NetworkResult.Success ->{
-                        Toast.makeText(context, "User Left call!", Toast.LENGTH_SHORT).show()
-                    }
-
+                    is NetworkResult.Success ->{}
                     is NetworkResult.Error -> {
                         Toast.makeText(context, "Error : ${response.message}", Toast.LENGTH_SHORT).show()
                     }
-                    is NetworkResult.Loading -> {
-                        Toast.makeText(context, "Processing..", Toast.LENGTH_SHORT).show()
-                    }
+                    is NetworkResult.Loading -> {}
                 }
             }
         }
@@ -245,7 +246,9 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                     is NetworkResult.Success ->{
                         if(response.data == true){
                             handleCallIcon(true)
-                            Toast.makeText(context, "Call ongoing!", Toast.LENGTH_SHORT).show()
+                            if(showCallDialog && lastMsgInGroup?.senderId != currentUser.userId){
+                                showJoinCallDialog()
+                            }
                         } else handleCallIcon(false)
                     }
 
@@ -258,8 +261,6 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                 }
             }
         }
-
-
     }
 
     private fun checkCallPermissions(callback: (Boolean) -> Unit) {
@@ -391,9 +392,16 @@ class MessagingFragment : Fragment(),View.OnClickListener {
 
     override fun onPause() {
         super.onPause()
+
+        currentUser.userId?.let { userId->
+            sharedViewModel.lastSeenTimeForEachUserEachGroup?.get(groupChat?.groupId.toString())?.set(userId,
+                UtilityFunctions.getTime()
+            )
+        }
+
         groupChat?.let { gc->
             gc.listOfUsers?.let {listOfGroupMembers->
-                idOfLastMsgInGroup?.let { idOfLastMsg ->
+                lastMsgInGroup?.msgId?.let{ idOfLastMsg ->
                     gc.groupId?.let { groupId ->
                         currentUser.userId?.let {userId->
                             chatViewModel.updateLastReadMsg(groupId, idOfLastMsg, userId, listOfGroupMembers)
@@ -402,6 +410,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                 }
             }
         }
+
     }
 
     override fun onDestroyView() {
@@ -414,9 +423,22 @@ class MessagingFragment : Fragment(),View.OnClickListener {
 
 
     override fun onClick(v: View?) {
-        when(v){
+        val imm = v?.context?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
 
-            binding.includeTextSender.btnCamera ->{
+        when(v){
+            binding.includeTextSender.btnEmoji ->{
+                with(binding.includeTextSender){
+                    etTypeMessage.requestFocus()
+                    imm.showSoftInput(etTypeMessage, InputMethodManager.SHOW_IMPLICIT)
+
+                    // Simulate pressing the emoji key (works on Gboard)
+                    val event = KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_LANGUAGE_SWITCH)
+                    etTypeMessage.dispatchKeyEvent(event)
+                }
+            }
+
+
+            binding.includeTextSender.btnShareMedia ->{
                 val bottomSheet = UploadImageDocsBottomSheet.createBottomsheet(
                     uploadOnSelectListener, bottomSheetSelectables,"Send")
                 bottomSheet.show(childFragmentManager, bottomSheet.tag)
@@ -448,18 +470,11 @@ class MessagingFragment : Fragment(),View.OnClickListener {
             }
 
             binding.includeTopBar.btnCall, binding.includeTopBar.btnCallLottie ->{
-                // Check permissions first before attempting to get token or navigate
-                checkCallPermissions { permissionsGranted ->
-                    if (permissionsGranted) {
-                        // Permissions are granted, proceed with call
-                        groupChat?.let { groupData ->
-                            currentUser.let { userData ->
-                                chatViewModel.getAgoraCallToken(groupData, userData)
-                            }
-                        }
-                    }
-                    // If permissions not granted, the checkCallPermissions function will handle showing dialogs
-                }
+                joinCall()
+            }
+
+            binding.includeTopBar.btnVideoCall ->{
+                Toast.makeText(context, "Feature unavailabe", Toast.LENGTH_SHORT).show()
             }
 
 //            binding.includeTopBar.btnCallEnd ->{
@@ -512,6 +527,11 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                 return
             }
 
+            if(message.msgType == MEDIATOR_ANNOUNCEMENT) {
+                Toast.makeText(context, "Clicked announcement!", Toast.LENGTH_SHORT).show()
+                return
+            }
+
             val fileName = if(message.msgType == IMG_URL) "Image" else "Video"
             // Navigate to preview fragment
             val bundle = Bundle().apply {
@@ -552,6 +572,51 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                 putExtra("pdf_url", downloadUrl)
             }
             startActivity(intent)
+        }
+    }
+
+    private fun showJoinCallDialog() {
+        val dialogListener = object : DialogUtils.DialogButtonClickListener {
+            override fun onPositiveButtonClickedData(data: String) {
+
+            }
+
+            override fun onPositiveButtonClicked() {
+                joinCall()
+            }
+
+            override fun onNegativeButtonClicked() {
+
+            }
+
+            override fun onCloseButtonClicked() {
+
+            }
+        }
+
+        DialogUtils.showDeleteDetailsDialog(
+            requireContext(),
+            dialogListener,
+            getString(R.string.call_in_progress),
+            getString(R.string.yes_join),
+            getString(R.string.no_join)
+        )
+
+        showCallDialog = false
+    }
+
+    fun joinCall(){
+        // Check permissions first before attempting to get token or navigate
+        checkCallPermissions { permissionsGranted ->
+            if (permissionsGranted) {
+                // Permissions are granted, proceed with call
+                groupChat?.let { groupData ->
+                    currentUser.let { userData ->
+                        chatViewModel.getAgoraCallToken(groupData, userData)
+                    }
+                }
+            }
+            // If permissions not granted, the checkCallPermissions function will handle showing dialogs
         }
     }
 

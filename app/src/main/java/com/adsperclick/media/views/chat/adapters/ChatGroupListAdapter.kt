@@ -1,9 +1,11 @@
 package com.adsperclick.media.views.chat.adapters
 
 import android.content.res.ColorStateList
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.adsperclick.media.R
@@ -23,10 +25,14 @@ import com.adsperclick.media.utils.Constants.SPACE
 import com.adsperclick.media.utils.Constants.Time.ONE_HOUR
 import com.adsperclick.media.utils.Constants.Time.TWO_HOUR
 import com.adsperclick.media.utils.UtilityFunctions
+import com.adsperclick.media.utils.gone
+import com.adsperclick.media.utils.visible
 
 
-
-class ChatGroupListAdapter(val onGroupChatClickListener: OnGroupChatClickListener, val currentTime : Long) :        // If "currentTime" parameter is "-1" we won't show any ring
+// If "currentTime" parameter is "-1" we won't show any ring
+class ChatGroupListAdapter(val onGroupChatClickListener: OnGroupChatClickListener,
+                           val currentTime : Long, val userId: String,
+                           val lastSeenTimeForEachUserEachGroup : Map<String, Map<String, Long?>>?) :
     ListAdapter<GroupChatListingData, ChatGroupListAdapter.GroupChatListViewHolder>(DiffUtil())
 {
     interface OnGroupChatClickListener{
@@ -79,21 +85,11 @@ class ChatGroupListAdapter(val onGroupChatClickListener: OnGroupChatClickListene
                 tvLastMsgDateTime.text = lastMsgTime
             }
 
-            chatGroup.groupImgUrl?.let { imageUrl ->
-                UtilityFunctions.loadChatListingImgWithGlide(
-                    binding.imgProfileDp.context,
-                    binding.imgProfileDp,
-                    imageUrl
-                )
-            } ?: run {
-                UtilityFunctions.setInitialsDrawable(
-                    binding.imgProfileDp,
-                    chatGroup.groupName
-                )
-            }
 
+            setGroupDP(chatGroup)
             // Handling rings around group-Dp
             handleRingColors(chatGroup)
+            readStatus(chatGroup)
 
             binding.root.setOnClickListener {
                 onGroupChatClickListener.onItemClick(chatGroup)
@@ -132,6 +128,39 @@ class ChatGroupListAdapter(val onGroupChatClickListener: OnGroupChatClickListene
             binding.imgProfileDp.strokeColor = ColorStateList.valueOf(
                 ContextCompat.getColor(binding.imgProfileDp.context, R.color.white)
             )
+        }
+
+        private fun readStatus(chatGroup: GroupChatListingData){
+            val userLastSeenTime = lastSeenTimeForEachUserEachGroup?.get(chatGroup.groupId)?.get(userId) ?: 0L
+            val lastMsgSentTime = chatGroup.lastSentMsg?.timestamp ?: userLastSeenTime
+            msgSeenStatus(userLastSeenTime >= lastMsgSentTime)
+        }
+
+        fun msgSeenStatus(hasUserSeenLastMsg : Boolean){
+            if(hasUserSeenLastMsg){
+                binding.icBlueDot.gone()
+                binding.tvLastMsgDateTime.typeface = ResourcesCompat.getFont(binding.tvLastMsgDateTime.context, R.font.inter_300)
+                binding.tvLastMsgDateTime.setTextColor(Color.parseColor("#666666"))
+            } else{
+                binding.icBlueDot.visible()
+                binding.tvLastMsgDateTime.typeface = ResourcesCompat.getFont(binding.tvLastMsgDateTime.context, R.font.inter_500)
+                binding.tvLastMsgDateTime.setTextColor(Color.parseColor("#2196F3"))
+            }
+        }
+
+        fun setGroupDP(chatGroup: GroupChatListingData){
+            chatGroup.groupImgUrl?.let { imageUrl ->
+                UtilityFunctions.loadChatListingImgWithGlide(
+                    binding.imgProfileDp.context,
+                    binding.imgProfileDp,
+                    imageUrl
+                )
+            } ?: run {
+                UtilityFunctions.setInitialsDrawable(
+                    binding.imgProfileDp,
+                    chatGroup.groupName
+                )
+            }
         }
     }
 

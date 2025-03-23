@@ -87,8 +87,8 @@
             android:layout_height="wrap_content"
             app:cardCornerRadius="8dp"
             app:cardElevation="0dp"
-            app:cardBackgroundColor="#F2F2F2"
-            tools:visibility="gone"
+            android:backgroundTint="@color/white"
+            tools:visibility="visible"
             android:visibility="gone"
             app:layout_constraintStart_toStartOf="@+id/tvSenderNameOutgoing"
             app:layout_constraintTop_toBottomOf="@+id/tvSenderNameOutgoing">
@@ -106,7 +106,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    tools:src="@drawable/ic_image" />
+                    tools:src="@drawable/call_end_24px" />
 
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/mediaFileName"
@@ -121,7 +121,7 @@
                     app:layout_constraintStart_toEndOf="@+id/mediaTypeIcon"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    tools:text="image_001.jpg" />
+                    tools:text="Ended the call" />
 
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/mediaFileSize"
@@ -133,7 +133,7 @@
                     android:textSize="12dp"
                     app:layout_constraintStart_toEndOf="@+id/mediaTypeIcon"
                     app:layout_constraintTop_toBottomOf="@+id/mediaFileName"
-                    tools:text="1.2 MB" />
+                    tools:text="11:43 PM" />
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.cardview.widget.CardView>
 
@@ -182,7 +182,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:visibility="gone"
-            tools:visibility="visible"
+            tools:visibility="gone"
             app:constraint_referenced_ids="cardImgContainer, tvTimeOutgoingInsideImg"
             />
 

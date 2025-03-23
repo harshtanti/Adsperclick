@@ -43,13 +43,27 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="5dp"
             android:fontFamily="@font/inter_400"
-            android:textColor="@color/Black_4"
-            android:textSize="@dimen/SP25"
-            android:maxLines="2"
-            app:layout_constraintBottom_toBottomOf="@+id/imgProfileDp"
+            android:textColor="@color/black"
+            android:textSize="@dimen/SP18"
+            android:singleLine="true"
+            android:ellipsize="end"
             app:layout_constraintStart_toEndOf="@id/imgProfileDp"
             app:layout_constraintTop_toTopOf="@+id/imgProfileDp"
             tools:text="Group Name" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tv_group_info"
+            android:layout_width="@dimen/DP0"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/inter_400"
+            android:textColor="@color/Black_3"
+            android:textSize="@dimen/SP12"
+            android:singleLine="true"
+            android:layout_marginStart="@dimen/DP2"
+            android:ellipsize="end"
+            android:text="Tap to see group info"
+            app:layout_constraintStart_toStartOf="@id/tv_group_name"
+            app:layout_constraintTop_toBottomOf="@+id/tv_group_name" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -59,7 +73,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="@dimen/DP10"
         android:backgroundTint="@color/transparent"
-        android:src="@drawable/call_filled_blue"
+        android:src="@drawable/call_24px"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -70,10 +84,20 @@
         android:layout_height="55dp"
         android:layout_marginEnd="@dimen/DP10"
         android:visibility="gone"
-        tools:visibility="visible"
         android:backgroundTint="@color/transparent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/btnCall"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/btnVideoCall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/DP0"
+        android:backgroundTint="@color/transparent"
+        android:src="@drawable/videocam_24px"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btnCallLottie"
         app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

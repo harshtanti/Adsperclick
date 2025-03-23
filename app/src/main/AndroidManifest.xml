@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission
         android:name="android.permission.CAPTURE_AUDIO_OUTPUT"
@@ -31,23 +32,17 @@
         tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.MEDIA_S" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-
-
-    <!--Optional permissions-->
-    <uses-permission android:name="android.permission.BLUETOOTH"/>
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
-    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
-    <uses-permission android:name="android.permission.BLUETOOTH_SCAN"/>
-
-    <!-- Foreground service permissions -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" /> <!-- Optional permissions -->
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" /> <!-- Foreground service permissions -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.MANAGE_OWN_CALLS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
     <application
@@ -61,6 +56,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Adsperclick"
         tools:targetApi="31">
+
         <activity
             android:name=".views.chat.fragment.PdfWebViewActivity"
             android:exported="false" />
@@ -79,17 +75,22 @@
             android:name=".views.homeActivity.HomeActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+
         <activity
-            android:name=".views.login.MainActivity"
-            android:exported="true"
-            android:theme="@style/Theme.Adsperclick.StartingScreen"
-            android:windowSoftInputMode="adjustResize">
+            android:name=".views.splashActivity.SplashActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".views.login.MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Adsperclick"
+            android:windowSoftInputMode="adjustResize" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -100,11 +101,12 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
         <service
             android:name=".services.VoiceCallService"
             android:enabled="true"
-            android:foregroundServiceType="phoneCall|mediaPlayback|microphone"
-            android:exported="false" />
+            android:exported="false"
+            android:foregroundServiceType="phoneCall|mediaPlayback|microphone" />
     </application>
 
 </manifest>

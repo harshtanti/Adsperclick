@@ -11,10 +11,15 @@ import com.adsperclick.media.R
 import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.Message
 import com.adsperclick.media.databinding.ChatMsgItemIncomingBinding
+import com.adsperclick.media.databinding.ChatMsgItemMediatorAnnouncementBinding
 import com.adsperclick.media.databinding.ChatMsgItemOutgoingBinding
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.Constants.ENDED_THE_CALL
 import com.adsperclick.media.utils.Constants.INITIATED_A_CALL
+import com.adsperclick.media.utils.Constants.MSG_TYPE.IMG_URL
+import com.adsperclick.media.utils.Constants.MSG_TYPE.MEDIATOR_ANNOUNCEMENT
+import com.adsperclick.media.utils.Constants.MSG_TYPE.PDF_DOC
+import com.adsperclick.media.utils.Constants.MSG_TYPE.VIDEO
 import com.adsperclick.media.utils.Constants.ROLE.CLIENT
 import com.adsperclick.media.utils.Constants.TXT_MSG_TYPE.FIRST_MSG_BY_CURRENT_USER
 import com.adsperclick.media.utils.Constants.TXT_MSG_TYPE.FIRST_MSG_LEFT
@@ -74,8 +79,71 @@ class MessagesAdapter(private val currentUserId: String,
         @SuppressLint("SetTextI18n")
         fun bind(message: Message, msgRelativePosition: Int) {
 
-            val formattedDate = formatMessageTimestamp(message.timestamp!!)
-            var isExtraMarginRequired =false
+            val formattedDate = formatMessageTimestamp(message.timestamp ?: 0L)
+
+            // drawable for binding.mediaTypeIcon        // used for call-msg, video-msg, pdf-msg
+            val drawable = when(message.msgType){
+                Constants.MSG_TYPE.CALL -> {
+                    when(message.message){
+                        INITIATED_A_CALL -> R.drawable.ic_call_ongoing_drawable_start
+                        ENDED_THE_CALL -> R.drawable.call_end_24px
+                        else -> 0
+                    }
+                }
+                Constants.MSG_TYPE.VIDEO -> R.drawable.black_video
+                Constants.MSG_TYPE.PDF_DOC -> R.drawable.black_pdf
+                else -> 0
+            }
+
+            val chatBubbleBackground = when(msgRelativePosition){
+                SINGLE_MSG_BY_CURRENT_USER -> R.drawable.bubble_single_msg_blue
+                FIRST_MSG_BY_CURRENT_USER -> R.drawable.bubble_first_msg_blue
+                MIDDLE_MSG_BY_CURRENT_USER -> R.drawable.bubble_middle_msg_blue
+                LAST_MSG_BY_CURRENT_USER -> R.drawable.bubble_last_msg_blue
+
+                SINGLE_MSG_RIGHT -> R.drawable.bubble_single_msg_dark_grey
+                FIRST_MSG_RIGHT  -> R.drawable.bubble_first_msg_dark_grey_right
+                MIDDLE_MSG_RIGHT  -> R.drawable.bubble_middle_msg_dark_grey_right
+                LAST_MSG_RIGHT  -> R.drawable.bubble_last_msg_dark_grey_right
+
+                SINGLE_MSG_LEFT  -> R.drawable.bubble_single_msg_grey
+                FIRST_MSG_LEFT  -> R.drawable.bubble_first_msg_grey_left
+                MIDDLE_MSG_LEFT -> R.drawable.bubble_middle_msg_grey_left
+                LAST_MSG_LEFT  -> R.drawable.bubble_last_msg_grey_left
+                else -> 0
+            }
+
+            val marginValue = when{
+                dateStamp != null || showUnreadStamp -> 10
+
+                else -> {
+                    when(msgRelativePosition){
+                        SINGLE_MSG_BY_CURRENT_USER -> 10
+                        FIRST_MSG_BY_CURRENT_USER -> 10
+                        MIDDLE_MSG_BY_CURRENT_USER -> 0
+                        LAST_MSG_BY_CURRENT_USER -> 0
+
+                        SINGLE_MSG_RIGHT -> 10
+                        FIRST_MSG_RIGHT  -> 10
+                        MIDDLE_MSG_RIGHT  -> 0
+                        LAST_MSG_RIGHT  -> 0
+
+                        SINGLE_MSG_LEFT  -> 10
+                        FIRST_MSG_LEFT  -> 10
+                        MIDDLE_MSG_LEFT -> 0
+                        LAST_MSG_LEFT  -> 0
+                        else -> 0
+                    }
+                }
+            }
+
+            val rootLayoutParams = binding.root.layoutParams as ViewGroup.MarginLayoutParams
+            fun dpToPx(dp: Int): Int {
+                val scale = binding.root.context.resources.displayMetrics.density
+                return (dp * scale + 0.5f).toInt()
+            }
+
+            val margin = dpToPx(marginValue)
 
             when (binding) {
                 is ChatMsgItemIncomingBinding -> {
@@ -84,12 +152,10 @@ class MessagesAdapter(private val currentUserId: String,
                         dateStamp?.let {
                             tvDateStamp.visible()
                             tvDateStamp.text = it
-                            isExtraMarginRequired =true
                         }?: run{tvDateStamp.gone()}
                         if(showUnreadStamp){
                             binding.tvUnread.visible()
                             showUnreadStamp = false
-                            isExtraMarginRequired =true
                         } else {binding.tvUnread.gone()}
 
 
@@ -119,7 +185,6 @@ class MessagesAdapter(private val currentUserId: String,
                             mediaFileSize.text = formattedDate       // We'll show date in this tv
                         }
 
-
                         when(message.msgType){
                             Constants.MSG_TYPE.TEXT -> setupText()
 
@@ -138,22 +203,20 @@ class MessagesAdapter(private val currentUserId: String,
 
                             Constants.MSG_TYPE.VIDEO -> {
                                 setupDocAndVideo()
-                                binding.mediaTypeIcon.setImageResource(R.drawable.ic_image)
                                 binding.mediaFileName.text = "Video"
                             }
 
                             Constants.MSG_TYPE.PDF_DOC -> {
                                 setupDocAndVideo()
-                                binding.mediaTypeIcon.setImageResource(R.drawable.ic_image)
                                 binding.mediaFileName.text = "Document"
                             }
 
                             Constants.MSG_TYPE.CALL -> {
                                 setupDocAndVideo()
-                                binding.mediaTypeIcon.setImageResource(R.drawable.call_end_24px)
                                 binding.mediaFileName.text = message.message
                             }
                         }
+                        binding.mediaTypeIcon.setImageResource(drawable)
 
 
 
@@ -165,32 +228,8 @@ class MessagesAdapter(private val currentUserId: String,
                             tvSenderName.gone()
                         }
 
-                        val rootLayoutParams = root.layoutParams as ViewGroup.MarginLayoutParams
-
-                        fun dpToPx(dp: Int): Int {
-                            val scale = root.context.resources.displayMetrics.density
-                            return (dp * scale + 0.5f).toInt()
-                        }
-
-                        when(msgRelativePosition){
-                            FIRST_MSG_LEFT -> {
-                                viewIncomingMsgs.setBackgroundResource(R.drawable.bubble_first_msg_grey_left)
-                                rootLayoutParams.topMargin = dpToPx(8)  // Extra margin for entire item
-                            }
-                            MIDDLE_MSG_LEFT -> {
-                                viewIncomingMsgs.setBackgroundResource(R.drawable.bubble_middle_msg_grey_left)
-                                rootLayoutParams.topMargin = dpToPx(if(isExtraMarginRequired) 10 else 0)  // Extra margin for entire item
-
-                            }
-                            LAST_MSG_LEFT -> {
-                                viewIncomingMsgs.setBackgroundResource(R.drawable.bubble_last_msg_grey_left)
-                                rootLayoutParams.topMargin = dpToPx(if(isExtraMarginRequired) 10 else 0)  // Extra margin for entire item
-                            }
-                            SINGLE_MSG_LEFT -> {
-                                viewIncomingMsgs.setBackgroundResource(R.drawable.bubble_single_msg_grey)
-                                rootLayoutParams.topMargin = dpToPx(8)  // Extra margin for entire item
-                            }
-                        }
+                        viewIncomingMsgs.setBackgroundResource(chatBubbleBackground)
+                        rootLayoutParams.topMargin = margin
                     }
                 }
 
@@ -199,12 +238,10 @@ class MessagesAdapter(private val currentUserId: String,
                         dateStamp?.let {
                             tvDateStamp.visible()
                             tvDateStamp.text = it
-                            isExtraMarginRequired = true
                         } ?: run{tvDateStamp.gone()}
 
                         if(showUnreadStamp){
                             binding.tvUnread.visible()
-                            isExtraMarginRequired = true
                             showUnreadStamp = false
                         } else {binding.tvUnread.gone()}
 
@@ -235,8 +272,6 @@ class MessagesAdapter(private val currentUserId: String,
                             mediaFileSize.text = formattedDate              // We'll show date in this tv
                         }
 
-
-                        var drawable = 0
                         when(message.msgType){
                             Constants.MSG_TYPE.TEXT -> setupText()
 
@@ -255,23 +290,16 @@ class MessagesAdapter(private val currentUserId: String,
 
                             Constants.MSG_TYPE.VIDEO -> {
                                 setupDocAndVideo()
-                                drawable = R.drawable.ic_image
                                 binding.mediaFileName.text = "Video"
                             }
 
                             Constants.MSG_TYPE.PDF_DOC -> {
                                 setupDocAndVideo()
-                                drawable = R.drawable.ic_image
                                 binding.mediaFileName.text = "Document"
                             }
 
                             Constants.MSG_TYPE.CALL -> {
                                 setupDocAndVideo()
-                                drawable = when(message.message){
-                                    INITIATED_A_CALL -> R.drawable.ic_call_ongoing_drawable_start
-                                    ENDED_THE_CALL -> R.drawable.ic_call_end
-                                    else -> 0
-                                }
                                 binding.mediaFileName.text = message.message
                             }
                         }
@@ -296,56 +324,20 @@ class MessagesAdapter(private val currentUserId: String,
                         textMessageOutgoing.setTextColor(textColor)
                         tvTimeOutgoing.setTextColor(textColor)
 
-
-
-                        val rootLayoutParams = root.layoutParams as ViewGroup.MarginLayoutParams
-                        fun dpToPx(dp: Int): Int {
-                            val scale = root.context.resources.displayMetrics.density
-                            return (dp * scale + 0.5f).toInt()
-                        }
-
-                        when (msgRelativePosition) {
-                            FIRST_MSG_BY_CURRENT_USER -> {
-                                viewOutgoingMsgs.setBackgroundResource(R.drawable.bubble_first_msg_blue)
-                                rootLayoutParams.topMargin = dpToPx(8)  // Extra margin for entire item
-                            }
-                            MIDDLE_MSG_BY_CURRENT_USER -> {
-                                viewOutgoingMsgs.setBackgroundResource(R.drawable.bubble_middle_msg_blue)
-                                rootLayoutParams.topMargin = dpToPx(if(isExtraMarginRequired) 10 else 0)  // Extra margin for entire item
-                            }
-                            LAST_MSG_BY_CURRENT_USER -> {
-                                viewOutgoingMsgs.setBackgroundResource(R.drawable.bubble_last_msg_blue)
-                                rootLayoutParams.topMargin = dpToPx(if(isExtraMarginRequired) 10 else 0)  // Extra margin for entire item
-                            }
-                            SINGLE_MSG_BY_CURRENT_USER -> {
-                                viewOutgoingMsgs.setBackgroundResource(R.drawable.bubble_single_msg_blue)
-                                rootLayoutParams.topMargin = dpToPx(8)  // Extra margin for entire item
-                            }
-
-                            FIRST_MSG_RIGHT -> {
-                                viewOutgoingMsgs.setBackgroundResource(R.drawable.bubble_first_msg_dark_grey_right)
-                                rootLayoutParams.topMargin = dpToPx(8)  // Extra margin for entire item
-                            }
-                            MIDDLE_MSG_RIGHT-> {
-                                viewOutgoingMsgs.setBackgroundResource(R.drawable.bubble_middle_msg_dark_grey_right)
-                                rootLayoutParams.topMargin = dpToPx(if(isExtraMarginRequired) 10 else 0)  // Extra margin for entire item
-                            }
-                            LAST_MSG_RIGHT-> {
-                                viewOutgoingMsgs.setBackgroundResource(R.drawable.bubble_last_msg_dark_grey_right)
-                                rootLayoutParams.topMargin = dpToPx(if(isExtraMarginRequired) 10 else 0)  // Extra margin for entire item
-                            }
-                            SINGLE_MSG_RIGHT -> {
-                                viewOutgoingMsgs.setBackgroundResource(R.drawable.bubble_single_msg_dark_grey)
-                                rootLayoutParams.topMargin = dpToPx(8)  // Extra margin for entire item
-                            }
-                        }
+                        viewOutgoingMsgs.setBackgroundResource(chatBubbleBackground)
+                        rootLayoutParams.topMargin = margin
                     }
+                }
+
+                is ChatMsgItemMediatorAnnouncementBinding -> {
+                    /*binding.tvAnnouncement.vis()*/
                 }
             }
 
 
+            val clickableMsgTypes= listOf(IMG_URL, VIDEO, PDF_DOC, MEDIATOR_ANNOUNCEMENT)
 
-            if(message.msgType != Constants.MSG_TYPE.TEXT)
+            if(message.msgType in clickableMsgTypes)
             {
                 binding.root.setOnClickListener{
                     onMessageClickListener.onItemClick(message)
@@ -359,6 +351,7 @@ class MessagesAdapter(private val currentUserId: String,
         val binding = when (viewType) {
             VIEW_TYPE_INCOMING -> ChatMsgItemIncomingBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             VIEW_TYPE_OUTGOING -> ChatMsgItemOutgoingBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            VIEW_TYPE_MEDIATOR_ANNOUNCEMENT -> ChatMsgItemMediatorAnnouncementBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             else -> throw IllegalArgumentException("Invalid view type")
         }
         return ChatAdapterViewHolder(binding)
@@ -375,7 +368,9 @@ class MessagesAdapter(private val currentUserId: String,
     override fun getItemViewType(position: Int): Int {
         val message = getItem(position)
 
-        return if (message.senderId == currentUserId                // Current user should be on right
+        return if(message.msgType == MEDIATOR_ANNOUNCEMENT) {
+            VIEW_TYPE_MEDIATOR_ANNOUNCEMENT         // For announcements by developer (Here for Reading mode message)
+        } else if (message.senderId == currentUserId                // Current user should be on right
             || (isClientOnRight && message.senderRole == CLIENT)    // client should be on right and current user is client
             || (!isClientOnRight && message.senderRole != CLIENT)) {        // only client should be on left and current
             VIEW_TYPE_OUTGOING                                      // user is not client, so current on right
@@ -384,7 +379,7 @@ class MessagesAdapter(private val currentUserId: String,
         }
     }
 
-    fun setPosition(message: Message, prevMsg:Message?, nextMsg:Message?): Int{
+    private fun setPosition(message: Message, prevMsg:Message?, nextMsg:Message?): Int{
 
         val isPrevMsgBySameSender = prevMsg?.let {
             it.senderId == message.senderId
@@ -457,5 +452,6 @@ class MessagesAdapter(private val currentUserId: String,
     companion object {
         private const val VIEW_TYPE_INCOMING = 1
         private const val VIEW_TYPE_OUTGOING = 2
+        private const val VIEW_TYPE_MEDIATOR_ANNOUNCEMENT= 3
     }
 }

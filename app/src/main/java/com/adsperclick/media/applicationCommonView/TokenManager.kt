@@ -7,6 +7,7 @@ import com.adsperclick.media.utils.Constants.IS_USER_SIGNED_IN
 import com.adsperclick.media.utils.Constants.TOKEN_FOR_PREFS
 import com.adsperclick.media.utils.Constants.USER_IDENTITY
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
@@ -20,6 +21,7 @@ class TokenManager @Inject constructor(@ApplicationContext context : Context) {
         // Above line is to convert "User" class object into a string, when getting, we'll reconvert
         // the string to the "User" class object, this is serialization and deserialization ;)
 
+        Constants.CURRENT_USER = user
         with(prefs.edit()){
             putString(USER_IDENTITY, jsonString)
             putBoolean(IS_USER_SIGNED_IN, true)
@@ -49,6 +51,7 @@ class TokenManager @Inject constructor(@ApplicationContext context : Context) {
     }
 
     fun signOut(){
+        Constants.CURRENT_USER = null
         with(prefs.edit()){
             putBoolean(IS_USER_SIGNED_IN, false)
             remove(USER_IDENTITY)       // Remove stored user's details
@@ -57,14 +60,11 @@ class TokenManager @Inject constructor(@ApplicationContext context : Context) {
     }
 
     fun setServerMinusDeviceTime(timeDiff : Long){
+        Constants.SERVER_MINUS_DEVICE_TIME_LONG = timeDiff
         with(prefs.edit()){
             putLong(Constants.SERVER_MINUS_DEVICE_TIME, timeDiff)
             apply()
         }
-    }
-
-    fun getServerMinusDeviceTime(): Long{
-        return prefs.getLong(Constants.SERVER_MINUS_DEVICE_TIME, 0)
     }
 
 }

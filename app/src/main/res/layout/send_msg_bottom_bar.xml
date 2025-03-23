@@ -2,43 +2,68 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="70dp"
-    android:background="#f5f5f5"
-    >
+    android:layout_height="wrap_content"
+    android:paddingBottom="10dp"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="#f5f5f5">
 
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/btnEmoji"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginStart="@dimen/DP10"
+        android:background="@drawable/et_send_text_drawable"
+        android:gravity="bottom"
+        android:paddingStart="@dimen/DP1"
+        android:paddingBottom="@dimen/DP10"
+        android:src="@drawable/add_reaction_24px"
+        android:scaleType="fitEnd"
+        app:layout_constraintBottom_toBottomOf="@+id/etTypeMessage"
+        app:layout_constraintEnd_toStartOf="@+id/etTypeMessage"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/etTypeMessage"
+        app:layout_constraintVertical_bias="0.45" />
 
     <EditText
         android:id="@+id/etTypeMessage"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginEnd="5dp"
+        android:layout_marginTop="@dimen/DP5"
         android:background="@drawable/et_send_text"
-        android:drawableStart="@drawable/plus_royal_blue"
-        android:drawablePadding="4dp"
-        android:hint="Type a message.."
-        android:padding="10dp"
         android:focusable="true"
         android:focusableInTouchMode="true"
+        android:hint="Type a message.."
+        tools:text = "Testing Multiline text\nLine-2\nLine-3\nLarge text that could span across multiple lines :)"
+        android:inputType="textMultiLine"
+        android:padding="10dp"
         android:textColor="@color/Black_4"
         android:textColorHint="@color/Black_7"
         android:textSize="19sp"
+        android:maxLines="5"
+        android:scrollbars="vertical"
+        android:overScrollMode="never"
+        android:gravity="start|top"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/btnCamera"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintEnd_toStartOf="@+id/btnShareMedia"
+        app:layout_constraintStart_toEndOf="@+id/btnEmoji"
+        app:layout_constraintTop_toTopOf="parent"/>
 
-    <ImageButton
-        android:id="@+id/btnCamera"
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/btnShareMedia"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:scaleType="center"
-        android:layout_marginHorizontal="@dimen/DP12"
-        android:background="@color/transparent"
-        android:src="@drawable/blue_photo_camera"
+        android:layout_height="0dp"
+        android:background="@drawable/et_send_text_drawable_end"
+        android:paddingEnd="@dimen/DP7"
+        android:paddingBottom="@dimen/DP10"
+        android:src="@drawable/attach_file_24px"
+        android:scaleType="fitEnd"
+        android:layout_marginEnd="@dimen/DP5"
         app:layout_constraintBottom_toBottomOf="@+id/etTypeMessage"
         app:layout_constraintEnd_toStartOf="@+id/btnSendMsg"
+        app:layout_constraintStart_toEndOf="@+id/etTypeMessage"
         app:layout_constraintTop_toTopOf="@+id/etTypeMessage" />
+
+
 
     <ImageButton
         android:id="@+id/btnSendMsg"
@@ -50,7 +75,7 @@
         android:src="@drawable/btn_send_svg"
         app:layout_constraintBottom_toBottomOf="@+id/etTypeMessage"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/etTypeMessage" />
+        />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
