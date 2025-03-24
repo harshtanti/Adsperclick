@@ -21,7 +21,7 @@ data class User(
     val associationDate : String? = null,
     val mobileNo : String? = null,
     var fcmTokenListOfDevices : List<String> ? = null,
-    val lastNotificationSeenTime : Long ?= null,
+    var lastNotificationSeenTime : Long ?= null,
     val userPhoneNumber : String ?= null,
     val agoraUserId : Int ?= null
 ){

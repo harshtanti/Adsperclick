@@ -7,12 +7,12 @@
 
     <style name="Theme.Adsperclick" parent="Base.Theme.Adsperclick" />
 
-    <style name="Theme.Adsperclick.StartingScreen" parent="Theme.SplashScreen">
+<!--    <style name="Theme.Adsperclick.StartingScreen" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/white</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/baseline_bedroom_baby_24</item>
         <item name="windowSplashScreenAnimationDuration">300</item>
         <item name="postSplashScreenTheme">@style/Base.Theme.Adsperclick</item>
-    </style>
+    </style>-->
 
 
     <style name="fab_3_rounded">
@@ -108,6 +108,17 @@
         <item name="android:fontFamily">@font/inter_600</item>
         <item name="android:textColor">@color/Black_5</item>
         <item name="android:background">@drawable/bg_datestamp</item>
+        <item name="android:paddingVertical">4dp</item>
+        <item name="android:paddingHorizontal">@dimen/DP12</item>
+    </style>
+
+    <style name="tv_msg_announcement">
+        <item name="android:textSize">12sp</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">@font/inter_600</item>
+        <item name="android:textColor">@color/DarkGreen</item>
+        <item name="android:background">@drawable/bg_msg_announcement</item>
         <item name="android:paddingVertical">4dp</item>
         <item name="android:paddingHorizontal">@dimen/DP12</item>
     </style>

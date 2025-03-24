@@ -76,7 +76,9 @@
     <string name="profile">Profile</string>
     <string name="are_you_sure_you_want_to_end_this_call">Are you sure you want to end this call?</string>
     <string name="yes_end">Yes, End Call</string>
-
+    <string name="yes_join">Yes, Join</string>
+    <string name="no_join">No</string>
+    <string name="call_in_progress">A call is in progress. Join now to listen"</string>
 
 
 </resources>

@@ -11,6 +11,8 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.viewModels
+import androidx.navigation.NavController
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.NavHostFragment
 import com.adsperclick.media.R
 import com.adsperclick.media.applicationCommonView.TokenManager
@@ -27,27 +29,23 @@ import javax.inject.Inject
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    @Inject
-    lateinit var tokenManager : TokenManager
 
-    private var dataIsLoading = true
-
-    private val chatViewModel : ChatViewModel by viewModels()
-
+//    private var dataIsLoading = true
+    private lateinit var navController: NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Keep splash screen visible until we explicitly dismiss it
-        val splashScreen = installSplashScreen()
-        Log.d("skt", "Intent Extras OnCreate: ${intent?.extras}")
-
-
-        // Set a condition for keeping the splash screen visible
-        splashScreen.setKeepOnScreenCondition {
-            // Return true to keep splash screen, false to dismiss
-            return@setKeepOnScreenCondition dataIsLoading
-        }
+//        // Keep splash screen visible until we explicitly dismiss it
+//        val splashScreen = installSplashScreen()
+//        Log.d("skt", "Intent Extras OnCreate: ${intent?.extras}")
+//
+//
+//        // Set a condition for keeping the splash screen visible
+//        splashScreen.setKeepOnScreenCondition {
+//            // Return true to keep splash screen, false to dismiss
+//            return@setKeepOnScreenCondition dataIsLoading
+//        }
 
 
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -59,58 +57,8 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        checkUserSession()
-        setupObserver()
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_activity_main) as NavHostFragment
+        navController = navHostFragment.navController
+
     }
-
-    private fun checkUserSession(){
-        if(tokenManager.isUserSignedIn()){
-            chatViewModel.syncUser()
-        } else{
-            // For non-signed in users, dismiss splash screen and stay on login page
-            dataIsLoading = false
-        }
-    }
-
-
-    fun setupObserver(){
-        chatViewModel.userLiveData.observe(this){consumableValue->
-
-            consumableValue.handle {response->
-
-                when(response){
-                    is NetworkResult.Success ->{
-                        dataIsLoading = false       // To dismiss splash screen
-
-                        if(response.data?.blocked == true){
-                            chatViewModel.signOut()
-                        } else{
-                            changeActivity()
-                        }
-                    }
-                    is NetworkResult.Loading->{}
-                    is NetworkResult.Error->{
-                        Toast.makeText(this@MainActivity, "${response.message}", Toast.LENGTH_LONG).show()
-                        Log.d("skt", "Error: ${response.message}")
-                    }
-                }
-            }
-        }
-    }
-
-    private fun changeActivity(){
-        Log.d("skt", "Intent Extras: ${intent?.extras}")
-        val groupId = intent?.getStringExtra(ID_OF_GROUP_TO_OPEN) // Ensure we check the existing intent
-        Log.d("skt", "Received Group ID: $groupId")
-
-        val homeIntent = Intent(this, HomeActivity::class.java).apply {
-            if (!groupId.isNullOrEmpty()) {
-                putExtra(ID_OF_GROUP_TO_OPEN, groupId)
-            }
-        }
-
-        startActivity(homeIntent)
-        finish() // To Finish this MainActivity(LOGIN ACTIVITY) So that user can't come back to Login page using back-navigation
-    }
-
 }

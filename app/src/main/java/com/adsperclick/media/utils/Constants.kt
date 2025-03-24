@@ -2,10 +2,16 @@ package com.adsperclick.media.utils
 
 import android.Manifest
 import android.os.Build
-import android.provider.MediaStore.Video
+import com.adsperclick.media.data.dataModels.Message
 import com.adsperclick.media.data.dataModels.Service
+import com.adsperclick.media.data.dataModels.User
+import com.adsperclick.media.utils.Constants.MSG_TYPE.MEDIATOR_ANNOUNCEMENT
 
 object Constants {
+
+    var CURRENT_USER : User?= null
+    var SERVER_MINUS_DEVICE_TIME_LONG : Long = 0L
+    var LAST_SEEN_TIME_EACH_USER_EACH_GROUP : Map<String, MutableMap<String, Long?>> ? = null
 
     const val TOKEN_FOR_PREFS = "token_prefs"
     const val USER_IDENTITY = "user_identity"
@@ -53,7 +59,12 @@ object Constants {
         const val VIDEO = 240
         const val DOCUMENT= 320
         const val CALL = 360
+        const val MEDIATOR_ANNOUNCEMENT = 400
     }
+
+    val READING_MODE_MSG  = Message("alpha",
+        "To Read older messages enter reading mode by tapping here",
+        msgType = MEDIATOR_ANNOUNCEMENT)
 
 
     const val CLICKED_GROUP = "Jis group ko click kia"

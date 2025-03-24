@@ -40,6 +40,14 @@ import android.util.TypedValue
 import android.webkit.MimeTypeMap
 import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.data.dataModels.GroupChatListingData
+import com.adsperclick.media.utils.Constants.SERVER_MINUS_DEVICE_TIME_LONG
+import com.airbnb.lottie.LottieAnimationView
+import com.airbnb.lottie.LottieCompositionFactory
+import com.airbnb.lottie.LottieDrawable
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.nio.file.Files
 import java.nio.file.Paths
 import javax.inject.Inject
@@ -47,8 +55,9 @@ import kotlin.math.absoluteValue
 
 object UtilityFunctions {
 
-//    @Inject
-//    lateinit var tokenManger : TokenManager
+    fun getTime(): Long{
+        return SERVER_MINUS_DEVICE_TIME_LONG + System.currentTimeMillis()
+    }
 
     // Generate drawable with initials (For people/group-chats
     // which don't have profile-pictures, there name initials
@@ -523,4 +532,23 @@ object UtilityFunctions {
         val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
         return capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) || capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
     }
+
+
+    fun setupLottieAnimation(assetName: String, lottieView: LottieAnimationView, speed: Float = 1f, repeatCount: Int = LottieDrawable.INFINITE) {
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                val result = withContext(Dispatchers.IO) {
+                    LottieCompositionFactory.fromAssetSync(lottieView.context, assetName)
+                }
+
+                result.value?.let { composition ->
+                    lottieView.setComposition(composition)
+                    lottieView.repeatCount =  repeatCount
+                    lottieView.speed = speed
+                    lottieView.playAnimation()
+                }
+            } catch (e: Exception) { e.printStackTrace() }
+        }
+    }
+
 }

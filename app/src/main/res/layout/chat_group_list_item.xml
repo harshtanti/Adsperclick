@@ -53,11 +53,22 @@
         android:text="You: Let's have a chat"
         android:drawablePadding="5dp"
         android:textColor="@color/Black_7"
-        android:textSize="@dimen/SP15"
+        android:textSize="@dimen/SP14"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/icBlueDot"
         app:layout_constraintStart_toStartOf="@+id/tvGroupName"
         app:layout_constraintTop_toBottomOf="@+id/tvGroupName" />
+
+    <ImageView
+        android:id="@+id/icBlueDot"
+        android:layout_width="14dp"
+        android:layout_height="14dp"
+        android:src="@drawable/ic_blue_dot"
+        app:layout_constraintEnd_toEndOf="@id/tvLastMsgDateTime"
+        app:layout_constraintStart_toStartOf="@id/tvLastMsgDateTime"
+        app:layout_constraintTop_toTopOf="@+id/tvLastMsg"
+        app:layout_constraintBottom_toBottomOf="@+id/tvLastMsg"
+        />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/tvLastMsgDateTime"

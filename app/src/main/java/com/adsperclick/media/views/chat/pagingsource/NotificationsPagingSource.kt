@@ -5,6 +5,10 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.adsperclick.media.data.dataModels.NotificationMsg
 import com.adsperclick.media.utils.Constants
+import com.adsperclick.media.utils.Constants.ROLE.CLIENT
+import com.adsperclick.media.utils.Constants.ROLE.EMPLOYEE
+import com.adsperclick.media.utils.Constants.CURRENT_USER
+import com.adsperclick.media.utils.Constants.ROLE.ADMIN
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
@@ -23,7 +27,17 @@ class NotificationsPagingSource @Inject constructor(private val db: FirebaseFire
 
     override suspend fun load(params: LoadParams<QuerySnapshot>): LoadResult<QuerySnapshot, NotificationMsg> {
         return try {
+            val sentToList = mutableListOf(Constants.SEND_TO.BOTH)
+            when(CURRENT_USER?.role){
+                CLIENT, EMPLOYEE -> sentToList.add(CURRENT_USER?.role ?: EMPLOYEE)
+                ADMIN -> {
+                    sentToList.add(CLIENT)
+                    sentToList.add(EMPLOYEE)
+                }
+            }
+
             val query = db.collection(Constants.DB.NOTIFICATIONS)
+                .whereIn("sentTo", sentToList)
                 .orderBy("timestamp", Query.Direction.DESCENDING) // Newest first
                 .limit(params.loadSize.toLong())
 

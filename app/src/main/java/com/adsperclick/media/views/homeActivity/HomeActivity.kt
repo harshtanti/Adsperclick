@@ -8,12 +8,14 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.NavHostFragment
@@ -24,6 +26,10 @@ import com.adsperclick.media.databinding.ActivityHomeBinding
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.Constants.FCM.ID_OF_GROUP_TO_OPEN
 import com.adsperclick.media.utils.Constants.GROUP_ID
+import com.adsperclick.media.utils.Constants.LAST_SEEN_TIME_EACH_USER_EACH_GROUP
+import com.adsperclick.media.utils.gone
+import com.adsperclick.media.utils.visible
+import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -33,6 +39,8 @@ class HomeActivity : AppCompatActivity() {
     // fragment-container for navigation across all fragments
     lateinit var binding: ActivityHomeBinding
     private var isAdmin=false
+
+    private val sharedViewModel: SharedHomeViewModel by viewModels()
 
     private lateinit var navController: NavController
 
@@ -50,7 +58,12 @@ class HomeActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        isAdmin = tokenManager.getUser()?.role == Constants.ROLE.ADMIN
+
+        sharedViewModel.idOfGroupToOpen = intent?.getStringExtra(ID_OF_GROUP_TO_OPEN)
+        sharedViewModel.userData = tokenManager.getUser()
+        sharedViewModel.lastSeenTimeForEachUserEachGroup = LAST_SEEN_TIME_EACH_USER_EACH_GROUP
+
+        isAdmin = sharedViewModel.userData?.role == Constants.ROLE.ADMIN
         if (!isAdmin) {
             binding.bottomNavigation.menu.removeItem(R.id.navigation_user) // Hides "User"
         }
@@ -61,14 +74,10 @@ class HomeActivity : AppCompatActivity() {
             if (destination.id == R.id.navigation_chat ||
                 destination.id == R.id.navigation_user ||
                 destination.id == R.id.navigation_setting) {
-                binding.bottomNavigation.visibility = View.VISIBLE
+                binding.bottomNavigation.visible()
             } else {
-                binding.bottomNavigation.visibility = View.GONE
+                binding.bottomNavigation.gone()
             }
-        }
-
-        intent?.let {
-            handleIntent(it)
         }
 
         controlBottomPadding()
@@ -102,36 +111,5 @@ class HomeActivity : AppCompatActivity() {
             }
         }
     }
-
-    override fun onNewIntent(intent: Intent?) {
-        super.onNewIntent(intent)
-        // Handle new intent if the activity is already running
-        intent?.let {
-            handleIntent(it)
-        }
-    }
-
-    private fun handleIntent(intent: Intent) {
-        val groupId = intent.getStringExtra(ID_OF_GROUP_TO_OPEN)
-        if (!groupId.isNullOrEmpty()) {
-            Log.d("HomeActivity", "Navigating to ChatFragment with groupId: $groupId")
-
-            val bundle = Bundle().apply {
-                putString(ID_OF_GROUP_TO_OPEN, groupId)
-            }
-
-            // Ensure we don't create duplicate instances of ChatFragment
-
-            val navOptions = NavOptions.Builder()
-                .setPopUpTo(R.id.navigation_chat, true) // Removes any existing ChatFragment
-                .build()
-
-            navController.navigate(R.id.navigation_chat, bundle, navOptions)
-        }
-    }
-
-
-
 }
-
 
