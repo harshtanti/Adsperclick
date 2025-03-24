@@ -3,6 +3,8 @@ package com.adsperclick.media.views.chat.fragment
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -16,6 +18,7 @@ import com.adsperclick.media.data.dataModels.CommonData
 import com.adsperclick.media.databinding.FragmentSelectUserCommonBinding
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.showToast
+import com.adsperclick.media.utils.toTitleCase
 import com.adsperclick.media.views.chat.adapters.SelectUserCommonAdapter
 import com.adsperclick.media.views.chat.viewmodel.NewGroupViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -76,24 +79,37 @@ class SelectUserCommonFragment : Fragment() {
     }
 
     private fun setUpSearching(){
-        binding.etSearchBar.addTextChangedListener { text ->
-            handler.removeCallbacksAndMessages(null) // Remove previous callbacks
-            val query = text.toString().trim() // Trim spaces
+        binding.etSearchBar.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            }
 
-            when {
-                query.isNotEmpty() && query.length >= 3 -> {
-                    handler.postDelayed({
-                        observeUsers(query, tabName)
-                    }, 500) // Delay search by 500ms
-                }
-                query.isEmpty() && query.length < 3 -> {
-                    observeUsers(Constants.EMPTY, tabName) // Reset list if input is empty
-                }
-                else -> {
-                    context?.showToast("Search must have at least 3 characters") // Show min char message
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+                handler.removeCallbacksAndMessages(null) // Remove previous callbacks
+                val query = s.toString().trim().toTitleCase() // Trim spaces
+
+                when {
+                    query.isNotEmpty() && query.length >= 3 -> {
+                        handler.postDelayed({
+                            observeUsers(query, tabName)
+                        }, 200) // Delay search by 200ms
+                        binding.etSearchBar.error = null
+                    }
+                    query.isNotEmpty() && query.length < 3 -> {
+                        binding.etSearchBar.error = "Search must have at least 3 characters"
+                    }
+                    query.isEmpty() -> {
+                        observeUsers(Constants.EMPTY, tabName)
+                        binding.etSearchBar.error = null
+                    }
+                    else -> {
+
+                    }
                 }
             }
-        }
+        })
     }
 
     private fun observeUsers(searchTxt:String,tabName:String) {

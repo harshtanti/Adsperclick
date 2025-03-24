@@ -27,6 +27,7 @@ import android.text.TextWatcher
 import android.widget.Toast
 import androidx.core.widget.doAfterTextChanged
 import com.adsperclick.media.data.dataModels.NetworkResult
+import com.adsperclick.media.utils.toTitleCase
 
 private const val ARG_PARAM1 = "param1"
 
@@ -174,27 +175,6 @@ class CommonFragment : Fragment(), View.OnClickListener {
     }
 
     private fun setUpSearching(){
-        /*binding.etSearchBar.doAfterTextChanged { text ->
-            handler.removeCallbacksAndMessages(null) // Remove previous callbacks
-            val query = text.toString().trim() // Trim spaces
-
-            when {
-                query.isNotEmpty() && query.length >= 3 -> {
-                    handler.postDelayed({
-                        collectUiData(query, tabName)
-                    }, 200) // Delay search by 200ms
-                }
-                query.length == 2 -> {
-                    collectUiData(Constants.EMPTY, tabName) // Reset list if input is empty
-                }
-                query.isEmpty() -> {
-                    context?.showToast("Search must have at least 3 characters")
-                }
-                else -> {
-
-                }
-            }
-        }*/
         binding.etSearchBar.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
             }
@@ -204,7 +184,7 @@ class CommonFragment : Fragment(), View.OnClickListener {
 
             override fun afterTextChanged(s: Editable?) {
                 handler.removeCallbacksAndMessages(null) // Remove previous callbacks
-                val query = s.toString().trim() // Trim spaces
+                val query = s.toString().trim().toTitleCase() // Trim spaces
 
                 when {
                     query.isNotEmpty() && query.length >= 3 -> {
