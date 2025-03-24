@@ -82,7 +82,8 @@ class ApiServiceImpl @Inject constructor(
             val company = Company(
                 companyId = companyId,
                 companyName = data.companyName,
-                gstNumber = data.gstNumber
+                gstNumber = data.gstNumber,
+                listOfServices = data.listOfServices
             )
 
             newCompanyRef.set(company).await()
@@ -144,60 +145,6 @@ class ApiServiceImpl @Inject constructor(
         }
     }
 
-    /*override suspend fun createGroup(data: GroupChatListingData): NetworkResult<GroupChatListingData> {
-
-        return try {
-            val groupCollection = FirebaseFirestore.getInstance().collection("groups")
-
-            // Step 1: Check if a group with the same groupName, associatedServiceId, and associatedService exists
-            val query = groupCollection
-                .whereEqualTo("groupName", data.groupName)
-                .whereEqualTo("associatedServiceId", data.associatedServiceId)
-                .whereEqualTo("associatedService", data.associatedService)
-                .get()
-                .await()
-
-            if (query.isEmpty) {
-                // Step 2: If no such group exists, create the group document
-                val groupRef = groupCollection.document()  // Generates a new document ID
-                val groupId = groupRef.id  // Get the auto-generated group ID
-
-                // Step 3: Update the group data with the generated groupId
-                val groupData = data.copy(groupId = groupId)
-
-                // Step 4: Save the updated group data in Firestore
-                groupRef.set(groupData).await()
-
-                // Step 5: Update each user's listOfGroupsAssigned with the new groupId
-                val userCollection = FirebaseFirestore.getInstance().collection("users")
-
-                data.listOfUsers?.forEach { userPair ->
-                    val userId = userPair.userId  // Extract userId
-
-                    val userRef = userCollection.document(userId)
-                    userRef.get().await().toObject(User::class.java)?.let { user ->
-                        val updatedGroups = user.listOfGroupsAssigned?.toMutableList() ?: mutableListOf()
-                        if (!updatedGroups.contains(groupId)) {
-                            updatedGroups.add(groupId)
-                        }
-
-                        // Step 6: Update user document with new groupId
-                        userRef.update("listOfGroupsAssigned", updatedGroups).await()
-                    }
-                }
-
-                // Step 7: Return success if everything went well
-                NetworkResult.Success(groupData)
-            } else {
-                // Step 8: Return error if a group with the same name and service already exists
-                NetworkResult.Error(null, "A group with this name and service already exists.")
-            }
-
-        } catch (e: Exception) {
-            // Step 9: Handle any errors that occur
-            NetworkResult.Error(null, e.message ?: "Group Creation failed")
-        }
-    }*/
 
     override suspend fun createGroup(data: GroupChatListingData, file: File): NetworkResult<Boolean> {
         return try {

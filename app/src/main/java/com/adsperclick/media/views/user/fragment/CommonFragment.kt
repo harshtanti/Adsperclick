@@ -27,6 +27,7 @@ import android.text.TextWatcher
 import android.widget.Toast
 import androidx.core.widget.doAfterTextChanged
 import com.adsperclick.media.data.dataModels.NetworkResult
+import com.adsperclick.media.utils.toTitleCase
 
 private const val ARG_PARAM1 = "param1"
 
@@ -183,7 +184,7 @@ class CommonFragment : Fragment(), View.OnClickListener {
 
             override fun afterTextChanged(s: Editable?) {
                 handler.removeCallbacksAndMessages(null) // Remove previous callbacks
-                val query = s.toString().trim() // Trim spaces
+                val query = s.toString().trim().toTitleCase() // Trim spaces
 
                 when {
                     query.isNotEmpty() && query.length >= 3 -> {

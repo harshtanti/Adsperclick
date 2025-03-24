@@ -6,7 +6,7 @@
     android:paddingStart="@dimen/DP10"
     android:paddingBottom="@dimen/DP10"
     android:paddingEnd="@dimen/DP10"
-    android:background="@color/white"
+    android:background="@color/white_bottomsheet"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <com.google.android.material.imageview.ShapeableImageView
@@ -28,6 +28,7 @@
         android:layout_marginTop="@dimen/DP10"
         android:gravity="center"
         android:text="@string/profile_photo"
+        android:fontFamily="@font/inter_400"
         android:textColor="@color/black"
         android:textSize="@dimen/SP23"
         android:visibility="gone"
@@ -52,19 +53,20 @@
         android:id="@+id/btn_camera"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="@color/white"
         android:layout_marginTop="@dimen/DP20"
         android:visibility="gone"
-        app:cardCornerRadius="@dimen/DP8"
+        app:cardCornerRadius="@dimen/DP12"
         app:cardElevation="@dimen/DP1"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/btn_close"
         app:layout_constraintEnd_toStartOf="@id/btn_gallery"
         tools:visibility="visible">
         <com.google.android.material.imageview.ShapeableImageView
-            android:layout_width="@dimen/DP30"
-            android:layout_height="@dimen/DP30"
-            android:layout_margin="@dimen/DP10"
-            android:background="@drawable/blue_photo_camera"
+            android:layout_width="@dimen/DP25"
+            android:layout_height="@dimen/DP25"
+            android:layout_margin="@dimen/DP12"
+            android:background="@drawable/photo_camera_fill_pink"
             android:scaleType="centerInside"/>
     </androidx.cardview.widget.CardView>
 
@@ -74,7 +76,9 @@
         android:layout_height="wrap_content"
         android:text="Camera"
         android:textSize="@dimen/SP12"
-        android:textColor="@color/Gray"
+        android:layout_marginTop="@dimen/DP4"
+        android:fontFamily="@font/inter_400"
+        android:textColor="@color/grey_bottomsheet"
         android:textStyle="bold"
         app:layout_constraintTop_toBottomOf="@id/btn_camera"
         app:layout_constraintStart_toStartOf="@id/btn_camera"
@@ -84,19 +88,20 @@
         android:id="@+id/btn_gallery"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="@color/white"
         android:layout_marginTop="@dimen/DP20"
         android:visibility="gone"
-        app:cardCornerRadius="@dimen/DP8"
+        app:cardCornerRadius="@dimen/DP12"
         app:cardElevation="@dimen/DP1"
         app:layout_constraintStart_toEndOf="@id/btn_camera"
         app:layout_constraintTop_toBottomOf="@id/btn_close"
         app:layout_constraintEnd_toStartOf="@id/btn_doc"
         tools:visibility="visible">
         <com.google.android.material.imageview.ShapeableImageView
-            android:layout_width="@dimen/DP30"
-            android:layout_height="@dimen/DP30"
-            android:layout_margin="@dimen/DP10"
-            android:background="@drawable/blue_image"
+            android:layout_width="@dimen/DP25"
+            android:layout_height="@dimen/DP25"
+            android:layout_margin="@dimen/DP12"
+            android:background="@drawable/photo_library_fill_blue"
             android:scaleType="centerInside"/>
     </androidx.cardview.widget.CardView>
 
@@ -106,7 +111,9 @@
         android:layout_height="wrap_content"
         android:text="Gallery"
         android:textSize="@dimen/SP12"
-        android:textColor="@color/Gray"
+        android:layout_marginTop="@dimen/DP4"
+        android:fontFamily="@font/inter_400"
+        android:textColor="@color/grey_bottomsheet"
         android:textStyle="bold"
         app:layout_constraintTop_toBottomOf="@id/btn_gallery"
         app:layout_constraintStart_toStartOf="@id/btn_gallery"
@@ -117,19 +124,20 @@
         android:id="@+id/btn_doc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="@color/white"
         android:layout_marginTop="@dimen/DP20"
         android:visibility="gone"
-        app:cardCornerRadius="@dimen/DP8"
+        app:cardCornerRadius="@dimen/DP12"
         app:cardElevation="@dimen/DP1"
         app:layout_constraintEnd_toStartOf="@id/btn_video"
         app:layout_constraintStart_toEndOf="@id/btn_gallery"
         app:layout_constraintTop_toBottomOf="@id/btn_close"
         tools:visibility="visible">
         <com.google.android.material.imageview.ShapeableImageView
-            android:layout_width="@dimen/DP30"
-            android:layout_height="@dimen/DP30"
-            android:layout_margin="@dimen/DP10"
-            android:background="@drawable/blue_pdf"
+            android:layout_width="@dimen/DP25"
+            android:layout_height="@dimen/DP25"
+            android:layout_margin="@dimen/DP12"
+            android:background="@drawable/document_fill_purple"
             android:scaleType="centerInside"
             />
 
@@ -141,7 +149,9 @@
         android:layout_height="wrap_content"
         android:text="Document"
         android:textSize="@dimen/SP12"
-        android:textColor="@color/Gray"
+        android:layout_marginTop="@dimen/DP4"
+        android:fontFamily="@font/inter_400"
+        android:textColor="@color/grey_bottomsheet"
         android:textStyle="bold"
         app:layout_constraintTop_toBottomOf="@id/btn_doc"
         app:layout_constraintStart_toStartOf="@id/btn_doc"
@@ -151,21 +161,22 @@
 
     <androidx.cardview.widget.CardView
         android:id="@+id/btn_video"
+        android:background="@color/white"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/DP20"
         android:visibility="gone"
-        app:cardCornerRadius="@dimen/DP8"
+        app:cardCornerRadius="@dimen/DP12"
         app:cardElevation="@dimen/DP1"
         app:layout_constraintStart_toEndOf="@id/btn_doc"
         app:layout_constraintTop_toBottomOf="@id/btn_close"
         app:layout_constraintEnd_toEndOf="parent"
         tools:visibility="visible">
         <com.google.android.material.imageview.ShapeableImageView
-            android:layout_width="@dimen/DP30"
-            android:layout_height="@dimen/DP30"
-            android:layout_margin="@dimen/DP10"
-            android:background="@drawable/blue_video"
+            android:layout_width="@dimen/DP25"
+            android:layout_height="@dimen/DP25"
+            android:layout_margin="@dimen/DP12"
+            android:background="@drawable/ic_videocam_fill_orange"
             android:scaleType="centerInside"
             />
     </androidx.cardview.widget.CardView>
@@ -175,8 +186,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Video"
+        android:layout_marginTop="@dimen/DP4"
+        android:fontFamily="@font/inter_400"
         android:textSize="@dimen/SP12"
-        android:textColor="@color/Gray"
+        android:textColor="@color/grey_bottomsheet"
         android:textStyle="bold"
         app:layout_constraintTop_toBottomOf="@id/btn_video"
         app:layout_constraintStart_toStartOf="@id/btn_video"

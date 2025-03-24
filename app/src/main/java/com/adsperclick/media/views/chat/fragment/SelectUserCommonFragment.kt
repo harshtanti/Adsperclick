@@ -18,6 +18,7 @@ import com.adsperclick.media.data.dataModels.CommonData
 import com.adsperclick.media.databinding.FragmentSelectUserCommonBinding
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.showToast
+import com.adsperclick.media.utils.toTitleCase
 import com.adsperclick.media.views.chat.adapters.SelectUserCommonAdapter
 import com.adsperclick.media.views.chat.viewmodel.NewGroupViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -87,7 +88,7 @@ class SelectUserCommonFragment : Fragment() {
 
             override fun afterTextChanged(s: Editable?) {
                 handler.removeCallbacksAndMessages(null) // Remove previous callbacks
-                val query = s.toString().trim() // Trim spaces
+                val query = s.toString().trim().toTitleCase() // Trim spaces
 
                 when {
                     query.isNotEmpty() && query.length >= 3 -> {
