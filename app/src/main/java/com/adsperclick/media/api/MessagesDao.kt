@@ -17,11 +17,14 @@ interface MessagesDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     /*suspend */fun insertMessageList(messages: List<Message>)/* :Int*/
 
-    @Query("SELECT * FROM messages WHERE groupId = :roomId ORDER BY timestamp ASC")
-    fun getChatsForThisRoom(roomId: String) : LiveData<List<Message>>
+    @Query("SELECT * FROM messages WHERE groupId = :groupId ORDER BY timestamp DESC LIMIT :limit")
+    fun getChatsForThisGroup(groupId: String, limit: Int) : LiveData<List<Message>>
 
     @Query("DELETE FROM messages")
     fun clearAllMessages()
+
+    @Query("SELECT * FROM messages WHERE groupId = :groupId ORDER BY timestamp DESC LIMIT :limit OFFSET :offset")
+    fun getSpecifiedMessages(groupId: String, limit :Int, offset: Int): List<Message>?
 
 
     // Below function is used when user enters a group-chat, it checks timestamp of last message

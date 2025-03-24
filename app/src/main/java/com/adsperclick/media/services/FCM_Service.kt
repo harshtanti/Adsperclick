@@ -1,17 +1,14 @@
 package com.adsperclick.media.services
 
-import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.content.res.ResourcesCompat
@@ -25,23 +22,12 @@ import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.Constants.FCM.BASIC_NOTIFICATION
 import com.adsperclick.media.utils.Constants.FCM.CHANNEL_ID
 import com.adsperclick.media.utils.Constants.FCM.ID_OF_GROUP_TO_OPEN
-import com.adsperclick.media.utils.Constants.GROUP_ID
 import com.adsperclick.media.utils.Constants.FCM.ITS_A_BROADCAST_NOTIFICATION
-import com.adsperclick.media.utils.Constants.FCM.NOTIFICATION_ID
-import com.adsperclick.media.utils.Constants.FCM.NOTIFICATION_WITH_BIG_PICTURE_STYLE
-import com.adsperclick.media.utils.Constants.FCM.NOTIFICATION_WITH_INBOX_STYLE
-import com.adsperclick.media.utils.Constants.FCM.NOTIFICATION_WITH_INTENT_TO_GO_TO_SECOND_ACTIVITY
-import com.adsperclick.media.utils.Constants.MSG_TYPE.IMG_URL
-import com.adsperclick.media.utils.Constants.MSG_TYPE.PDF_DOC
-import com.adsperclick.media.utils.Constants.MSG_TYPE.VIDEO
-import com.adsperclick.media.views.homeActivity.HomeActivity
-import com.adsperclick.media.views.login.MainActivity
 import com.adsperclick.media.views.login.repository.AuthRepository
 import com.adsperclick.media.views.splashActivity.SplashActivity
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
-import com.google.api.ResourceProto.resource
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import dagger.hilt.android.AndroidEntryPoint
@@ -130,8 +116,11 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
         nm.createNotificationChannel(channel)
 
         // Default small icon
-        val drawable = ResourcesCompat.getDrawable(resources, R.drawable.notifications_24px, null)
+        val drawable = ResourcesCompat.getDrawable(resources, R.drawable.ecomm_chat_app_icon, null)
         val defaultBitmap = (drawable as? BitmapDrawable)?.bitmap
+
+        val largeIcon = (ResourcesCompat.getDrawable(resources, R.drawable.ecomm_chat_app_icon, null) as BitmapDrawable).bitmap
+
 
         // Group key for this specific chat group
         val groupKey = when (groupId) {
@@ -157,7 +146,8 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
 
         // Build the notification
         val summaryNotificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.notifications_24px)
+            .setSmallIcon(R.drawable.ecomm_chat_app_icon)
+            .setLargeIcon(largeIcon)
             .setGroup(groupKey)
             .setGroupSummary(true)
             .setAutoCancel(true)
@@ -216,7 +206,7 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
                 .setStyle(inboxStyle)
         }
 
-        // **For Non-Image Notifications, Show Immediately**
+        // **For Non-Image Notifications, Show Immediately** // for images it is asynchronous glide process it's handled above
         if (msgType != Constants.MSG_TYPE.IMG_URL) {
             nm.notify(groupKey.hashCode(), summaryNotificationBuilder.build())
         }

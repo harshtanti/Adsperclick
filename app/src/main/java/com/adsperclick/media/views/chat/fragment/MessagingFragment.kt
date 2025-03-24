@@ -5,11 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
-import android.content.res.Resources
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
-import android.text.method.ScrollingMovementMethod
 import android.view.KeyEvent
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -20,7 +16,6 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -34,12 +29,15 @@ import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.databinding.FragmentMessagingBinding
 import com.adsperclick.media.utils.Constants
+import com.adsperclick.media.utils.Constants.BOTTOM_MOST_MSG
 import com.adsperclick.media.utils.Constants.CLICKED_GROUP
 import com.adsperclick.media.utils.Constants.LAST_SEEN_GROUP_TIME
+import com.adsperclick.media.utils.Constants.LIMIT_MSGS
 import com.adsperclick.media.utils.Constants.MSG_TYPE.IMG_URL
 import com.adsperclick.media.utils.Constants.MSG_TYPE.MEDIATOR_ANNOUNCEMENT
 import com.adsperclick.media.utils.Constants.MSG_TYPE.PDF_DOC
 import com.adsperclick.media.utils.Constants.MSG_TYPE.VIDEO
+import com.adsperclick.media.utils.Constants.TOP_MOST_MSG
 import com.adsperclick.media.utils.DialogUtils
 import com.adsperclick.media.utils.UtilityFunctions
 import com.adsperclick.media.utils.gone
@@ -61,6 +59,8 @@ class MessagingFragment : Fragment(),View.OnClickListener {
     private val chatViewModel: ChatViewModel by viewModels()
     private val sharedViewModel: SharedHomeViewModel by activityViewModels()
     private var showCallDialog = true       // We only show it once
+
+    var loadingBottomMsgs = false
 
     @Inject
     lateinit var tokenManager: TokenManager
@@ -128,8 +128,15 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         }
 
         groupChat?.groupId?.let { groupId->
-            chatViewModel.setGroupId(groupId)   // Group Id is set, "messages" live-data gets active, and it starts listening for realtime updates in room-db, realtime room-db updates are sent to adapter via observer here
-            chatViewModel.fetchAllNewMessages(groupId)      // To fetch all the unread messages for this group in one single go!
+            sharedViewModel.pageNo?.let {
+                turnOnReadingMode()
+
+            } ?: run{
+                chatViewModel.setGroupId(groupId)   // Group Id is set, "messages" live-data gets active,
+                // and it starts listening for realtime updates in room-db, realtime room-db updates are sent to adapter via observer here
+                chatViewModel.fetchAllNewMessages(groupId)      // To fetch all the unread messages for this group in one single go!
+            }
+
             chatViewModel.isCallOngoing(groupId)
         }
 
@@ -145,7 +152,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         binding.rvChat.adapter = adapter
         binding.rvChat.layoutManager = LinearLayoutManager(requireContext()).apply {
             stackFromEnd = true
-            /*reverseLayout = true*/  // Reverse layout for better pagination
+            /*reverseLayout = true */ // Reverse layout for better pagination
         }
         adapter.updateLastVisitedTimestamp(lastTimeVisitedThisGroupTimestamp)
     }
@@ -162,6 +169,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         binding.includeTopBar.btnCall.setOnClickListener(this)
         binding.includeTopBar.btnCallLottie.setOnClickListener(this)
         binding.includeTopBar.btnVideoCall.setOnClickListener(this)
+        binding.includeTextSender.btnGoToRecentMsgs.setOnClickListener(this)
     }
 
     private fun setupObservers(){
@@ -183,22 +191,72 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         }
 
         // To update adapter with new messages, whenever Room-DB is updated
-        chatViewModel.messages.observe(viewLifecycleOwner) { response ->
+        chatViewModel.messages.observe(viewLifecycleOwner) { consumableValue->
 
-            val oldLastMessagePosition = adapter.itemCount - 1
-            lastMsgInGroup = response.lastOrNull()
-            chatViewModel.checkIfLastMsgRelatedToCall(response.lastOrNull())
+            consumableValue.handle {response ->
 
-            val modifiedResponse = response.toMutableList().apply {
-                add(0, Constants.READING_MODE_MSG)
-            }.toList() // Convert back to List<T>
+                val oldLastMessagePosition = adapter.itemCount - 1
+                lastMsgInGroup = response.lastOrNull()
+                chatViewModel.checkIfLastMsgRelatedToCall(response.lastOrNull())
 
-            adapter.submitList(modifiedResponse) {
-                binding.rvChat.scrollToPosition(adapter.itemCount - 1)
+                val modifiedResponse = response.toMutableList().apply {
+                    if(response.size == LIMIT_MSGS) {add(Constants.READING_MODE_MSG)}
+                    reverse()
+                }.toList() // Convert back to List<T>
 
-                // Ensure previous last message updates (To update the chat bubble of previous message
-                if (oldLastMessagePosition >= 0) {
-                    adapter.notifyItemChanged(oldLastMessagePosition)
+                adapter.submitList(modifiedResponse) {
+
+//                (binding.rvChat.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(position, offset)
+
+                    if(sharedViewModel.lastScrollPosition != -1 && sharedViewModel.lastScrollOffset != -1){
+                        (binding.rvChat.layoutManager as LinearLayoutManager)
+                            .scrollToPositionWithOffset(sharedViewModel.lastScrollPosition, sharedViewModel.lastScrollOffset)
+                        sharedViewModel.saveScrollPosition(-1,-1)
+                    }else {
+                        binding.rvChat.scrollToPosition(adapter.itemCount - 1)
+                    }
+
+                    // Ensure previous last message updates (To update the chat bubble of previous message
+                    if (oldLastMessagePosition >= 0) {
+                        adapter.notifyItemChanged(oldLastMessagePosition)
+                    }
+                }
+            }
+        }
+
+        sharedViewModel.msgsLiveData.observe(viewLifecycleOwner) { consumableValue ->
+            consumableValue.handle { response ->
+                when (response) {
+                    is NetworkResult.Error -> {
+                        Toast.makeText(context, "Error : ${response.message}", Toast.LENGTH_SHORT).show()
+                    }
+                    is NetworkResult.Loading -> TODO()
+                    is NetworkResult.Success -> {
+                        val msgs = response.data
+
+                        val modifiedRes = msgs?.let {
+                            it.toMutableList().apply {
+                                if(sharedViewModel.pageNo != 0) add(0, BOTTOM_MOST_MSG)
+                                if(it.size >= LIMIT_MSGS) {
+                                    add(TOP_MOST_MSG)
+                                }
+                                reverse()
+                            }.toList()
+                        }
+
+                        adapter.submitList(modifiedRes) {
+                            if(loadingBottomMsgs){
+                                loadingBottomMsgs = false
+                                binding.rvChat.scrollToPosition((LIMIT_MSGS/2)-5)
+                            }
+
+                            if(sharedViewModel.lastScrollPosition != -1 && sharedViewModel.lastScrollOffset != -1){
+                                (binding.rvChat.layoutManager as LinearLayoutManager)
+                                    .scrollToPositionWithOffset(sharedViewModel.lastScrollPosition, sharedViewModel.lastScrollOffset)
+                                sharedViewModel.saveScrollPosition(-1,-1)
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -410,12 +468,32 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                 }
             }
         }
-
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         chatViewModel.stopRealtimeListening()
+    }
+
+    fun turnOnReadingMode(){
+        chatViewModel.stopRealtimeListening()
+        binding.includeTextSender.groupMsgSendingTemplate.gone()
+        binding.includeTextSender.btnGoToRecentMsgs.visible()
+
+        groupChat?.groupId?.let {
+            sharedViewModel.getSpecifiedMessages(it)
+        }
+    }
+
+    fun turnOffReadingMode(){
+        groupChat?.groupId?.let {groupId->
+            chatViewModel.setGroupId(groupId)
+            chatViewModel.fetchAllNewMessages(groupId)
+        }
+        loadingBottomMsgs = false
+        sharedViewModel.pageNo=null
+        binding.includeTextSender.groupMsgSendingTemplate.visible()
+        binding.includeTextSender.btnGoToRecentMsgs.gone()
     }
 
 
@@ -437,6 +515,9 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                 }
             }
 
+            binding.includeTextSender.btnGoToRecentMsgs ->{
+                turnOffReadingMode()
+            }
 
             binding.includeTextSender.btnShareMedia ->{
                 val bottomSheet = UploadImageDocsBottomSheet.createBottomsheet(
@@ -473,8 +554,22 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                 joinCall()
             }
 
-            binding.includeTopBar.btnVideoCall ->{
-                Toast.makeText(context, "Feature unavailabe", Toast.LENGTH_SHORT).show()
+            binding.includeTopBar.btnVideoCall->{
+                Toast.makeText(context, "Feature not available yet!", Toast.LENGTH_SHORT).show()
+
+//                groupChat?.let { gc ->
+//                    lifecycleScope.launch {
+//                        for (i in CC until CC + 30) {
+//                            val text = "Message - $i"
+//                            chatViewModel.sendMessage(text, gc.groupId ?: "",
+//                                currentUser, gc.groupName ?: "", listofGroupMemberId
+//                            )
+//
+//                            delay(300) // Wait for 500ms before sending the next message
+//                        }
+//                        CC += 30
+//                    }
+//                }
             }
 
 //            binding.includeTopBar.btnCallEnd ->{
@@ -522,15 +617,42 @@ class MessagingFragment : Fragment(),View.OnClickListener {
     private val onMessageClickListener = object : MessagesAdapter.OnMessageClickListener{
         override fun onItemClick(message: Message) {
 
+            if(message.msgType == MEDIATOR_ANNOUNCEMENT) {
+
+                sharedViewModel.pageNo?.let {
+                    sharedViewModel.pageNo = if(message.msgId == "topMost" ){
+                        sharedViewModel.pageNo!! + 1
+                    }
+                    else {
+                        loadingBottomMsgs = true
+                        sharedViewModel.pageNo!! - 1
+                    }
+
+                    if(sharedViewModel.pageNo == -1) turnOffReadingMode()
+                    else {
+                        sharedViewModel.getSpecifiedMessages(groupChat?.groupId ?: "")
+                    }
+                } ?: run{
+                    sharedViewModel.pageNo=1
+                    turnOnReadingMode()
+                }
+                return
+            }
+
+            // Save current scroll position before navigating to some other fragment :) Shared view model will help us come back
+            // exactly at that position :)
+            val layoutManager = binding.rvChat.layoutManager as LinearLayoutManager
+            val position = layoutManager.findFirstVisibleItemPosition()
+            val firstView = layoutManager.findViewByPosition(position)
+            val offset = firstView?.top ?: 0
+
+            sharedViewModel.saveScrollPosition(position, offset)
+
             if(message.msgType == PDF_DOC){     // For PDF-Doc, we're moving to "PdfWebViewActivity"
                 openPdfInWebView(message.message)       // For online viewing of all kinds of docs using "google's doc rendering tool"
                 return
             }
 
-            if(message.msgType == MEDIATOR_ANNOUNCEMENT) {
-                Toast.makeText(context, "Clicked announcement!", Toast.LENGTH_SHORT).show()
-                return
-            }
 
             val fileName = if(message.msgType == IMG_URL) "Image" else "Video"
             // Navigate to preview fragment
