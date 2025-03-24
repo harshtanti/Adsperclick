@@ -330,7 +330,7 @@ class MessagesAdapter(private val currentUserId: String,
                 }
 
                 is ChatMsgItemMediatorAnnouncementBinding -> {
-                    /*binding.tvAnnouncement.vis()*/
+                    binding.tvAnnouncement.text = message.message
                 }
             }
 

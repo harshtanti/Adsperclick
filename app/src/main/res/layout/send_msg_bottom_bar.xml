@@ -77,5 +77,28 @@
         app:layout_constraintEnd_toEndOf="parent"
         />
 
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/groupMsgSendingTemplate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:visibility="gone"
+        app:constraint_referenced_ids="btnEmoji, btnSendMsg, btnShareMedia, etTypeMessage"
+        />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnGoToRecentMsgs"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="@dimen/DP2"
+        android:layout_marginHorizontal="@dimen/DP20"
+        style="@style/btn_common_layout"
+
+        android:visibility="gone"
+        android:text="Go to recent chats"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

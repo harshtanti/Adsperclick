@@ -33,9 +33,9 @@ import com.adsperclick.media.utils.Constants.DB.MESSAGES_INSIDE_MESSAGES
 import com.adsperclick.media.utils.Constants.DB.MIN_APP_LEVEL_DOC
 import com.adsperclick.media.utils.Constants.DB.SERVER_TIME_DOC
 import com.adsperclick.media.utils.Constants.DEFAULT_SERVICE
-import com.adsperclick.media.utils.Constants.ENDED_THE_CALL
 import com.adsperclick.media.utils.Constants.INITIATED_A_CALL
 import com.adsperclick.media.utils.Constants.LAST_SEEN_TIME_EACH_USER_EACH_GROUP
+import com.adsperclick.media.utils.Constants.LIMIT_MSGS
 import com.adsperclick.media.utils.Constants.MSG_TYPE.IMG_URL
 import com.adsperclick.media.utils.Constants.MSG_TYPE.PDF_DOC
 import com.adsperclick.media.utils.Constants.MSG_TYPE.VIDEO
@@ -382,8 +382,8 @@ class ChatRepository @Inject constructor(
 
 // ----------------------------------------------------------------------------------------------------------------
 //  MESSAGE RETRIEVAL FROM FIREBASE AND REALTIME LISTENING
-    fun getChatsForRoom(roomId: String): LiveData<List<Message>> {
-        return messagesDao.getChatsForThisRoom(roomId)
+    fun getChatsForGroup(groupId: String): LiveData<List<Message>> {
+        return messagesDao.getChatsForThisGroup(groupId, LIMIT_MSGS)
     }
 
     fun DocumentSnapshot.toMessage(): Message? {
@@ -501,6 +501,16 @@ class ChatRepository @Inject constructor(
 
     fun stopRealtimeListening(){
         chatListener?.remove()
+    }
+
+    fun getSpecifiedMessages(groupId: String, limit:Int, offset:Int): NetworkResult<List<Message>>{
+
+        return try {
+            val msgs = messagesDao.getSpecifiedMessages(groupId, limit, offset)
+            return NetworkResult.Success(msgs ?: listOf())
+        } catch (e: Exception){
+            NetworkResult.Error(null, "Error ${e.message}")
+        }
     }
 // ----------------------------------------------------------------------------------------------------------------
 
