@@ -134,7 +134,7 @@ class VoiceCallFragment : Fragment() {
                                 binding.tvCallStatus.text = "Call ended"
 
                                 // Notify user
-                                Toast.makeText(context, "Call ended from notification", Toast.LENGTH_SHORT).show()
+//                                Toast.makeText(context, "Call ended from notification", Toast.LENGTH_SHORT).show()
 
                                 // Update Firebase or other backend
                                 groupChat?.let { callViewModel.removeUser(it, currentUser) }
@@ -382,13 +382,13 @@ class VoiceCallFragment : Fragment() {
                 when(response){
                     is NetworkResult.Success ->{
                         findNavController().popBackStack()
-                        Toast.makeText(context, "User Left call!", Toast.LENGTH_SHORT).show()
+//                        Toast.makeText(context, "User Left call!", Toast.LENGTH_SHORT).show()
                     }
                     is NetworkResult.Error -> {
                         Toast.makeText(context, "Error : ${response.message}", Toast.LENGTH_SHORT).show()
                     }
                     is NetworkResult.Loading -> {
-                        Toast.makeText(context, "Processing..", Toast.LENGTH_SHORT).show()
+//                        Toast.makeText(context, "Processing..", Toast.LENGTH_SHORT).show()
                     }
                 }
             }

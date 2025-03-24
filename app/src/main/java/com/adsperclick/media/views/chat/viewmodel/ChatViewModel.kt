@@ -3,6 +3,7 @@ package com.adsperclick.media.views.chat.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.map
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
@@ -15,6 +16,7 @@ import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.Constants.ENDED_THE_CALL
 import com.adsperclick.media.utils.Constants.INITIATED_A_CALL
+import com.adsperclick.media.utils.Constants.LIMIT_MSGS
 import com.adsperclick.media.utils.ConsumableValue
 import com.adsperclick.media.views.login.repository.AuthRepository
 import com.adsperclick.media.views.chat.repository.ChatRepository
@@ -105,8 +107,10 @@ class ChatViewModel@Inject constructor(
 
     private val _groupId = MutableLiveData<String>()
 
-    val messages: LiveData<List<Message>> = _groupId.switchMap { roomId ->
-        chatRepository.getChatsForRoom(roomId)
+    val messages: LiveData<ConsumableValue<List<Message>>> = _groupId.switchMap { groupId ->
+        chatRepository.getChatsForGroup(groupId).map { messageList ->
+            ConsumableValue(messageList)
+        }
     }
 
     fun setGroupId(roomId: String) {
@@ -119,6 +123,19 @@ class ChatViewModel@Inject constructor(
             chatRepository.fetchAllNewMessages(groupId)
         }
     }
+
+
+//    private val _msgsLiveData = MutableLiveData<ConsumableValue<NetworkResult<List<Message>>>>()
+//    val msgsLiveData: LiveData<ConsumableValue<NetworkResult<List<Message>>>> get() = _msgsLiveData
+//    private fun getOffset(pageNo:Int): Int = /*(pageNo* LIMIT_MSGS)-(LIMIT_MSGS/2)*/ pageNo*(LIMIT_MSGS/2)
+//
+//    fun getSpecifiedMessages(groupId: String, pageNo:Int){
+//        viewModelScope.launch(Dispatchers.IO) {
+//            val result = chatRepository.getSpecifiedMessages(groupId, LIMIT_MSGS, getOffset(pageNo))
+//            _msgsLiveData.postValue(ConsumableValue(result))
+//        }
+//    }
+
 
     fun stopRealtimeListening(){
         viewModelScope.launch(Dispatchers.IO) {

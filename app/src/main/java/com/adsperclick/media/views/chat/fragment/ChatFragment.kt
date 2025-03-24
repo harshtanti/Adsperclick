@@ -204,6 +204,7 @@ class ChatFragment : Fragment(),View.OnClickListener {
     override fun onResume() {
         super.onResume()
         binding.etSearchBar.setText(EMPTY)
+        sharedViewModel.pageNo=null
         textWatcher()
         setupKeyboardVisibilityListener()
     }
