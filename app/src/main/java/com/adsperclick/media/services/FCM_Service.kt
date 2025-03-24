@@ -37,6 +37,7 @@ import com.adsperclick.media.utils.Constants.MSG_TYPE.VIDEO
 import com.adsperclick.media.views.homeActivity.HomeActivity
 import com.adsperclick.media.views.login.MainActivity
 import com.adsperclick.media.views.login.repository.AuthRepository
+import com.adsperclick.media.views.splashActivity.SplashActivity
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
@@ -138,7 +139,7 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
             else -> "GROUP_CHAT_$groupId"
         }
 
-        val intent = Intent(this, MainActivity::class.java).apply {
+        val intent = Intent(this, SplashActivity::class.java).apply {
             putExtra(ID_OF_GROUP_TO_OPEN, groupId)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }

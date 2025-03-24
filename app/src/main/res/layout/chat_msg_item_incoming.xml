@@ -98,8 +98,8 @@
             android:layout_height="wrap_content"
             app:cardCornerRadius="8dp"
             app:cardElevation="0dp"
-            app:cardBackgroundColor="#F2F2F2"
-            tools:visibility="gone"
+            android:backgroundTint="@color/Black_e"
+            tools:visibility="visible"
             android:visibility="gone"
             app:layout_constraintStart_toStartOf="@+id/tvSenderName"
             app:layout_constraintTop_toBottomOf="@+id/tvSenderName">
@@ -117,7 +117,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    tools:src="@drawable/ic_image" />
+                    tools:src="@drawable/black_pdf" />
 
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/mediaFileName"
@@ -193,7 +193,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:visibility="gone"
-            tools:visibility="visible"
+            tools:visibility="gone"
             app:constraint_referenced_ids="cardImgContainer, tvTimeInsideImg"
             />
 

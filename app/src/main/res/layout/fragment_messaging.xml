@@ -44,26 +44,11 @@
         android:id="@+id/includeTextSender"
         layout="@layout/send_msg_bottom_bar"
         android:layout_width="match_parent"
-        android:layout_height="70dp"
+        android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         />
-
-
-    <!--    <com.google.android.material.floatingactionbutton.FloatingActionButton-->
-    <!--        android:id="@+id/fabAddNote"-->
-    <!--        android:layout_width="wrap_content"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        app:srcCompat= "@drawable/fab_src"-->
-    <!--        app:maxImageSize="50dp"-->
-    <!--        app:shapeAppearanceOverlay="@style/fab_3_rounded"-->
-    <!--        android:backgroundTint="@color/Black_3"-->
-    <!--        android:layout_marginEnd="40dp"-->
-    <!--        android:layout_marginBottom="50dp"-->
-    <!--        app:layout_constraintBottom_toBottomOf="@+id/rvChat"-->
-    <!--        app:layout_constraintEnd_toEndOf="parent"></com.google.android.material.floatingactionbutton.FloatingActionButton>-->
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

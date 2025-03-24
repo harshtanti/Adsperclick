@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.adsperclick.media.data.dataModels.Message
+import com.adsperclick.media.utils.Constants
 
 @Dao
 interface MessagesDao {
@@ -33,4 +34,8 @@ interface MessagesDao {
 
     @Query("SELECT COUNT(*) FROM messages WHERE groupId = :groupId")
     /*suspend */fun getMessageCount(groupId: String): Int
+
+
+    @Query("SELECT * FROM messages WHERE groupId = :groupId AND msgType = :msgType ORDER BY timestamp DESC LIMIT 1")
+    fun getLastMsgOfGivenType(groupId: String, msgType: Int): Message?
 }

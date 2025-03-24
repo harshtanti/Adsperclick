@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.core.view.OnApplyWindowInsetsListener
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.adsperclick.media.R
@@ -30,12 +31,14 @@ import com.adsperclick.media.utils.Constants.EMPTY
 import com.adsperclick.media.utils.Constants.FCM.ID_OF_GROUP_TO_OPEN
 import com.adsperclick.media.utils.Constants.GROUP_ID
 import com.adsperclick.media.utils.Constants.LAST_SEEN_GROUP_TIME
+import com.adsperclick.media.utils.UtilityFunctions
 import com.adsperclick.media.utils.gone
 import com.adsperclick.media.utils.visible
 import com.adsperclick.media.views.chat.adapters.ChatGroupListAdapter
 import com.adsperclick.media.views.chat.adapters.HorizontalServiceListAdapter
 import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
 import com.adsperclick.media.views.homeActivity.HomeActivity
+import com.adsperclick.media.views.homeActivity.SharedHomeViewModel
 import com.adsperclick.media.views.login.MainActivity
 import com.google.firebase.functions.FirebaseFunctions
 import dagger.hilt.android.AndroidEntryPoint
@@ -51,6 +54,7 @@ class ChatFragment : Fragment(),View.OnClickListener {
     private lateinit var chatGroupListAdapter: ChatGroupListAdapter
 
     private val chatViewModel : ChatViewModel by viewModels()
+    private val sharedViewModel : SharedHomeViewModel by activityViewModels()
 
     @Inject
     lateinit var tokenManager: TokenManager
@@ -60,22 +64,12 @@ class ChatFragment : Fragment(),View.OnClickListener {
     private var searchText = EMPTY
 
     var user: User? = null
-    var lastSeenForEachUserEachGroup: Map<String, List<Pair<String, Long?>>>? = null        // First string is groupId and second string is userId
+    var lastSeenForEachUserEachGroup: Map<String, Map<String, Long?>>? = null        // First string is groupId and second string is userId
 
     @Inject
     lateinit var cloudFunc : FirebaseFunctions
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-//        val groupId = arguments?.getString(GROUP_ID)      // For FCM Notification based on group
-//        if(tokenManager.getUser()?.listOfGroupsAssigned?.contains(groupId.toString()) == true){
-////            findNavController().navigate()
-//        }
-    }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -89,10 +83,9 @@ class ChatFragment : Fragment(),View.OnClickListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // syncUser()              // To fetch latest "User" object from DB (In case some changes were made regarding this user, like he maybe blocked by admin or maybe assigned some new services!)
         selectedService = DEFAULT_SERVICE
         searchText = EMPTY
-        user = tokenManager.getUser()
+        user = sharedViewModel.userData
         setUpVisibility()
         setUpAdapters()
         setUpListener()
@@ -113,10 +106,12 @@ class ChatFragment : Fragment(),View.OnClickListener {
 
 
         val currentTime = if(user?.role == Constants.ROLE.ADMIN){
-            tokenManager.getServerMinusDeviceTime() + System.currentTimeMillis()     // To get serverTime
+            UtilityFunctions.getTime()
         } else {-1L}
 
-        chatGroupListAdapter = ChatGroupListAdapter(onClickingGroupChatItem, currentTime)
+        chatGroupListAdapter = ChatGroupListAdapter(onClickingGroupChatItem,
+            currentTime, user?.userId ?: "", sharedViewModel.lastSeenTimeForEachUserEachGroup)
+
         binding.rvGroupChatList.adapter = chatGroupListAdapter
         chatViewModel.startListeningToGroups(user?.listOfGroupsAssigned ?: listOf())
     }
@@ -131,7 +126,7 @@ class ChatFragment : Fragment(),View.OnClickListener {
         if(isClient){
             binding.rvHorizontalForServiceList.gone()       // List of services an employee is assigned,
                                                             // makes no sense for a client
-        } else binding.rvHorizontalForServiceList.visible()
+        } else {binding.rvHorizontalForServiceList.visible()}
     }
 
     private fun setUpListener(){
@@ -151,23 +146,11 @@ class ChatFragment : Fragment(),View.OnClickListener {
                             listOfGroupChat = listOfGroups
                             /*testingGroupId = listOfGroups[0].groupId.toString()*/
                             updateAdapterWithListOfGroupsHavingSelectedService()
-                            arguments?.let { arg ->         // If no arguments r passed it will come as null (normal scenario, when not coming via notification)
-                                val groupId = arg.getString(ID_OF_GROUP_TO_OPEN)
-                                val gc = listOfGroups.find { it.groupId == groupId }
-                                gc?.let {groupChat ->
-                                    val groupChatObjToString = Json.encodeToString(GroupChatListingData.serializer(), groupChat)
-                                    val lastSeenForEachUserInSelectedGroup = lastSeenForEachUserEachGroup?.get(groupChat.groupId.toString())
 
-                                    val lastSeen = lastSeenForEachUserInSelectedGroup?.find { it.first == user?.userId }?.second
-
-                                    val bundle = Bundle()
-                                    bundle.putString(CLICKED_GROUP, groupChatObjToString)
-                                    if (lastSeen != null) {
-                                        bundle.putLong(LAST_SEEN_GROUP_TIME, lastSeen)
-                                    }
-                                    requireArguments().clear()
-                                    findNavController().navigate(R.id.action_navigation_chat_to_messagingFragment, bundle)
-                                }
+                            sharedViewModel.idOfGroupToOpen?.let { groupId ->         // If no arguments r passed it will come as null (normal scenario, when not coming via notification)
+                                val groupData = listOfGroups.find { it.groupId == groupId }
+                                sharedViewModel.idOfGroupToOpen=null
+                                groupData?.let { openGroup(it) }
                             }
                         }
                     }
@@ -180,21 +163,6 @@ class ChatFragment : Fragment(),View.OnClickListener {
             }
         }
 
-        chatViewModel.lastSeenForEachUserEachGroupLiveData.observe(viewLifecycleOwner){consumableValue->
-            consumableValue.handle { response->
-                when(response){
-                    is NetworkResult.Success -> {
-                        lastSeenForEachUserEachGroup = response.data
-                    }
-
-                    is NetworkResult.Error -> {
-                        Toast.makeText(context, response.message, Toast.LENGTH_SHORT).show()
-                    }
-                    is NetworkResult.Loading -> TODO()
-                }
-            }
-
-        }
     }
 
     override fun onClick(v: View?) {
@@ -277,7 +245,7 @@ class ChatFragment : Fragment(),View.OnClickListener {
                 if (currentDestinationId == R.id.navigation_chat ||
                     currentDestinationId == R.id.navigation_user ||
                     currentDestinationId == R.id.navigation_setting) {
-                    bottomNav?.visibility = View.VISIBLE
+                    bottomNav?.visible()
                 }
             }
             insets
@@ -301,33 +269,25 @@ class ChatFragment : Fragment(),View.OnClickListener {
 
     private val onClickingGroupChatItem = object : ChatGroupListAdapter.OnGroupChatClickListener{
         override fun onItemClick(groupChat : GroupChatListingData) {
-
-            // We'll convert the "GroupChatListingData" object to "String" using the below function,
-            // later this "String" will be converted back to object of "GroupChatListingData"
-            val groupChatObjToString = Json.encodeToString(GroupChatListingData.serializer(), groupChat)
-            val lastSeenForEachUserInSelectedGroup = lastSeenForEachUserEachGroup?.get(groupChat.groupId.toString())
-
-            val lastSeen = lastSeenForEachUserInSelectedGroup?.find { it.first == user?.userId }?.second
-
-            val bundle = Bundle()
-            bundle.putString(CLICKED_GROUP, groupChatObjToString)
-            if (lastSeen != null) {
-                bundle.putLong(LAST_SEEN_GROUP_TIME, lastSeen)
-            }
-            findNavController().navigate(R.id.action_navigation_chat_to_messagingFragment, bundle)
+            openGroup(groupChat)
         }
     }
 
-    override fun onPause() {
-        super.onPause()
-    }
 
-    override fun onStop() {
-        super.onStop()
-    }
+    fun openGroup(groupData : GroupChatListingData){
 
-    override fun onDestroy() {
-        super.onDestroy()
+        // We'll convert the "GroupChatListingData" object to "String" using the below function,
+        // later this "String" will be converted back to object of "GroupChatListingData"
+        val groupChatObjToString = Json.encodeToString(GroupChatListingData.serializer(), groupData)
+
+        val currentUserLastSeen = sharedViewModel.lastSeenTimeForEachUserEachGroup?.get(groupData.groupId.toString())?.get(user?.userId)
+
+        val bundle = Bundle()
+        bundle.putString(CLICKED_GROUP, groupChatObjToString)
+        if (currentUserLastSeen != null) {
+            bundle.putLong(LAST_SEEN_GROUP_TIME, currentUserLastSeen)
+        }
+        findNavController().navigate(R.id.action_navigation_chat_to_messagingFragment, bundle)
     }
 
 }

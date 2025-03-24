@@ -13,13 +13,17 @@ import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.NotificationMsg
 import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.utils.Constants
+import com.adsperclick.media.utils.Constants.ENDED_THE_CALL
+import com.adsperclick.media.utils.Constants.INITIATED_A_CALL
 import com.adsperclick.media.utils.ConsumableValue
 import com.adsperclick.media.views.login.repository.AuthRepository
 import com.adsperclick.media.views.chat.repository.ChatRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 
@@ -55,10 +59,12 @@ class ChatViewModel@Inject constructor(
             val syncUserJob = async { chatRepository.syncUser()}
             val syncTimeJob = async { chatRepository.syncDeviceTime()}
             val isAcceptableVersionJob = async{ chatRepository.isCurrentVersionAcceptable() }
+            val animationPlayTimer = async{ delay(2100) }
 
             val userObjectFromBackend = syncUserJob.await()
             val isAcceptableVersion = isAcceptableVersionJob.await()
             syncTimeJob.await()
+            animationPlayTimer.await()      // To make sure animation is also completed before we post result
 
             if(isAcceptableVersion.not()){
                 _userLiveData.postValue(ConsumableValue
@@ -269,5 +275,33 @@ class ChatViewModel@Inject constructor(
             _userLeftCallLiveData.postValue(ConsumableValue(result))
         }
     }
+
+    private val _isCallOngoingLiveData = MutableLiveData<ConsumableValue<NetworkResult<Boolean>>>()
+    val isCallOngoingLiveData: LiveData<ConsumableValue<NetworkResult<Boolean>>> = _isCallOngoingLiveData
+    fun isCallOngoing(groupId: String){
+
+        viewModelScope.launch(Dispatchers.IO) {
+            val result = chatRepository.getLastCallMsg(groupId)
+            _isCallOngoingLiveData.postValue(ConsumableValue(result))
+        }
+    }
+
+    fun checkIfLastMsgRelatedToCall(message: Message?){
+        viewModelScope.launch(Dispatchers.IO) {
+            message?.let { msg->
+                if(msg.msgType == Constants.MSG_TYPE.CALL){
+                    when(msg.message){
+                        ENDED_THE_CALL-> {
+                            _isCallOngoingLiveData.postValue(ConsumableValue(NetworkResult.Success(false)))
+                        }
+                        INITIATED_A_CALL-> {
+                            _isCallOngoingLiveData.postValue(ConsumableValue(NetworkResult.Success(true)))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 }
 

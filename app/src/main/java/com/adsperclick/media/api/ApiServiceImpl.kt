@@ -627,7 +627,7 @@ class ApiServiceImpl @Inject constructor(
 
             // Extract the result data
             @Suppress("UNCHECKED_CAST")
-            val response = result.data as HashMap<String, Any>
+            val response = result.getData() as HashMap<String, Any>
 
             val token = response["token"] as String
             val channel = response["channel"] as String

@@ -10,6 +10,7 @@ import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.ConsumableValue
+import com.adsperclick.media.views.chat.repository.ChatRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessaging
@@ -18,7 +19,7 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class AuthRepository @Inject constructor(private val apiService: ApiService) {
+class AuthRepository @Inject constructor(private val apiService: ApiService, private val chatRepo : ChatRepository) {
 
     @Inject
     lateinit var firebaseAuth : FirebaseAuth
@@ -80,6 +81,10 @@ class AuthRepository @Inject constructor(private val apiService: ApiService) {
                         .await()
                     user.fcmTokenListOfDevices = tokenList.toList()
                 }
+            }
+
+            user.listOfGroupsAssigned?.let {
+                chatRepo.fetchLastSeenTimeForEachUserInEachGroup(it)
             }
 
             // Saving user in shared preferences
