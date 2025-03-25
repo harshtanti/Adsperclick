@@ -196,8 +196,8 @@ class MessagingFragment : Fragment(),View.OnClickListener {
             consumableValue.handle {response ->
 
                 val oldLastMessagePosition = adapter.itemCount - 1
-                lastMsgInGroup = response.lastOrNull()
-                chatViewModel.checkIfLastMsgRelatedToCall(response.lastOrNull())
+                lastMsgInGroup = response.firstOrNull()
+                chatViewModel.checkIfLastMsgRelatedToCall(response.firstOrNull())
 
                 val modifiedResponse = response.toMutableList().apply {
                     if(response.size == LIMIT_MSGS) {add(Constants.READING_MODE_MSG)}
@@ -307,7 +307,9 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                             if(showCallDialog && lastMsgInGroup?.senderId != currentUser.userId){
                                 showJoinCallDialog()
                             }
-                        } else handleCallIcon(false)
+                        } else {
+                            handleCallIcon(false)
+                        }
                     }
 
                     is NetworkResult.Error -> {

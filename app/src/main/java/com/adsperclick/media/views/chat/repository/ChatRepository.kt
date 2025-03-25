@@ -243,7 +243,7 @@ class ChatRepository @Inject constructor(
         try {
             if(UtilityFunctions.isNetworkAvailable(context).not()){ // To handle the case user is offline
                 Log.d("skt", "User is offline") // This function is updating firebase, so c
-                                        // annot be run when user is offline
+                                        // Cannot be run when user is offline
                 return
             }
 
@@ -339,31 +339,35 @@ class ChatRepository @Inject constructor(
         // execute immediately and will not wait for this function to return because we are not
         // using "await()" in the above function, we are using "call-backs" i.e. onSuccessListener
 
-        _listOfGroupChatLiveData.postValue(ConsumableValue(NetworkResult.Loading()))
+        try {
+            _listOfGroupChatLiveData.postValue(ConsumableValue(NetworkResult.Loading()))
 
-        // Firestore listener (Real-time updates)
-        val query = firestore.collection(GROUPS)
-            .whereIn("groupId", listOfGroupChatId)
+            // Firestore listener (Real-time updates)
+            val query = firestore.collection(GROUPS)
+                .whereIn("groupId", listOfGroupChatId)
 
-        query.addSnapshotListener { snapshot, error ->
-            if (error != null) {
-                _listOfGroupChatLiveData.postValue(ConsumableValue(NetworkResult.Error(null, "Error: ${error.message}")))
-                return@addSnapshotListener
-            }
-
-            if (snapshot != null && !snapshot.isEmpty) {
-                val listOfGroups = arrayListOf<GroupChatListingData>()
-
-                for (document in snapshot.documents) {
-                    val group = document.toObject(GroupChatListingData::class.java)
-                    group?.let { listOfGroups.add(it) }
+            query.addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    _listOfGroupChatLiveData.postValue(ConsumableValue(NetworkResult.Error(null, "Error: ${error.message}")))
+                    return@addSnapshotListener
                 }
 
-                // Sort by lastSentMsg timestamp in descending order (latest message first)
-                val sortedGroups = listOfGroups.sortedByDescending { it.lastSentMsg?.timestamp ?: 0L }
+                if (snapshot != null && !snapshot.isEmpty) {
+                    val listOfGroups = arrayListOf<GroupChatListingData>()
 
-                _listOfGroupChatLiveData.postValue(ConsumableValue(NetworkResult.Success(sortedGroups)))
+                    for (document in snapshot.documents) {
+                        val group = document.toObject(GroupChatListingData::class.java)
+                        group?.let { listOfGroups.add(it) }
+                    }
+
+                    // Sort by lastSentMsg timestamp in descending order (latest message first)
+                    val sortedGroups = listOfGroups.sortedByDescending { it.lastSentMsg?.timestamp ?: 0L }
+
+                    _listOfGroupChatLiveData.postValue(ConsumableValue(NetworkResult.Success(sortedGroups)))
+                }
             }
+        } catch (e:Exception){
+            Log.d("skt", "Error: ${e.message}")
         }
     }
 
@@ -471,32 +475,37 @@ class ChatRepository @Inject constructor(
     // snapshot will return 50 msgs ... It is what it is... so we're using "realtimeChatUpdatesListener"
     // so we can recognise "newMessages" from "allMessages"
      fun realtimeChatUpdatesListener(groupId: String, lastTimestamp: Timestamp) {
-        // Remove any existing listener before setting a new one
-        chatListener?.remove()
 
-        chatListener = firestore.collection(MESSAGES)
-            .document(groupId)
-            .collection(MESSAGES_INSIDE_MESSAGES)
-            .whereGreaterThan("timestamp", lastTimestamp)
-            .orderBy("timestamp", Query.Direction.ASCENDING)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    Log.e("Firestore", "Realtime updates error: ${error.message}")
-                    return@addSnapshotListener
-                }
+         try {
+             // Remove any existing listener before setting a new one
+             chatListener?.remove()
 
-                if (snapshot != null && !snapshot.isEmpty) {
-                    val allMessages = snapshot.documents.mapNotNull { it.toMessage() }  // Here "allMessages" means all messages post the "timestamp" in firebase query
-                    val newMessage = allMessages.filter { (it.timestamp ?: 0L) > lastMsgTimeStamp }     // To fetch only the messages post "lastMsgTimeStamp"
+             chatListener = firestore.collection(MESSAGES)
+                 .document(groupId)
+                 .collection(MESSAGES_INSIDE_MESSAGES)
+                 .whereGreaterThan("timestamp", lastTimestamp)
+                 .orderBy("timestamp", Query.Direction.ASCENDING)
+                 .addSnapshotListener { snapshot, error ->
+                     if (error != null) {
+                         Log.e("Firestore", "Realtime updates error: ${error.message}")
+                         return@addSnapshotListener
+                     }
 
-                    lastMsgTimeStamp = newMessage.maxOfOrNull { it.timestamp ?: 0L } ?: lastMsgTimeStamp
-                    if (newMessage.isNotEmpty()) {
-                        CoroutineScope(Dispatchers.IO).launch {
-                            messagesDao.insertMessageList(newMessage) // ✅ Now runs in IO thread safely
-                        }
-                    }
-                }
-            }
+                     if (snapshot != null && !snapshot.isEmpty) {
+                         val allMessages = snapshot.documents.mapNotNull { it.toMessage() }  // Here "allMessages" means all messages post the "timestamp" in firebase query
+                         val newMessage = allMessages.filter { (it.timestamp ?: 0L) > lastMsgTimeStamp }     // To fetch only the messages post "lastMsgTimeStamp"
+
+                         lastMsgTimeStamp = newMessage.maxOfOrNull { it.timestamp ?: 0L } ?: lastMsgTimeStamp
+                         if (newMessage.isNotEmpty()) {
+                             CoroutineScope(Dispatchers.IO).launch {
+                                 messagesDao.insertMessageList(newMessage) // ✅ Now runs in IO thread safely
+                             }
+                         }
+                     }
+                 }
+         } catch (e:Exception){
+             Log.e("skt", "Error : $e")
+         }
     }
 
     fun stopRealtimeListening(){

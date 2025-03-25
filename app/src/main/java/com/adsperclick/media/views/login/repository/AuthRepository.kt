@@ -62,6 +62,8 @@ class AuthRepository @Inject constructor(private val apiService: ApiService, pri
 
             if(user.blocked == true) return NetworkResult.Error(null, "You have been blocked!")
 
+            if(user.listOfGroupsAssigned.isNullOrEmpty()) return NetworkResult.Error(null, "You are not part of any group!")
+
             // Updating device token for FCM, on db
             val fcmDeviceToken = try {
                 FirebaseMessaging.getInstance().token.await()  // Get FCM token

@@ -1,5 +1,6 @@
 package com.adsperclick.media.services
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -8,9 +9,12 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.media.MediaPlayer
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
@@ -41,6 +45,9 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
 
     @Inject
     lateinit var authRepository: AuthRepository
+
+    private var mediaPlayer: MediaPlayer? = null
+
 
     // Keep track of messages per group
     private val messagesMap = mutableMapOf<String, MutableList<String>>()
@@ -79,6 +86,16 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
             && msgType != Constants.MSG_TYPE.CALL){
             return      // Don't show any notification if app is in use,
         }
+
+
+        // Special handling for call notifications
+        if (msgType == Constants.MSG_TYPE.CALL) {
+            startCallRingtone(title, body, groupId)
+//            return  // Prevent standard notification processing
+        }
+
+
+
 
         // Store message for this group
         if (!messagesMap.containsKey(groupId)) {
@@ -212,6 +229,46 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
         }
     }
 
+
+
+    // In your FCM service or call notification handler
+    fun startCallRingtone(title: String, body: String, groupId: String) {
+//        CallRingtoneService.startCallService(
+//            context = applicationContext,
+//            title = title,
+//            body = body,
+//            groupId = groupId
+//        )
+        playRingtone()
+    }
+
+
+    private fun playRingtone() {
+        try {
+            // Stop any existing media player
+            mediaPlayer?.apply {
+                if (isPlaying) {
+                    stop()
+                    release()
+                }
+            }
+
+            // Create a new MediaPlayer instance
+            mediaPlayer = MediaPlayer.create(this, R.raw.the_call_yt_library).apply {
+                // Set looping to true if you want the ringtone to repeat
+                isLooping = true
+
+                // Adjust volume (0.0 to 1.0)
+                setVolume(1.0f, 1.0f)
+
+                // Start playing
+                start()
+            }
+
+        } catch (e: Exception) {
+            Log.e("FCM_Service", "Error playing ringtone", e)
+        }
+    }
 
 
 

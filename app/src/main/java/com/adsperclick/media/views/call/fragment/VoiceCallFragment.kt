@@ -520,7 +520,6 @@ class VoiceCallFragment : Fragment() {
                 if (inChannel) {
                     endCall()
                 }
-                findNavController().popBackStack()
             }
 
             override fun onNegativeButtonClicked() {

@@ -66,16 +66,19 @@ object Constants {
         const val MEDIATOR_ANNOUNCEMENT = 400
     }
 
+    const val CALL_CHANNEL_ID = "6969"
+    const val INCOMING_CALL_NOTIFICATION_ID = 1169
+
     val READING_MODE_MSG  = Message("alpha",
         "To Read more messages tap here!",
         msgType = MEDIATOR_ANNOUNCEMENT)
 
     val BOTTOM_MOST_MSG  = Message("bottomMost",
-        "To Read more bottom messages tap here!",
+        "To Read more tap here!",
         msgType = MEDIATOR_ANNOUNCEMENT)
 
     val TOP_MOST_MSG  = Message("topMost",
-        "To Read more top messages tap here!",
+        "To Read more tap here!",
         msgType = MEDIATOR_ANNOUNCEMENT)
 
 
