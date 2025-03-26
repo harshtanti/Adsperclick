@@ -18,20 +18,18 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity.RECEIVER_NOT_EXPORTED
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.registerReceiver
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.media.session.MediaButtonReceiver.handleIntent
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.adsperclick.media.R
-import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.data.dataModels.CallParticipant
 import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.NetworkResult
@@ -43,16 +41,15 @@ import com.adsperclick.media.utils.DialogUtils
 import com.adsperclick.media.utils.gone
 import com.adsperclick.media.views.call.adapters.ParticipantAdapter
 import com.adsperclick.media.views.call.viewmodel.CallViewModel
+import com.adsperclick.media.views.homeActivity.SharedHomeViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import io.agora.rtc2.ChannelMediaOptions
-import io.agora.rtc2.Constants.USER_OFFLINE_QUIT
 import io.agora.rtc2.IRtcEngineEventHandler
 import io.agora.rtc2.RtcEngine
 import io.agora.rtc2.RtcEngineConfig
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class VoiceCallFragment : Fragment() {
@@ -71,9 +68,7 @@ class VoiceCallFragment : Fragment() {
 
     private lateinit var binding: FragmentVoiceCallBinding
     private val callViewModel: CallViewModel by viewModels()
-
-    @Inject
-    lateinit var tokenManager: TokenManager
+    private val sharedViewModel: SharedHomeViewModel by activityViewModels()
 
     private lateinit var participantAdapter: ParticipantAdapter
     private lateinit var currentUser: User
@@ -281,7 +276,7 @@ class VoiceCallFragment : Fragment() {
         }
         channelName = groupChat?.groupId
         token = arguments?.getString(Constants.TEMP_AGORA_TOKEN)
-        currentUser = tokenManager.getUser()!!
+        currentUser = sharedViewModel.userData ?: User()
         myUid = currentUser.agoraUserId!!
     }
 

@@ -24,10 +24,8 @@ import com.adsperclick.media.di.VersionProvider
 import com.adsperclick.media.views.chat.pagingsource.NotificationsPagingSource
 import com.adsperclick.media.views.user.pagingsource.UserCommunityPagingSource
 import com.adsperclick.media.utils.Constants
-import com.adsperclick.media.utils.Constants.CURRENT_USER
 import com.adsperclick.media.utils.Constants.DB.CONFIG
 import com.adsperclick.media.utils.Constants.DB.GROUPS
-import com.adsperclick.media.utils.Constants.DB.GROUP_CALL_LOG
 import com.adsperclick.media.utils.Constants.DB.MESSAGES
 import com.adsperclick.media.utils.Constants.DB.MESSAGES_INSIDE_MESSAGES
 import com.adsperclick.media.utils.Constants.DB.MIN_APP_LEVEL_DOC
@@ -54,7 +52,6 @@ import com.google.firebase.functions.FirebaseFunctions
 import com.google.firebase.storage.StorageReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -88,6 +85,7 @@ class ChatRepository @Inject constructor(
 // ----------------------------------------------------------------------------------------------------------------
 //  NOTIFICATION CREATION, LISTING, UPDATING_LAST_NOTIFICATION_SEEN_TIME, NOTIFICATION_PAGER
 
+    // For notification listing we're using Page-3 library
 
     private val _createNotificationLiveData = MutableLiveData<NetworkResult<NotificationMsg>>()
     val createNotificationLiveData: LiveData<NetworkResult<NotificationMsg>> get() = _createNotificationLiveData
@@ -111,13 +109,6 @@ class ChatRepository @Inject constructor(
 
 
             val notificationMap = updatedNotification.mapifyForFirestoreTimestamp()
-            /*hashMapOf(
-                "notificationId" to documentRef.id,
-                "notificationTitle" to notification.notificationTitle,
-                "notificationDescription" to notification.notificationDescription,
-                "sentTo" to notification.sentTo,
-                "timestamp" to FieldValue.serverTimestamp() // Setting server-side timestamp, it will populate the field with "time" at that time
-            )*/
 
             // Sending our notification object to backend
             // Firestore supports offline persistence! even if internet is not there and user made below
@@ -132,32 +123,8 @@ class ChatRepository @Inject constructor(
         }
     }
 
-    private val _listNotificationLiveData = MutableLiveData<NetworkResult<List<NotificationMsg>>>()
-    val listNotificationLiveData: LiveData<NetworkResult<List<NotificationMsg>>> get() = _listNotificationLiveData
-
-    suspend fun listNotifications(){
-        _listNotificationLiveData.postValue(NetworkResult.Loading())
-
+    fun updateLastNotificationSeenTime(userId: String) {
         try {
-            val querySnapshot = firestore.collection(Constants.DB.NOTIFICATIONS).get().await()
-            val notificationList = arrayListOf<NotificationMsg>()
-
-            for(document in querySnapshot.documents){
-                val notification = document.toObject(NotificationMsg::class.java)
-                notification?.let {
-                    notificationList.add(notification)
-                }
-            }
-
-            _listNotificationLiveData.postValue(NetworkResult.Success(notificationList))
-        } catch (e : Exception){
-            _listNotificationLiveData.postValue(NetworkResult.Error(null, "Error ${e.message}"))
-        }
-    }
-
-    suspend fun updateLastNotificationSeenTime() {
-        try {
-            val userId = tokenManager.getUser()?.userId
             if (userId.isNullOrEmpty()) {
                 Log.d("skt", "User ID is null or empty, cannot update")
                 return
@@ -167,9 +134,6 @@ class ChatRepository @Inject constructor(
 
             val time = UtilityFunctions.getTime()
             userRef.update("lastNotificationSeenTime", time)
-                .addOnSuccessListener {
-                    CURRENT_USER?.lastNotificationSeenTime = time
-                }
 
         } catch (e: Exception) {
             Log.d("skt", "updateLastNotificationSeenTime() function encountered an error: ${e.message}")
@@ -180,14 +144,14 @@ class ChatRepository @Inject constructor(
     // Note in our "NotificationsPagingSource" or any other PagingSource file, we can't
     // directly apply dependency injection! So we need to send the FirebaseFirestore instance
     // from this file to the "NotificationsPagingSource" so that it can access it :)
-    fun getNotificationPager(): Pager<QuerySnapshot, NotificationMsg> {
+    fun getNotificationPager(userRole: Int?): Pager<QuerySnapshot, NotificationMsg> {
 
         return Pager(
             config = PagingConfig(
                 pageSize = 10,
                 enablePlaceholders = false
             ),
-            pagingSourceFactory = { NotificationsPagingSource(firestore) } // Pass Firestore here
+            pagingSourceFactory = { NotificationsPagingSource(firestore, userRole) } // Pass Firestore here
         )
     }
 
@@ -385,7 +349,7 @@ class ChatRepository @Inject constructor(
 
 
 // ----------------------------------------------------------------------------------------------------------------
-//  MESSAGE RETRIEVAL FROM FIREBASE AND REALTIME LISTENING
+//  MESSAGE RETRIEVAL FROM FIREBASE AND REALTIME LISTENING IN MESSAGING_FRAGMENT
     fun getChatsForGroup(groupId: String): LiveData<List<Message>> {
         return messagesDao.getChatsForThisGroup(groupId, LIMIT_MSGS)
     }
@@ -683,6 +647,10 @@ class ChatRepository @Inject constructor(
     }
 
 
+    // This function will check whether a call is ongoing or not
+    // If a call is not ongoing, it means that this user has started the call,
+    // in that case it'll send msg & notif to all group-members so that they know call is ongoing
+    // else it will add the user to call ie. list of call participants
     suspend fun addUserToCall(groupData: GroupChatListingData, userData: User) {
 
         val groupId = groupData.groupId ?: ""
@@ -746,7 +714,7 @@ class ChatRepository @Inject constructor(
             val participants = callData.get("participants") as? MutableMap<String, Any> ?: mutableMapOf()
 
             if(participants.containsKey(userId)){
-                Log.d("skt", "User already in call, mf trying to join from another phone!")
+                Log.d("skt", "User already in call, he's trying to join from another phone!")
                 return
             }
 
@@ -767,13 +735,10 @@ class ChatRepository @Inject constructor(
         }
     }
 
+    // Below func checks if last call msg in group-chat is "Initiated a Call"
+    // or "Ended the call", based on that they will show different UI
     suspend fun getLastCallMsg(groupId: String): NetworkResult<Boolean> {
         return try {
-//            val lastMsgJob = CoroutineScope(Dispatchers.IO).async {
-//                messagesDao.getLastMsgOfGivenType(groupId, Constants.MSG_TYPE.CALL)
-//            }
-//
-//            val lastMsg = lastMsgJob.await()
               val lastMsg = messagesDao.getLastMsgOfGivenType(groupId, Constants.MSG_TYPE.CALL)
 
             lastMsg?.let { msg ->

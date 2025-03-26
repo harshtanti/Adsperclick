@@ -1,6 +1,5 @@
 package com.adsperclick.media.services
 
-import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -9,7 +8,6 @@ import android.app.Service
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.media.MediaPlayer
 import android.os.Build
 import android.os.IBinder
@@ -18,12 +16,8 @@ import android.os.Vibrator
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
 import com.adsperclick.media.R
-import com.adsperclick.media.applicationCommonView.AdsperclickApplication
-import com.adsperclick.media.utils.Constants.CALL_CHANNEL_ID
 import com.adsperclick.media.utils.Constants.FCM.ID_OF_GROUP_TO_OPEN
-import com.adsperclick.media.utils.Constants.INCOMING_CALL_NOTIFICATION_ID
 import com.adsperclick.media.views.splashActivity.SplashActivity
 
 

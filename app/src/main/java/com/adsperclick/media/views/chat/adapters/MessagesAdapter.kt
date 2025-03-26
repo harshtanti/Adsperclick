@@ -8,18 +8,13 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.adsperclick.media.R
-import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.Message
 import com.adsperclick.media.databinding.ChatMsgItemIncomingBinding
 import com.adsperclick.media.databinding.ChatMsgItemMediatorAnnouncementBinding
 import com.adsperclick.media.databinding.ChatMsgItemOutgoingBinding
-import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.Constants.ENDED_THE_CALL
 import com.adsperclick.media.utils.Constants.INITIATED_A_CALL
-import com.adsperclick.media.utils.Constants.MSG_TYPE.IMG_URL
-import com.adsperclick.media.utils.Constants.MSG_TYPE.MEDIATOR_ANNOUNCEMENT
-import com.adsperclick.media.utils.Constants.MSG_TYPE.PDF_DOC
-import com.adsperclick.media.utils.Constants.MSG_TYPE.VIDEO
+import com.adsperclick.media.utils.Constants.MSG_TYPE
 import com.adsperclick.media.utils.Constants.ROLE.CLIENT
 import com.adsperclick.media.utils.Constants.TXT_MSG_TYPE.FIRST_MSG_BY_CURRENT_USER
 import com.adsperclick.media.utils.Constants.TXT_MSG_TYPE.FIRST_MSG_LEFT
@@ -37,7 +32,6 @@ import com.adsperclick.media.utils.UtilityFunctions
 import com.adsperclick.media.utils.UtilityFunctions.formatMessageTimestamp
 import com.adsperclick.media.utils.gone
 import com.adsperclick.media.utils.visible
-import com.adsperclick.media.views.chat.adapters.ChatGroupListAdapter.OnGroupChatClickListener
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 
@@ -53,7 +47,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 
 // So if the sender is an employee, all msgs sent by sender or other fellow employees will be displayed on the right
 // If sender is a client, then all msgs sent by him and other fellow client will be displayed on the right
-// So whoever you are , your's and your community member's messages will always be displyed on right.. Just like whatsapp!
+// So whoever you are , your's and your community member's messages will always be displayed on right.. Just like whatsapp!
 
 // Am using a variable "isClientOnRight" to decide on which side client should be and on other side rest others will be
 
@@ -83,15 +77,15 @@ class MessagesAdapter(private val currentUserId: String,
 
             // drawable for binding.mediaTypeIcon        // used for call-msg, video-msg, pdf-msg
             val drawable = when(message.msgType){
-                Constants.MSG_TYPE.CALL -> {
+                MSG_TYPE.CALL -> {
                     when(message.message){
                         INITIATED_A_CALL -> R.drawable.ic_call_ongoing_drawable_start
                         ENDED_THE_CALL -> R.drawable.call_end_24px
                         else -> 0
                     }
                 }
-                Constants.MSG_TYPE.VIDEO -> R.drawable.black_video
-                Constants.MSG_TYPE.PDF_DOC -> R.drawable.black_pdf
+                MSG_TYPE.VIDEO -> R.drawable.black_video
+                MSG_TYPE.PDF_DOC -> R.drawable.black_pdf
                 else -> 0
             }
 
@@ -186,9 +180,9 @@ class MessagesAdapter(private val currentUserId: String,
                         }
 
                         when(message.msgType){
-                            Constants.MSG_TYPE.TEXT -> setupText()
+                            MSG_TYPE.TEXT -> setupText()
 
-                            Constants.MSG_TYPE.IMG_URL -> {
+                            MSG_TYPE.IMG_URL -> {
                                 setupImage()
                                 Glide.with(binding.imgSharedInGroup)
                                     .load(message.message)
@@ -201,17 +195,17 @@ class MessagesAdapter(private val currentUserId: String,
                                 // and prevent UI from hanging
                             }
 
-                            Constants.MSG_TYPE.VIDEO -> {
+                            MSG_TYPE.VIDEO -> {
                                 setupDocAndVideo()
                                 binding.mediaFileName.text = "Video"
                             }
 
-                            Constants.MSG_TYPE.PDF_DOC -> {
+                            MSG_TYPE.PDF_DOC -> {
                                 setupDocAndVideo()
                                 binding.mediaFileName.text = "Document"
                             }
 
-                            Constants.MSG_TYPE.CALL -> {
+                            MSG_TYPE.CALL -> {
                                 setupDocAndVideo()
                                 binding.mediaFileName.text = message.message
                             }
@@ -273,9 +267,9 @@ class MessagesAdapter(private val currentUserId: String,
                         }
 
                         when(message.msgType){
-                            Constants.MSG_TYPE.TEXT -> setupText()
+                            MSG_TYPE.TEXT -> setupText()
 
-                            Constants.MSG_TYPE.IMG_URL -> {
+                            MSG_TYPE.IMG_URL -> {
                                 setupImage()
                                 Glide.with(binding.imgSharedInGroup)
                                     .load(message.message)
@@ -288,17 +282,17 @@ class MessagesAdapter(private val currentUserId: String,
                                                                         // and prevent UI from hanging
                             }
 
-                            Constants.MSG_TYPE.VIDEO -> {
+                            MSG_TYPE.VIDEO -> {
                                 setupDocAndVideo()
                                 binding.mediaFileName.text = "Video"
                             }
 
-                            Constants.MSG_TYPE.PDF_DOC -> {
+                            MSG_TYPE.PDF_DOC -> {
                                 setupDocAndVideo()
                                 binding.mediaFileName.text = "Document"
                             }
 
-                            Constants.MSG_TYPE.CALL -> {
+                            MSG_TYPE.CALL -> {
                                 setupDocAndVideo()
                                 binding.mediaFileName.text = message.message
                             }
@@ -335,7 +329,8 @@ class MessagesAdapter(private val currentUserId: String,
             }
 
 
-            val clickableMsgTypes= listOf(IMG_URL, VIDEO, PDF_DOC, MEDIATOR_ANNOUNCEMENT)
+            val clickableMsgTypes= listOf(MSG_TYPE.IMG_URL,
+                MSG_TYPE.VIDEO, MSG_TYPE.PDF_DOC, MSG_TYPE.MEDIATOR_ANNOUNCEMENT)
 
             if(message.msgType in clickableMsgTypes)
             {
@@ -368,7 +363,7 @@ class MessagesAdapter(private val currentUserId: String,
     override fun getItemViewType(position: Int): Int {
         val message = getItem(position)
 
-        return if(message.msgType == MEDIATOR_ANNOUNCEMENT) {
+        return if(message.msgType == MSG_TYPE.MEDIATOR_ANNOUNCEMENT) {
             VIEW_TYPE_MEDIATOR_ANNOUNCEMENT         // For announcements by developer (Here for Reading mode message)
         } else if (message.senderId == currentUserId                // Current user should be on right
             || (isClientOnRight && message.senderRole == CLIENT)    // client should be on right and current user is client

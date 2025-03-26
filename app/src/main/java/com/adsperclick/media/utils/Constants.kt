@@ -9,9 +9,8 @@ import com.adsperclick.media.utils.Constants.MSG_TYPE.MEDIATOR_ANNOUNCEMENT
 
 object Constants {
 
-    var CC = 0
+//    var CC = 0
 
-    var CURRENT_USER : User?= null
     var SERVER_MINUS_DEVICE_TIME_LONG : Long = 0L
     var LAST_SEEN_TIME_EACH_USER_EACH_GROUP : Map<String, MutableMap<String, Long?>> ? = null
 

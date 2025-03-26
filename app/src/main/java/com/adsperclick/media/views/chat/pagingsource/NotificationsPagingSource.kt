@@ -7,7 +7,6 @@ import com.adsperclick.media.data.dataModels.NotificationMsg
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.Constants.ROLE.CLIENT
 import com.adsperclick.media.utils.Constants.ROLE.EMPLOYEE
-import com.adsperclick.media.utils.Constants.CURRENT_USER
 import com.adsperclick.media.utils.Constants.ROLE.ADMIN
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -16,7 +15,7 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 
-class NotificationsPagingSource @Inject constructor(private val db: FirebaseFirestore) : PagingSource<QuerySnapshot, NotificationMsg>() {
+class NotificationsPagingSource @Inject constructor(private val db: FirebaseFirestore, private val userRole: Int?) : PagingSource<QuerySnapshot, NotificationMsg>() {
 
 //    @Inject                 // this code won't work  // In this file we can't directly use "Dependency Injection"
 //    lateinit var db : FirebaseFirestore   // That's why we fetch FirebaseFirestore instance from ChatRepository
@@ -28,8 +27,8 @@ class NotificationsPagingSource @Inject constructor(private val db: FirebaseFire
     override suspend fun load(params: LoadParams<QuerySnapshot>): LoadResult<QuerySnapshot, NotificationMsg> {
         return try {
             val sentToList = mutableListOf(Constants.SEND_TO.BOTH)
-            when(CURRENT_USER?.role){
-                CLIENT, EMPLOYEE -> sentToList.add(CURRENT_USER?.role ?: EMPLOYEE)
+            when(userRole){
+                CLIENT, EMPLOYEE -> sentToList.add(userRole)
                 ADMIN -> {
                     sentToList.add(CLIENT)
                     sentToList.add(EMPLOYEE)
