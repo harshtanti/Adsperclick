@@ -9,9 +9,8 @@ import com.adsperclick.media.utils.Constants.MSG_TYPE.MEDIATOR_ANNOUNCEMENT
 
 object Constants {
 
-    var CC = 0
+//    var CC = 0
 
-    var CURRENT_USER : User?= null
     var SERVER_MINUS_DEVICE_TIME_LONG : Long = 0L
     var LAST_SEEN_TIME_EACH_USER_EACH_GROUP : Map<String, MutableMap<String, Long?>> ? = null
 
@@ -66,16 +65,19 @@ object Constants {
         const val MEDIATOR_ANNOUNCEMENT = 400
     }
 
+    const val CALL_CHANNEL_ID = "6969"
+    const val INCOMING_CALL_NOTIFICATION_ID = 1169
+
     val READING_MODE_MSG  = Message("alpha",
         "To Read more messages tap here!",
         msgType = MEDIATOR_ANNOUNCEMENT)
 
     val BOTTOM_MOST_MSG  = Message("bottomMost",
-        "To Read more bottom messages tap here!",
+        "To Read more tap here!",
         msgType = MEDIATOR_ANNOUNCEMENT)
 
     val TOP_MOST_MSG  = Message("topMost",
-        "To Read more top messages tap here!",
+        "To Read more tap here!",
         msgType = MEDIATOR_ANNOUNCEMENT)
 
 

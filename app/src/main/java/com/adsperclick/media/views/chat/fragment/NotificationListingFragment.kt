@@ -13,12 +13,12 @@ import com.adsperclick.media.R
 import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.databinding.FragmentNotificationListingBinding
 import com.adsperclick.media.utils.Constants
-import com.adsperclick.media.utils.Constants.CURRENT_USER
+import com.adsperclick.media.utils.UtilityFunctions
 import com.adsperclick.media.utils.gone
 import com.adsperclick.media.views.chat.adapters.NotificationsPagingAdapter
 import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
+import com.adsperclick.media.views.homeActivity.SharedHomeViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -30,6 +30,7 @@ class NotificationListingFragment : Fragment(), View.OnClickListener {
     private var isAdmin = false
 
     private val chatViewModel: ChatViewModel by viewModels()
+    private val sharedViewModel: SharedHomeViewModel by activityViewModels()
 
     private lateinit var adapter : NotificationsPagingAdapter
 
@@ -80,23 +81,32 @@ class NotificationListingFragment : Fragment(), View.OnClickListener {
 
     override fun onResume() {
         super.onResume()
-        adapter.refresh() // Forces Paging to re-fetch data
+        adapter.refresh() // Forces Paging to re-fetch data (When admin comes back to this frag
+        // from notification creation fragment, it loads previous notifications only, to load
+        // newer one's we need to refresh the paging-adapter)
     }
 
     private fun setUpAdapter(){
         adapter = NotificationsPagingAdapter(chatViewModel.lastTimeWhenNotificationsWereLoaded)
         binding.rvNotificationList.adapter = adapter
 
+        val userRole = sharedViewModel.userData?.role
         lifecycleScope.launch {
-            chatViewModel.notificationsPager.collectLatest { pagingData ->
+            chatViewModel.getNotificationsPager(userRole).collectLatest { pagingData ->
                 adapter.submitData(pagingData)
             }
         }
     }
 
     private fun updateLastNotificationSeenTime(){
-        chatViewModel.lastTimeWhenNotificationsWereLoaded = CURRENT_USER?.lastNotificationSeenTime ?: 0L
-        chatViewModel.updateLastNotificationSeenTime()
+        chatViewModel.lastTimeWhenNotificationsWereLoaded = sharedViewModel.userData?.lastNotificationSeenTime ?: 0L
+
+        // Update last seen time To "CURRENT_TIME" because at the moment we enter, we only see notifications
+        // which were sent before that moment, the new incoming notifications will not be shown
+        // unless user opens this fragment again, that's why we're saving current time while
+        // entering the fragment
+        sharedViewModel.userData?.lastNotificationSeenTime = UtilityFunctions.getTime()
+        sharedViewModel.userData?.userId?.let { chatViewModel.updateLastNotificationSeenTime(it) }
     }
 }
 

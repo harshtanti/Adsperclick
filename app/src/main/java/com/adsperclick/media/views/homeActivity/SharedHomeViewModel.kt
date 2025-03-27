@@ -15,6 +15,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+
+// This view model is shared across all fragments of the "HomeActivity"
+// It is considered good practice to share view models across fragments for passing data,
+// For complex data classes using "arguments" can be cumbersome, so using shared view model is fun
+// Also bringing back data from "tokenManager" requires more performance overhead than storing them
+//in shared VM once and accessing later from there, like in our case, in HomeActivity I took data
+// from shared prefs and saved it in shared VM. Then accessing it from there everytime
+// Also when in messaging fragment, and moving to MediaPreviewFragment then coming back, we need to
+// save state of at what position fragment was when we left, and come back to the same position
+
 @HiltViewModel
 class SharedHomeViewModel @Inject constructor(
     private val chatRepository: ChatRepository
@@ -43,7 +53,9 @@ class SharedHomeViewModel @Inject constructor(
     var lastScrollOffset:Int = -1
     var lastScrollPosition:Int = -1
 
-    // Call this when navigating away from MessagingFragment
+    // Call this when navigating away from MessagingFragment, to save state of where recycler view was,
+    // so that when user comes back again recycler view is at exact same pos,
+    // (coming from Media to Msg frag)
     fun saveScrollPosition(position: Int, offset: Int) {
         lastScrollPosition = position
         lastScrollOffset = offset

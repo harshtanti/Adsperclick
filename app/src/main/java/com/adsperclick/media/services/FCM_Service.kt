@@ -1,16 +1,22 @@
 package com.adsperclick.media.services
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.media.MediaPlayer
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
@@ -23,6 +29,7 @@ import com.adsperclick.media.utils.Constants.FCM.BASIC_NOTIFICATION
 import com.adsperclick.media.utils.Constants.FCM.CHANNEL_ID
 import com.adsperclick.media.utils.Constants.FCM.ID_OF_GROUP_TO_OPEN
 import com.adsperclick.media.utils.Constants.FCM.ITS_A_BROADCAST_NOTIFICATION
+import com.adsperclick.media.utils.Constants.MSG_TYPE.CALL
 import com.adsperclick.media.views.login.repository.AuthRepository
 import com.adsperclick.media.views.splashActivity.SplashActivity
 import com.bumptech.glide.Glide
@@ -42,6 +49,29 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
     @Inject
     lateinit var authRepository: AuthRepository
 
+    private var mediaPlayer: MediaPlayer? = null
+
+//    private var ringtoneReceiver: BroadcastReceiver? = null
+
+
+
+
+//    companion object {
+//        private const val ACTION_STOP_RINGTONE = "com.adsperclick.media.ACTION_STOP_RINGTONE"
+//        private const val ACTION_IGNORE_CALL = "com.adsperclick.media.ACTION_IGNORE_CALL"
+//
+//        @Volatile
+//        private var currentCallGroupId: String? = null
+//
+//        fun stopCurrentCallRingtone(context: Context) {
+//            val intent = Intent(ACTION_STOP_RINGTONE)
+//            context.sendBroadcast(intent)
+//        }
+//    }
+
+
+
+
     // Keep track of messages per group
     private val messagesMap = mutableMapOf<String, MutableList<String>>()
 
@@ -55,6 +85,7 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
 
         WorkManager.getInstance(this).enqueue(workRequest)
     }
+
 
     // So how we have implemented, if there's one notification in that group then we are displaing
     // using "BigTextStyle" of notification if there's more, we use inbox style, so in case of
@@ -74,11 +105,23 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
 
 
         // Below line prevents notification when user is using the app/ ie app is in foreground
-        if(AdsperclickApplication.appLifecycleObserver.isAppInForeground
+        if (AdsperclickApplication.appLifecycleObserver.isAppInForeground
             && groupId != ITS_A_BROADCAST_NOTIFICATION
-            && msgType != Constants.MSG_TYPE.CALL){
+            && msgType != Constants.MSG_TYPE.CALL
+        ) {
             return      // Don't show any notification if app is in use,
         }
+
+
+        // Special handling for call notifications
+        if (msgType == CALL) {
+//            currentCallGroupId = groupId  // Store current call group ID
+
+            playRingtone()
+            /*startCallRingtone(title, body, groupId)*/
+//            return  // Prevent standard notification processing
+        }
+
 
         // Store message for this group
         if (!messagesMap.containsKey(groupId)) {
@@ -87,10 +130,14 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
         messagesMap[groupId]?.add(body)
 
         // Limit stored messages to prevent excessive memory usage
-        if(groupId == ITS_A_BROADCAST_NOTIFICATION) {       // To handle case of broadcast notification, we only want one notification at a time
-            messagesMap[groupId] = messagesMap[groupId]?.takeLast(1)?.toMutableList() ?: mutableListOf()
-        } else if ((messagesMap[groupId]?.size ?: 0) > 5) { // For normal notifications max-5 stored in memory, last five
-            messagesMap[groupId] = messagesMap[groupId]?.takeLast(5)?.toMutableList() ?: mutableListOf()
+        if (groupId == ITS_A_BROADCAST_NOTIFICATION) {       // To handle case of broadcast notification, we only want one notification at a time
+            messagesMap[groupId] =
+                messagesMap[groupId]?.takeLast(1)?.toMutableList() ?: mutableListOf()
+        } else if ((messagesMap[groupId]?.size
+                ?: 0) > 5
+        ) { // For normal notifications max-5 stored in memory, last five
+            messagesMap[groupId] =
+                messagesMap[groupId]?.takeLast(5)?.toMutableList() ?: mutableListOf()
         }
 
         sendNotification(BASIC_NOTIFICATION, title, body, groupId, msgType, downloadUrl)
@@ -119,7 +166,11 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
         val drawable = ResourcesCompat.getDrawable(resources, R.drawable.ecomm_chat_app_icon, null)
         val defaultBitmap = (drawable as? BitmapDrawable)?.bitmap
 
-        val largeIcon = (ResourcesCompat.getDrawable(resources, R.drawable.ecomm_chat_app_icon, null) as BitmapDrawable).bitmap
+        val largeIcon = (ResourcesCompat.getDrawable(
+            resources,
+            R.drawable.ecomm_chat_app_icon,
+            null
+        ) as BitmapDrawable).bitmap
 
 
         // Group key for this specific chat group
@@ -160,7 +211,10 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
                 .asBitmap()
                 .load(imgUrl)
                 .into(object : CustomTarget<Bitmap>() {     // Inside code runs asynchronously
-                    override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                    override fun onResourceReady(
+                        resource: Bitmap,
+                        transition: Transition<in Bitmap>?
+                    ) {
                         val imageNotification = summaryNotificationBuilder
                             .setContentTitle(title)
                             .setContentText(groupMessages.last())
@@ -179,13 +233,56 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
                         summaryNotificationBuilder
                             .setContentTitle(title)
                             .setContentText(groupMessages.firstOrNull() ?: "Image message")
-                            .setStyle(NotificationCompat.BigTextStyle().bigText(groupMessages.firstOrNull() ?: "Image message"))
+                            .setStyle(
+                                NotificationCompat.BigTextStyle()
+                                    .bigText(groupMessages.firstOrNull() ?: "Image message")
+                            )
 
                         nm.notify(groupKey.hashCode(), summaryNotificationBuilder.build())
                     }
                 })
-        }
-        // **Else, Handle Normal Notifications**
+        } /*else if (msgType == CALL) {
+            // Call notification handling
+            val joinIntent = Intent(this, SplashActivity::class.java).apply {
+                putExtra(ID_OF_GROUP_TO_OPEN, groupId)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+
+            val ignoreIntent = Intent(this, CallNotificationReceiver::class.java).apply {
+                action = ACTION_IGNORE_CALL
+                putExtra("groupId", groupId)
+            }
+
+            val joinPendingIntent = PendingIntent.getActivity(
+                this,
+                groupId.hashCode() + 1,
+                joinIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            val ignorePendingIntent = PendingIntent.getBroadcast(
+                this,
+                groupId.hashCode() + 2,
+                ignoreIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            val callNotificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ecomm_chat_app_icon)
+                .setContentTitle(title)
+                .setContentText(body)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_CALL)
+                .setAutoCancel(true)
+                .addAction(R.drawable.ic_email, "Join", joinPendingIntent)
+                .addAction(R.drawable.ic_email, "Ignore", ignorePendingIntent)
+
+            val nmt = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+            nmt.notify(groupKey.hashCode(), callNotificationBuilder.build())
+        }*/
+
+
+        // **Else, Handle Normal Text Notifications**
         else if (messageCount == 1) {
             summaryNotificationBuilder
                 .setContentTitle(title)
@@ -207,10 +304,120 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
         }
 
         // **For Non-Image Notifications, Show Immediately** // for images it is asynchronous glide process it's handled above
-        if (msgType != Constants.MSG_TYPE.IMG_URL) {
+        if (msgType != Constants.MSG_TYPE.IMG_URL /*&& msgType != CALL*/) {
             nm.notify(groupKey.hashCode(), summaryNotificationBuilder.build())
         }
     }
+
+
+    // In your FCM service or call notification handler
+//    fun startCallRingtone(title: String, body: String, groupId: String) {
+//        playRingtone()
+//    }
+
+    // Expose method to stop ringtone
+//    fun stopRingtone() {
+//        mediaPlayer?.apply {
+//            if (isPlaying) {
+//                stop()
+//                release()
+//            }
+//            mediaPlayer = null
+//        }
+//        currentCallGroupId = null
+//    }
+
+//    override fun onDestroy() {
+//        super.onDestroy()
+//        ringtoneReceiver?.let {
+//            unregisterReceiver(it)
+//        }
+//        stopRingtone()
+//    }
+
+
+    private fun playRingtone() {
+        try {
+            // Stop any existing media player
+            mediaPlayer?.apply {
+                if (isPlaying) {
+                    stop()
+                    release()
+                }
+            }
+
+            // Create a new MediaPlayer instance
+            mediaPlayer = MediaPlayer.create(this, R.raw.two_time_ringtone).apply {
+                isLooping = false
+                setVolume(1.0f, 1.0f)
+                start()
+            }
+        } catch (e: Exception) {
+            Log.e("FCM_Service", "Error playing ringtone", e)
+        }
+    }
+
+//    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+//    override fun onCreate() {
+//        super.onCreate()
+//
+//        // Updated receiver to handle ringtone stopping
+//        ringtoneReceiver = object : BroadcastReceiver() {
+//            override fun onReceive(context: Context, intent: Intent) {
+//                when (intent.action) {
+//                    ACTION_STOP_RINGTONE -> {
+//                        stopRingtone()
+//                    }
+//                }
+//            }
+//        }
+//
+//        registerReceiver(
+//            ringtoneReceiver,
+//            IntentFilter(ACTION_STOP_RINGTONE),
+//            RECEIVER_NOT_EXPORTED
+//        )
+//    }
+
+//    class CallNotificationReceiver : BroadcastReceiver() {
+//        override fun onReceive(context: Context, intent: Intent) {
+//            when (intent.action) {
+//                ACTION_IGNORE_CALL -> {
+//                    // Stop ringtone via a broadcast method
+//                    val stopRingtoneIntent = Intent(ACTION_STOP_RINGTONE)
+//                    context.sendBroadcast(stopRingtoneIntent)
+//
+//                    // Dismiss the notification
+//                    val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+//                    val groupId = intent.getStringExtra("groupId")
+//                    groupId?.let {
+//                        nm.cancel(it.hashCode())
+//                    }
+//                }
+//            }
+//        }
+//    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -309,7 +516,7 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
 
 
 
-}
+//}
 
 
 

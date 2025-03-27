@@ -13,6 +13,7 @@ import com.adsperclick.media.R
 import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.databinding.ActivitySplashBinding
+import com.adsperclick.media.services.FCM_Service
 import com.adsperclick.media.utils.Constants.FCM.ID_OF_GROUP_TO_OPEN
 import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
 import com.adsperclick.media.views.homeActivity.HomeActivity
@@ -26,6 +27,9 @@ class SplashActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySplashBinding
     @Inject
     lateinit var tokenManager : TokenManager
+
+    @Inject
+    lateinit var fcmService: FCM_Service
 
     private val chatViewModel : ChatViewModel by viewModels()
 
