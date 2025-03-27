@@ -103,3 +103,13 @@ fun View.enableHeaderButton(value: Int) {
     }
     isEnabled = true
 }
+
+fun String.toTitleCase(): String {
+    return this.lowercase().split(" ").joinToString(" ") { word ->
+        if (word.isNotEmpty()) {
+            word.first().uppercase() + word.substring(1)
+        } else {
+            word
+        }
+    }
+}

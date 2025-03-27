@@ -181,4 +181,10 @@
     <color name="green_info">#5AD439</color>
     <color name="blue_button_close">#007AFF</color>
 
+    //bottomsheet white
+    <color name="white_bottomsheet">#FAFAFA</color>
+    <color name="grey_bottomsheet">#7D7D7D</color>
+
+
+
 </resources>

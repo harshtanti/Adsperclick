@@ -26,6 +26,7 @@ import com.adsperclick.media.databinding.FragmentFormBinding
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.disableSubmitButton
 import com.adsperclick.media.utils.enableSubmitButton
+import com.adsperclick.media.utils.toTitleCase
 import com.adsperclick.media.utils.visible
 import com.adsperclick.media.views.user.bottomsheet.ServiceBottomSheetFragment
 import com.adsperclick.media.views.user.viewmodel.UserViewModel
@@ -421,7 +422,7 @@ class FormFragment : Fragment(),View.OnClickListener {
             when (userType) {
                 Constants.EMPLOYEES_SEMI_CAPS, Constants.CLIENTS_SEMI_CAPS -> {
                     val user = User(
-                        userName = firstName?.plus(" ")?.plus(lastName ?: ""),
+                        userName = firstName?.plus(" ")?.plus(lastName ?: "")?.toTitleCase() ?: "",
                         email = email,
                         password = password,
                         role = userRole,
@@ -436,7 +437,7 @@ class FormFragment : Fragment(),View.OnClickListener {
 
                 Constants.SERVICES_SEMI_CAPS -> {
                     val service = Service(
-                        serviceName = serviceName
+                        serviceName = serviceName?.toTitleCase() ?: ""
                     )
                     viewModel.registerService(service)
 
@@ -444,7 +445,7 @@ class FormFragment : Fragment(),View.OnClickListener {
 
                 Constants.COMPANIES_SEMI_CAPS -> {
                     val company = Company(
-                        companyName = companyName,
+                        companyName = companyName?.toTitleCase() ?: "",
                         gstNumber = gstNumber,
                         listOfServices = convertCommonDataToService(viewModel.selectServiceList)
                     )
