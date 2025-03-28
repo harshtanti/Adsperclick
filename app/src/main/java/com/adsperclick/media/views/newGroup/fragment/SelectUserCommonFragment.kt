@@ -1,33 +1,28 @@
-package com.adsperclick.media.views.chat.fragment
+package com.adsperclick.media.views.newGroup.fragment
 
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.widget.addTextChangedListener
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.navGraphViewModels
 import com.adsperclick.media.R
 import com.adsperclick.media.data.dataModels.CommonData
 import com.adsperclick.media.databinding.FragmentSelectUserCommonBinding
 import com.adsperclick.media.utils.Constants
-import com.adsperclick.media.utils.showToast
 import com.adsperclick.media.utils.toTitleCase
-import com.adsperclick.media.views.chat.adapters.SelectUserCommonAdapter
-import com.adsperclick.media.views.chat.viewmodel.NewGroupViewModel
+import com.adsperclick.media.views.newGroup.adapters.SelectUserCommonAdapter
+import com.adsperclick.media.views.newGroup.viewmodel.NewGroupViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-
 private const val ARG_PARAM1 = "param1"
-
 
 @AndroidEntryPoint
 class SelectUserCommonFragment : Fragment() {

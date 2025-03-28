@@ -1,14 +1,13 @@
-package com.adsperclick.media.views.chat.fragment
+package com.adsperclick.media.views.newGroup.fragment
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.navGraphViewModels
@@ -20,7 +19,7 @@ import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.databinding.FragmentSelectUserBinding
 import com.adsperclick.media.databinding.TabViewBinding
 import com.adsperclick.media.utils.Constants
-import com.adsperclick.media.views.chat.viewmodel.NewGroupViewModel
+import com.adsperclick.media.views.newGroup.viewmodel.NewGroupViewModel
 import com.adsperclick.media.views.user.adapter.PagerAdapter
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.textview.MaterialTextView
@@ -34,7 +33,8 @@ class SelectUserFragment : Fragment(), View.OnClickListener {
     private var tabName:String=""
     private val tabsMapping = arrayListOf(
         Constants.EMPLOYEES_SEMI_CAPS,
-        Constants.CLIENTS_SEMI_CAPS)
+        Constants.CLIENTS_SEMI_CAPS
+    )
 
     private val viewModel: NewGroupViewModel by navGraphViewModels(R.id.new_group_navigation) {
         defaultViewModelProviderFactory
@@ -56,7 +56,7 @@ class SelectUserFragment : Fragment(), View.OnClickListener {
         savedInstanceState: Bundle?,
     ): View {
         // Inflate the layout for this fragment
-        binding=FragmentSelectUserBinding.inflate(inflater, container, false)
+        binding= FragmentSelectUserBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -213,7 +213,11 @@ class SelectUserFragment : Fragment(), View.OnClickListener {
             binding.header.btnSave -> {
                 when {
                     isFromGroupProfile && !groupCompanyName.isNullOrEmpty() && viewModel.selectedUserSetTotal.size == 1 && viewModel.selectedUserSetTotal.first() != groupCompanyName -> {
-                        Toast.makeText(context, "Please! Select clients of only $groupCompanyName", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            "Please! Select clients of only $groupCompanyName",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                     isFromGroupProfile && viewModel.selectedUserSet.size == 0 ->{
                         Toast.makeText(context, "Please! Select Members", Toast.LENGTH_SHORT).show()
@@ -222,13 +226,21 @@ class SelectUserFragment : Fragment(), View.OnClickListener {
                         addMembersInGroup()
                     }
                     isFromGroupProfile -> {
-                        Toast.makeText(context, "Selected Clients can be of only one company", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            "Selected Clients can be of only one company",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                     singleCompany() -> {
                         findNavController().navigate(R.id.action_selectUserFragment_to_newGroupFragment)
                     }
                     else -> {
-                        Toast.makeText(context, "Selected Clients can be of only one company", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            "Selected Clients can be of only one company",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
             }

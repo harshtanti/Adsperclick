@@ -1,16 +1,14 @@
-package com.adsperclick.media.views.chat.fragment
+package com.adsperclick.media.views.newGroup.fragment
 
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.text.InputType
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.widget.doAfterTextChanged
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavOptions
@@ -30,7 +28,7 @@ import com.adsperclick.media.utils.disableSubmitButton
 import com.adsperclick.media.utils.enableSubmitButton
 import com.adsperclick.media.utils.gone
 import com.adsperclick.media.utils.visible
-import com.adsperclick.media.views.chat.viewmodel.NewGroupViewModel
+import com.adsperclick.media.views.newGroup.viewmodel.NewGroupViewModel
 import com.bumptech.glide.Glide
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
@@ -38,13 +36,18 @@ import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
 
-
 @AndroidEntryPoint
-class NewGroupFragment : Fragment(),View.OnClickListener {
+class NewGroupFragment : Fragment(), View.OnClickListener {
 
     private lateinit var binding: FragmentNewGroupBinding
-    private val selectedTypeList = arrayListOf(Constants.CLOSE_VISIBLE,Constants.HEADING_VISIBLE,Constants.CAMERA_VISIBLE,Constants.GALLERY_VISIBLE,Constants.DELETE_VISIBLE)
-    private var company:Company?=null
+    private val selectedTypeList = arrayListOf(
+        Constants.CLOSE_VISIBLE,
+        Constants.HEADING_VISIBLE,
+        Constants.CAMERA_VISIBLE,
+        Constants.GALLERY_VISIBLE,
+        Constants.DELETE_VISIBLE
+    )
+    private var company: Company?=null
 
     @Inject
     lateinit var tokenManager : TokenManager
@@ -73,7 +76,8 @@ class NewGroupFragment : Fragment(),View.OnClickListener {
         validateSubmitButton()
         setUpObserver()
         val drawable = UtilityFunctions.generateInitialsDrawable(
-            binding.imgProfileDp.context, "A")
+            binding.imgProfileDp.context, "A"
+        )
         binding.imgProfileDp.setImageDrawable(drawable)
     }
 
@@ -224,7 +228,8 @@ class NewGroupFragment : Fragment(),View.OnClickListener {
     private fun successMessage(){
         binding.submitButton.apply {
             text = getString(R.string.success)
-            backgroundTintList = ContextCompat.getColorStateList(requireContext(), R.color.green_info)
+            backgroundTintList =
+                ContextCompat.getColorStateList(requireContext(), R.color.green_info)
             isEnabled = false
         }
 
@@ -243,7 +248,8 @@ class NewGroupFragment : Fragment(),View.OnClickListener {
     private fun failedMessage() {
         binding.submitButton.apply {
             text = getString(R.string.failed)
-            backgroundTintList = ContextCompat.getColorStateList(requireContext(), R.color.red_email)
+            backgroundTintList =
+                ContextCompat.getColorStateList(requireContext(), R.color.red_email)
             isEnabled = false
         }
 
@@ -251,13 +257,14 @@ class NewGroupFragment : Fragment(),View.OnClickListener {
             delay(1000) // Show the error message for 1 second
             binding.submitButton.apply {
                 text = getString(R.string.done) // Change back to original text
-                backgroundTintList = ContextCompat.getColorStateList(requireContext(), R.color.blue_common_button)
+                backgroundTintList =
+                    ContextCompat.getColorStateList(requireContext(), R.color.blue_common_button)
                 isEnabled = true
             }
         }
     }
 
-    private val uploadOnSelectListener = object : UploadImageDocsBottomSheet.OnSelectListener{
+    private val uploadOnSelectListener = object : UploadImageDocsBottomSheet.OnSelectListener {
         override fun onSelect(option: String, type: UploadImageDocsBottomSheet.UploadMethod) {
             when (type) {
                 UploadImageDocsBottomSheet.UploadMethod.CAMERA,
@@ -330,7 +337,8 @@ class NewGroupFragment : Fragment(),View.OnClickListener {
             }
             binding.btnImage -> {
                 val bottomSheet = UploadImageDocsBottomSheet.createBottomsheet(
-                    uploadOnSelectListener,selectedTypeList,getString(R.string.group_profile))
+                    uploadOnSelectListener, selectedTypeList, getString(R.string.group_profile)
+                )
                 bottomSheet.show(childFragmentManager, bottomSheet.tag)
             }
             binding.header.btnBack ->{

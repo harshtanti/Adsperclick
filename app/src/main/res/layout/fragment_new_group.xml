@@ -6,7 +6,7 @@
     android:id="@+id/new_group_fragment"
     android:background="@color/white"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".views.chat.fragment.NewGroupFragment">
+    tools:context=".views.newGroup.fragment.NewGroupFragment">
 
     <include
         android:id="@+id/header"

@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:id="@+id/user_list_fragment"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".views.chat.fragment.SelectUserFragment">
+    tools:context=".views.newGroup.fragment.SelectUserFragment">
 
     <include
         android:id="@+id/header"

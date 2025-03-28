@@ -1,4 +1,4 @@
-package com.adsperclick.media.views.chat.viewmodel
+package com.adsperclick.media.views.newGroup.viewmodel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -12,6 +12,7 @@ import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.views.chat.repository.ChatRepository
+import com.adsperclick.media.views.newGroup.repository.NewGroupRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -20,7 +21,7 @@ import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
-class NewGroupViewModel@Inject constructor(private val chatRepository: ChatRepository) : ViewModel() {
+class NewGroupViewModel@Inject constructor(private val newGroupRepository: NewGroupRepository) : ViewModel() {
     var selectedTabPosition = 0
 
     var selectedUserSet: MutableSet<String> = mutableSetOf()
@@ -32,7 +33,7 @@ class NewGroupViewModel@Inject constructor(private val chatRepository: ChatRepos
 
 
     fun getUserListData(searchTxt:String="",role:Int): Flow<PagingData<CommonData>> {
-        return chatRepository.getUserListData(
+        return newGroupRepository.getUserListData(
             searchTxt,
             role
         ).cachedIn(viewModelScope)
@@ -46,7 +47,7 @@ class NewGroupViewModel@Inject constructor(private val chatRepository: ChatRepos
 
         try {
             viewModelScope.launch(Dispatchers.IO){
-                val result = chatRepository.getServiceList()
+                val result = newGroupRepository.getServiceList()
                 _listServiceLiveData.postValue(result)
             }
         } catch (e : Exception){
@@ -62,7 +63,7 @@ class NewGroupViewModel@Inject constructor(private val chatRepository: ChatRepos
 
         try {
             viewModelScope.launch(Dispatchers.IO){
-                val result = chatRepository.createGroup(groupData,file)
+                val result = newGroupRepository.createGroup(groupData,file)
                 _createGroupLiveData.postValue(result)
             }
         } catch (e : Exception){
@@ -81,7 +82,7 @@ class NewGroupViewModel@Inject constructor(private val chatRepository: ChatRepos
                 if (companyId.isNullOrEmpty()) {
                     return@launch
                 }
-                val result = chatRepository.getCompanyNameData(companyId)
+                val result = newGroupRepository.getCompanyNameData(companyId)
                 _companyDataLiveData.postValue(result)
             } catch (e: Exception) {
                 _companyDataLiveData.postValue(NetworkResult.Error(null, "Error ${e.message}"))
@@ -97,7 +98,7 @@ class NewGroupViewModel@Inject constructor(private val chatRepository: ChatRepos
 
         try {
             viewModelScope.launch(Dispatchers.IO){
-                val result = chatRepository.addGroupMember(groupId,userSet)
+                val result = newGroupRepository.addGroupMember(groupId,userSet)
                 _addGroupMemberLiveData.postValue(result)
             }
         } catch (e : Exception){

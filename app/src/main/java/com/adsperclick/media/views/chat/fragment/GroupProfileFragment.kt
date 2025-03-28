@@ -13,7 +13,6 @@ import com.adsperclick.media.R
 import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.applicationCommonView.bottomsheet.UploadImageDocsBottomSheet
 import com.adsperclick.media.data.dataModels.CommonData
-import com.adsperclick.media.data.dataModels.Company
 import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.User
@@ -28,11 +27,9 @@ import com.adsperclick.media.utils.enableHeaderButton
 import com.adsperclick.media.utils.gone
 import com.adsperclick.media.utils.visible
 import com.adsperclick.media.views.chat.adapters.GroupMemberAdapter
-import com.adsperclick.media.views.chat.adapters.SelectUserCommonAdapter
 import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
 import com.bumptech.glide.Glide
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.serialization.json.Json
 import java.io.File
 import javax.inject.Inject
 
