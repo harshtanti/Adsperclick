@@ -24,12 +24,7 @@ import com.adsperclick.media.di.VersionProvider
 import com.adsperclick.media.views.chat.pagingsource.NotificationsPagingSource
 import com.adsperclick.media.views.user.pagingsource.UserCommunityPagingSource
 import com.adsperclick.media.utils.Constants
-import com.adsperclick.media.utils.Constants.DB.CONFIG
-import com.adsperclick.media.utils.Constants.DB.GROUPS
-import com.adsperclick.media.utils.Constants.DB.MESSAGES
-import com.adsperclick.media.utils.Constants.DB.MESSAGES_INSIDE_MESSAGES
-import com.adsperclick.media.utils.Constants.DB.MIN_APP_LEVEL_DOC
-import com.adsperclick.media.utils.Constants.DB.SERVER_TIME_DOC
+import com.adsperclick.media.utils.Constants.DB
 import com.adsperclick.media.utils.Constants.DEFAULT_SERVICE
 import com.adsperclick.media.utils.Constants.INITIATED_A_CALL
 import com.adsperclick.media.utils.Constants.LAST_SEEN_TIME_EACH_USER_EACH_GROUP
@@ -102,7 +97,7 @@ class ChatRepository @Inject constructor(
             // This will create an empty document! Basically provide us an unique id
             // for our notification-object, we need this unique id because our notification object
             // has a parameter for notificationId, that needs to be updated
-            val documentRef = firestore.collection(Constants.DB.NOTIFICATIONS).document()      // This is an offline function
+            val documentRef = firestore.collection(DB.NOTIFICATIONS).document()      // This is an offline function
 
             // Setting Firestore-generated ID inside the notification object
             val updatedNotification = notification.copy(notificationId = documentRef.id)
@@ -125,12 +120,12 @@ class ChatRepository @Inject constructor(
 
     fun updateLastNotificationSeenTime(userId: String) {
         try {
-            if (userId.isNullOrEmpty()) {
+            if (userId.isEmpty()) {
                 Log.d("skt", "User ID is null or empty, cannot update")
                 return
             }
 
-            val userRef = firestore.collection(Constants.DB.USERS).document(userId)
+            val userRef = firestore.collection(DB.USERS).document(userId)
 
             val time = UtilityFunctions.getTime()
             userRef.update("lastNotificationSeenTime", time)
@@ -169,7 +164,7 @@ class ChatRepository @Inject constructor(
         try{
 
             val userId = tokenManager.getUser()?.userId
-            val result = firestore.collection(Constants.DB.USERS).document(userId!!).get().await()
+            val result = firestore.collection(DB.USERS).document(userId!!).get().await()
 
             if (result.exists().not()) {
                 return ConsumableValue(NetworkResult.Error(null, "User not found in database"))
@@ -179,7 +174,7 @@ class ChatRepository @Inject constructor(
 
             if(user?.role != Constants.ROLE.CLIENT){
                 // Now we fetch list of all services and put it in "User" object, thereafter it will be saved in shared Prefs
-                val servicesList = firestore.collection(Constants.DB.SERVICE).orderBy("serviceName").get().await()
+                val servicesList = firestore.collection(DB.SERVICE).orderBy("serviceName").get().await()
                 val listOfServices = arrayListOf<Service>(DEFAULT_SERVICE)      // Filled first service with default service i.e. "All"
                 for(document in servicesList.documents){
                     val service = document.toObject(Service::class.java)
@@ -212,14 +207,14 @@ class ChatRepository @Inject constructor(
             }
 
 
-            val docRef = firestore.collection(CONFIG).document(SERVER_TIME_DOC)
+            val docRef = firestore.collection(DB.CONFIG).document(DB.SERVER_TIME_DOC)
 
             // Update the document with the server timestamp
-            docRef.update(SERVER_TIME_DOC, FieldValue.serverTimestamp()).await()
+            docRef.update(DB.SERVER_TIME_DOC, FieldValue.serverTimestamp()).await()
 
             // Fetch the updated timestamp
             val snapshot = docRef.get().await()
-            snapshot.getTimestamp(SERVER_TIME_DOC)?.let { serverTime ->
+            snapshot.getTimestamp(DB.SERVER_TIME_DOC)?.let { serverTime ->
                 val timeDiff = UtilityFunctions.timestampToLong(serverTime) - System.currentTimeMillis()
                 // Some timeDiff coz of time taken to fetch server-side time, so we ignore upto 1 sec
                 if(timeDiff > 1000L) tokenManager.setServerMinusDeviceTime(timeDiff)
@@ -236,15 +231,10 @@ class ChatRepository @Inject constructor(
     }
     suspend fun isCurrentVersionAcceptable(): Boolean {
         return try {
-            val result = firestore.collection(CONFIG).document(MIN_APP_LEVEL_DOC).get().await()
-            val minAcceptableVersion = result.getLong(MIN_APP_LEVEL_DOC) ?: 1
+            val result = firestore.collection(DB.CONFIG).document(DB.MIN_APP_LEVEL_DOC).get().await()
+            val minAcceptableVersion = result.getLong(DB.MIN_APP_LEVEL_DOC) ?: 1
 
             val currentAppVersion = versionProvider.appVersion // Get current app version
-
-            if (minAcceptableVersion == null) {
-                Log.e("compareAppVersion", "Invalid minAcceptableAppLvl from Firestore")
-                return true // Assume app is valid if Firestore data is incorrect
-            }
 
             // If current app version is lower than min required, return false (force update needed)
             currentAppVersion >= minAcceptableVersion
@@ -268,7 +258,7 @@ class ChatRepository @Inject constructor(
         listOfGroupChatId: List<String>
     ): NetworkResult<Map<String, MutableMap<String, Long?>>> {
         return try {
-            val querySnapshot = firestore.collectionGroup("GroupMembersLastSeenTime").get().await()
+            val querySnapshot = firestore.collectionGroup(DB.GROUP_MEMBERS_LAST_SEEN_TIME).get().await()
             val lastSeenData = mutableMapOf<String, MutableMap<String, Long?>>()
 
             for (doc in querySnapshot.documents) {
@@ -287,6 +277,7 @@ class ChatRepository @Inject constructor(
             LAST_SEEN_TIME_EACH_USER_EACH_GROUP = lastSeenData
             NetworkResult.Success(lastSeenData)
         } catch (e: Exception) {
+            Log.e("skt", "Error: ${e.message}")
             NetworkResult.Error(null, "Error: ${e.message}")
         }
     }
@@ -307,12 +298,13 @@ class ChatRepository @Inject constructor(
             _listOfGroupChatLiveData.postValue(ConsumableValue(NetworkResult.Loading()))
 
             // Firestore listener (Real-time updates)
-            val query = firestore.collection(GROUPS)
+            val query = firestore.collection(DB.GROUPS)
                 .whereIn("groupId", listOfGroupChatId)
 
             query.addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     _listOfGroupChatLiveData.postValue(ConsumableValue(NetworkResult.Error(null, "Error: ${error.message}")))
+                    Log.e("skt", "Error: ${error.message}")
                     return@addSnapshotListener
                 }
 
@@ -374,30 +366,18 @@ class ChatRepository @Inject constructor(
         }
     }
 
-    private val _lastSeenTimestampLiveData = MutableLiveData<ConsumableValue<NetworkResult<Long>>>()
-    val lastSeenTimestampLiveData = _lastSeenTimestampLiveData
 
     suspend fun fetchAllNewMessages(groupId: String) {
         val timeStampOfLastMsgInRoom = messagesDao.getLatestMsgTimestampOrZero(groupId) ?: 0L
 
         val timestampDataType = UtilityFunctions.longToTimestamp(timeStampOfLastMsgInRoom)      // To obtain timestamp in "Timestamp" data type
         try {
-
-            // First fetching the last-seen timestamp from firestore to find out where we need to show the read message :)
-            val lastSeenTimestamp = firestore.collection(MESSAGES)
-                .document(groupId).collection("GroupMembers")
-                .document(tokenManager.getUser()?.userId!!).get().await()
-
-            _lastSeenTimestampLiveData.postValue(
-                ConsumableValue(NetworkResult.Success(
-                    UtilityFunctions.timestampToLong(lastSeenTimestamp.getTimestamp("lastSeenTime")))))
-
             // This we are doing coz firestore has a limit, each document can be of atmost 1MB, so
             // we need each "Message" to be a single document so that there's no issue as per backend limits
 
-            val querySnapshot = firestore.collection(MESSAGES)
+            val querySnapshot = firestore.collection(DB.MESSAGES)
                 .document(groupId)
-                .collection(MESSAGES_INSIDE_MESSAGES)                   // Subcollection for messages
+                .collection(DB.MESSAGES_INSIDE_MESSAGES)                   // Subcollection for messages
                 .whereGreaterThan("timestamp", timestampDataType) // Query only new messages
                 .orderBy("timestamp", Query.Direction.ASCENDING)
                 .get()
@@ -444,9 +424,9 @@ class ChatRepository @Inject constructor(
              // Remove any existing listener before setting a new one
              chatListener?.remove()
 
-             chatListener = firestore.collection(MESSAGES)
+             chatListener = firestore.collection(DB.MESSAGES)
                  .document(groupId)
-                 .collection(MESSAGES_INSIDE_MESSAGES)
+                 .collection(DB.MESSAGES_INSIDE_MESSAGES)
                  .whereGreaterThan("timestamp", lastTimestamp)
                  .orderBy("timestamp", Query.Direction.ASCENDING)
                  .addSnapshotListener { snapshot, error ->
@@ -482,6 +462,7 @@ class ChatRepository @Inject constructor(
             val msgs = messagesDao.getSpecifiedMessages(groupId, limit, offset)
             return NetworkResult.Success(msgs ?: listOf())
         } catch (e: Exception){
+            Log.e("skt", "Error: ${e.message}")
             NetworkResult.Error(null, "Error ${e.message}")
         }
     }
@@ -490,9 +471,9 @@ class ChatRepository @Inject constructor(
 
     suspend fun sendMessage(msgText: String, groupId: String, user: User, groupName: String,
                             listOfGroupMemberId: List<String>, msgType: Int) {
-        val messagesRef = firestore.collection(MESSAGES)
+        val messagesRef = firestore.collection(DB.MESSAGES)
             .document(groupId)
-            .collection(MESSAGES_INSIDE_MESSAGES)
+            .collection(DB.MESSAGES_INSIDE_MESSAGES)
 
         val msgId = messagesRef.document().id // Generate a unique ID for the message
 
@@ -516,7 +497,7 @@ class ChatRepository @Inject constructor(
                     .addOnSuccessListener {
                         val updatedMessage = it.toMessage()
                         updatedMessage?.let { msg ->
-                            firestore.collection(GROUPS)
+                            firestore.collection(DB.GROUPS)
                                 .document(groupId)
                                 .update("lastSentMsg", msg) // ✅ Save correct message with timestamp
                         }
@@ -562,8 +543,8 @@ class ChatRepository @Inject constructor(
             val data = mapOf(
                 "lastSeenTime" to FieldValue.serverTimestamp()
             )
-            firestore.collection(GROUPS).document(groupId)
-                .collection("GroupMembersLastSeenTime").document(userId).set(data)
+            firestore.collection(DB.GROUPS).document(groupId)
+                .collection(Constants.DB.GROUP_MEMBERS_LAST_SEEN_TIME).document(userId).set(data)
 
         } catch (ex: Exception){
             Log.e("skt", "Error : $ex")
@@ -613,6 +594,7 @@ class ChatRepository @Inject constructor(
                 _imageUploadedLiveData.postValue(ConsumableValue(NetworkResult.Error(null, "Couldn't upload img..")))
             }
         } catch (e: Exception) {
+            Log.e("skt", "Error: ${e.message}")
             _imageUploadedLiveData.postValue(ConsumableValue(NetworkResult.Error(null, e.message ?: "Couldn't upload img..")))
         }
     }

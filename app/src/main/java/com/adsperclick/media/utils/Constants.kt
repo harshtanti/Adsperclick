@@ -154,6 +154,8 @@ object Constants {
         const val SERVER_TIME_DOC = "serverTime"        //Within config collection it is a document (To fetch server-side time and sync it with device time)
         const val MIN_APP_LEVEL_DOC = "minAppLevel"      //Within config collection it is a document"
         const val GROUP_CALL_LOG = "call_log"
+
+        const val GROUP_MEMBERS_LAST_SEEN_TIME = "GroupMembersLastSeenTime"
     }
 
     object TXT_MSG_TYPE{
