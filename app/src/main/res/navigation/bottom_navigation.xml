@@ -40,7 +40,7 @@
 
     <fragment
         android:id="@+id/notificationListingFragment"
-        android:name="com.adsperclick.media.views.chat.fragment.NotificationListingFragment"
+        android:name="com.adsperclick.media.views.notifications.NotificationListingFragment"
         android:label="fragment_notification_listing"
         tools:layout="@layout/fragment_notification_listing" >
         <action
@@ -50,7 +50,7 @@
 
     <fragment
         android:id="@+id/notificationCreationFragment"
-        android:name="com.adsperclick.media.views.chat.fragment.NotificationCreationFragment"
+        android:name="com.adsperclick.media.views.notifications.NotificationCreationFragment"
         android:label="fragment_notification_creation"
         tools:layout="@layout/fragment_notification_creation" />
 

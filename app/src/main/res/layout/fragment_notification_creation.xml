@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
-    tools:context=".views.chat.fragment.NotificationListingFragment">
+    tools:context=".views.notifications.NotificationListingFragment">
 
     <!-- TODO: Update blank fragment layout -->
     <ImageButton

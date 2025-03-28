@@ -41,7 +41,7 @@ import com.adsperclick.media.utils.UtilityFunctions
 import com.adsperclick.media.utils.gone
 import com.adsperclick.media.utils.visible
 import com.adsperclick.media.views.chat.adapters.MessagesAdapter
-import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
+import com.adsperclick.media.views.chat.viewmodel.MessagingViewModel
 import com.adsperclick.media.views.homeActivity.SharedHomeViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
@@ -55,7 +55,7 @@ import javax.inject.Inject
 class MessagingFragment : Fragment(),View.OnClickListener {
 
     lateinit var binding: FragmentMessagingBinding
-    private val chatViewModel: ChatViewModel by viewModels()
+    private val messagingViewModel: MessagingViewModel by viewModels()
     private val sharedViewModel: SharedHomeViewModel by activityViewModels()
     private var showCallDialog = true       // We only show it once
 
@@ -129,14 +129,14 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                 turnOnReadingMode()
 
             } ?: run{
-                chatViewModel.setGroupId(groupId)   // Group Id is set, "messages" live-data gets active,
+                messagingViewModel.setGroupId(groupId)   // Group Id is set, "messages" live-data gets active,
                 // and it starts listening for realtime updates in room-db, realtime room-db updates are sent to adapter via observer here
-                chatViewModel.fetchAllNewMessages(groupId)      // To fetch all the unread messages for this group in one single go!
+                messagingViewModel.fetchAllNewMessages(groupId)      // To fetch all the unread messages for this group in one single go!
             }
 
             lifecycleScope.launch {
                 delay(1000)  // Delay for 1 second
-                chatViewModel.isCallOngoing(groupId)
+                messagingViewModel.isCallOngoing(groupId)
             }
         }
 
@@ -174,7 +174,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
 
     private fun setupObservers(){
 
-        chatViewModel.imageUploadedLiveData.observe(viewLifecycleOwner){ consumableValue ->
+        messagingViewModel.imageUploadedLiveData.observe(viewLifecycleOwner){ consumableValue ->
             consumableValue.handle { response->
                 // Response is a string "image download url", we're not using it here
                 when(response){
@@ -191,19 +191,20 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         }
 
         // To update adapter with new messages, whenever Room-DB is updated
-        chatViewModel.messages.observe(viewLifecycleOwner) { consumableValue->
+        messagingViewModel.messages.observe(viewLifecycleOwner) { consumableValue->
 
             consumableValue.handle {response ->
 
-                val oldLastMessagePosition = adapter.itemCount - 1
                 lastMsgInGroup = response.firstOrNull()
-                chatViewModel.checkIfLastMsgRelatedToCall(response.firstOrNull())
+                messagingViewModel.checkIfLastMsgRelatedToCall(response.firstOrNull())
 
                 val modifiedResponse = response.toMutableList().apply {
                     if(response.size == LIMIT_MSGS) {add(Constants.READING_MODE_MSG)}
                     reverse()
                 }.toList() // Convert back to List<T>
 
+
+                val oldLastMessagePosition = modifiedResponse.size-2
                 adapter.submitList(modifiedResponse) {
 
 //                (binding.rvChat.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(position, offset)
@@ -217,8 +218,8 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                     }
 
                     // Ensure previous last message updates (To update the chat bubble of previous message
-                    if (modifiedResponse.size-2 >= 0) {
-                        adapter.notifyItemChanged(modifiedResponse.size-2)
+                    if (oldLastMessagePosition >= 0) {
+                        adapter.notifyItemChanged(oldLastMessagePosition)
                     }
                 }
             }
@@ -261,7 +262,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
             }
         }
 
-        chatViewModel.getAgoraTokenLiveData.observe(viewLifecycleOwner) { consumableValue ->
+        messagingViewModel.getAgoraTokenLiveData.observe(viewLifecycleOwner) { consumableValue ->
             consumableValue.handle { response->
 
                 when(response){
@@ -286,19 +287,19 @@ class MessagingFragment : Fragment(),View.OnClickListener {
             }
         }
 
-        chatViewModel.userLeftCallLiveData.observe(viewLifecycleOwner) { consumableValue ->
-            consumableValue.handle { response->
-                when(response){
-                    is NetworkResult.Success ->{}
-                    is NetworkResult.Error -> {
-                        Toast.makeText(context, "Error : ${response.message}", Toast.LENGTH_SHORT).show()
-                    }
-                    is NetworkResult.Loading -> {}
-                }
-            }
-        }
+//        messagingViewModel.userLeftCallLiveData.observe(viewLifecycleOwner) { consumableValue ->
+//            consumableValue.handle { response->
+//                when(response){
+//                    is NetworkResult.Success ->{}
+//                    is NetworkResult.Error -> {
+//                        Toast.makeText(context, "Error : ${response.message}", Toast.LENGTH_SHORT).show()
+//                    }
+//                    is NetworkResult.Loading -> {}
+//                }
+//            }
+//        }
 
-        chatViewModel.isCallOngoingLiveData.observe(viewLifecycleOwner) { consumableValue ->
+        messagingViewModel.isCallOngoingLiveData.observe(viewLifecycleOwner) { consumableValue ->
             consumableValue.handle { response->
                 when(response){
                     is NetworkResult.Success ->{
@@ -454,33 +455,29 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         super.onPause()
 
         currentUser.userId?.let { userId->
-            sharedViewModel.lastSeenTimeForEachUserEachGroup?.get(groupChat?.groupId.toString())?.set(userId,
-                UtilityFunctions.getTime()
-            )
+            sharedViewModel.lastSeenTimeForEachUserEachGroup?.get(
+                groupChat?.groupId.toString())?.set(userId, UtilityFunctions.getTime())
         }
 
-        groupChat?.let { gc->
-            gc.listOfUsers?.let {listOfGroupMembers->
-                lastMsgInGroup?.msgId?.let{ idOfLastMsg ->
-                    gc.groupId?.let { groupId ->
-                        currentUser.userId?.let {userId->
-                            chatViewModel.updateLastReadMsg(groupId, idOfLastMsg, userId, listOfGroupMembers)
-                        }
-                    }
-                }
+        groupChat?.groupId?.let { groupId->
+            currentUser.userId?.let { userId ->
+                messagingViewModel.updateLastReadMsg(groupId, userId)
+
             }
         }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        chatViewModel.stopRealtimeListening()
+        messagingViewModel.stopRealtimeListening()
     }
 
     fun turnOnReadingMode(){
-        chatViewModel.stopRealtimeListening()
-        binding.includeTextSender.groupMsgSendingTemplate.gone()
-        binding.includeTextSender.btnGoToRecentMsgs.visible()
+        messagingViewModel.stopRealtimeListening()
+        with(binding.includeTextSender){
+            groupMsgSendingTemplate.gone()
+            btnGoToRecentMsgs.visible()
+        }
 
         groupChat?.groupId?.let {
             sharedViewModel.getSpecifiedMessages(it)
@@ -489,16 +486,14 @@ class MessagingFragment : Fragment(),View.OnClickListener {
 
     fun turnOffReadingMode(){
         groupChat?.groupId?.let {groupId->
-            chatViewModel.setGroupId(groupId)
-            chatViewModel.fetchAllNewMessages(groupId)
+            messagingViewModel.setGroupId(groupId)
+            messagingViewModel.fetchAllNewMessages(groupId)
         }
         loadingBottomMsgs = false
         sharedViewModel.pageNo=null
         binding.includeTextSender.groupMsgSendingTemplate.visible()
         binding.includeTextSender.btnGoToRecentMsgs.gone()
     }
-
-
 
 
 
@@ -533,7 +528,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                     binding.includeTextSender.etTypeMessage.text.clear()
                     groupChat?.let {gc->
 
-                        chatViewModel.sendMessage(text, gc.groupId ?: "",
+                        messagingViewModel.sendMessage(text, gc.groupId ?: "",
                             currentUser, gc.groupName ?: "", listOfGroupMemberId
                         )
                     }
@@ -559,6 +554,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
             binding.includeTopBar.btnVideoCall->{
                 Toast.makeText(context, "Feature not available yet!", Toast.LENGTH_SHORT).show()
 
+//                USED FOR TESTING BY SENDING MESSAGES..
 //                groupChat?.let { gc ->
 //                    lifecycleScope.launch {
 //                        for (i in CC until CC + 30) {
@@ -606,7 +602,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                         gc.groupId?.let {groupId->
                             gc.groupName?.let { groupName ->
                                 msgType?.let {msgType->
-                                    chatViewModel.uploadFile(groupId,
+                                    messagingViewModel.uploadFile(groupId,
                                         groupName, imageFile,  listOfGroupMemberId, msgType)
                                 } } }       // This function will upload file in firebase-storage
                                             // and also display it to user in this fragment
@@ -736,7 +732,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                 // Permissions are granted, proceed with call
                 groupChat?.let { groupData ->
                     currentUser.let { userData ->
-                        chatViewModel.getAgoraCallToken(groupData, userData)
+                        messagingViewModel.getAgoraCallToken(groupData, userData)
                     }
                 }
             }
