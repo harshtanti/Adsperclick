@@ -104,7 +104,7 @@
         app:startDestination="@id/selectUserFragment">
         <fragment
             android:id="@+id/newGroupFragment"
-            android:name="com.adsperclick.media.views.chat.fragment.NewGroupFragment"
+            android:name="com.adsperclick.media.views.newGroup.fragment.NewGroupFragment"
             android:label="fragment_new_group"
             tools:layout="@layout/fragment_new_group">
             <action
@@ -113,7 +113,7 @@
         </fragment>
         <fragment
             android:id="@+id/selectUserFragment"
-            android:name="com.adsperclick.media.views.chat.fragment.SelectUserFragment"
+            android:name="com.adsperclick.media.views.newGroup.fragment.SelectUserFragment"
             android:label="fragment_select_user"
             tools:layout="@layout/fragment_select_user">
             <action

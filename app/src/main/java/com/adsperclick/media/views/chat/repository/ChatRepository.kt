@@ -328,18 +328,6 @@ class ChatRepository @Inject constructor(
     }
 
 
-
-    fun getUserListData(searchQuery: String, userRole: Int): Flow<PagingData<CommonData>> {
-        return Pager(
-            config = PagingConfig(
-                pageSize = 10,
-                enablePlaceholders = false
-            ),
-            pagingSourceFactory = { UserCommunityPagingSource(firestore, searchQuery, userRole) }
-        ).flow
-    }
-
-
 // ----------------------------------------------------------------------------------------------------------------
 //  MESSAGE RETRIEVAL FROM FIREBASE AND REALTIME LISTENING IN MESSAGING_FRAGMENT
     fun getChatsForGroup(groupId: String): LiveData<List<Message>> {
@@ -739,12 +727,6 @@ class ChatRepository @Inject constructor(
 
     suspend fun removeUserFromCall(groupData: GroupChatListingData, userData: User) = apiService.removeUserFromCall(groupData,userData)
 
-    suspend fun getServiceList() = apiService.getServiceList()
-
-    suspend fun createGroup(data: GroupChatListingData,file: File) = apiService.createGroup(data,file)
-
-    suspend fun getCompanyNameData(companyId: String) = apiService.getCompanyNameData(companyId)
-
     suspend fun getMultipleUsers(userIds: List<String>) = apiService.getMultipleUsers(userIds)
 
     suspend fun updateGroupProfile(groupId:String,groupName:String?, file: File?) = apiService.updateGroupProfile(groupId,groupName,file)
@@ -752,8 +734,6 @@ class ChatRepository @Inject constructor(
     suspend fun removeUserFromGroup(userId: String, groupId: String) = apiService.removeUserFromGroup(userId,groupId)
 
     suspend fun getGroupDetails(groupId: String) = apiService.getGroupDetails(groupId)
-
-    suspend fun addGroupMember(groupId:String,userSet: MutableSet<String>) = apiService.addGroupMember(groupId,userSet)
 
 }
 

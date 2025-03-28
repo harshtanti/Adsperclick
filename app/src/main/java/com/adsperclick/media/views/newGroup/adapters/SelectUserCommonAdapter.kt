@@ -1,4 +1,4 @@
-package com.adsperclick.media.views.chat.adapters
+package com.adsperclick.media.views.newGroup.adapters
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
