@@ -24,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 
@@ -115,7 +116,7 @@ class ChatViewModel@Inject constructor(
         _groupId.value = roomId
     }
 
-    val lastSeenTimestampLiveData  = chatRepository.lastSeenTimestampLiveData
+    // val lastSeenTimestampLiveData  = chatRepository.lastSeenTimestampLiveData
     fun fetchAllNewMessages(groupId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             chatRepository.fetchAllNewMessages(groupId)

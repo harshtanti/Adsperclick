@@ -18,6 +18,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.adsperclick.media.R
@@ -43,6 +44,8 @@ import com.adsperclick.media.views.chat.adapters.MessagesAdapter
 import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
 import com.adsperclick.media.views.homeActivity.SharedHomeViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import java.io.File
 import javax.inject.Inject
@@ -131,7 +134,10 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                 chatViewModel.fetchAllNewMessages(groupId)      // To fetch all the unread messages for this group in one single go!
             }
 
-            chatViewModel.isCallOngoing(groupId)
+            lifecycleScope.launch {
+                delay(1000)  // Delay for 1 second
+                chatViewModel.isCallOngoing(groupId)
+            }
         }
 
         listOfGroupMemberId = groupChat?.listOfUsers?.map { it.userId } ?: emptyList()
@@ -211,8 +217,8 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                     }
 
                     // Ensure previous last message updates (To update the chat bubble of previous message
-                    if (oldLastMessagePosition >= 0) {
-                        adapter.notifyItemChanged(oldLastMessagePosition)
+                    if (modifiedResponse.size-2 >= 0) {
+                        adapter.notifyItemChanged(modifiedResponse.size-2)
                     }
                 }
             }
