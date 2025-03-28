@@ -24,14 +24,7 @@ import com.adsperclick.media.di.VersionProvider
 import com.adsperclick.media.views.chat.pagingsource.NotificationsPagingSource
 import com.adsperclick.media.views.user.pagingsource.UserCommunityPagingSource
 import com.adsperclick.media.utils.Constants
-import com.adsperclick.media.utils.Constants.CURRENT_USER
-import com.adsperclick.media.utils.Constants.DB.CONFIG
-import com.adsperclick.media.utils.Constants.DB.GROUPS
-import com.adsperclick.media.utils.Constants.DB.GROUP_CALL_LOG
-import com.adsperclick.media.utils.Constants.DB.MESSAGES
-import com.adsperclick.media.utils.Constants.DB.MESSAGES_INSIDE_MESSAGES
-import com.adsperclick.media.utils.Constants.DB.MIN_APP_LEVEL_DOC
-import com.adsperclick.media.utils.Constants.DB.SERVER_TIME_DOC
+import com.adsperclick.media.utils.Constants.DB
 import com.adsperclick.media.utils.Constants.DEFAULT_SERVICE
 import com.adsperclick.media.utils.Constants.INITIATED_A_CALL
 import com.adsperclick.media.utils.Constants.LAST_SEEN_TIME_EACH_USER_EACH_GROUP
@@ -54,7 +47,6 @@ import com.google.firebase.functions.FirebaseFunctions
 import com.google.firebase.storage.StorageReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -88,6 +80,7 @@ class ChatRepository @Inject constructor(
 // ----------------------------------------------------------------------------------------------------------------
 //  NOTIFICATION CREATION, LISTING, UPDATING_LAST_NOTIFICATION_SEEN_TIME, NOTIFICATION_PAGER
 
+    // For notification listing we're using Page-3 library
 
     private val _createNotificationLiveData = MutableLiveData<NetworkResult<NotificationMsg>>()
     val createNotificationLiveData: LiveData<NetworkResult<NotificationMsg>> get() = _createNotificationLiveData
@@ -104,20 +97,13 @@ class ChatRepository @Inject constructor(
             // This will create an empty document! Basically provide us an unique id
             // for our notification-object, we need this unique id because our notification object
             // has a parameter for notificationId, that needs to be updated
-            val documentRef = firestore.collection(Constants.DB.NOTIFICATIONS).document()      // This is an offline function
+            val documentRef = firestore.collection(DB.NOTIFICATIONS).document()      // This is an offline function
 
             // Setting Firestore-generated ID inside the notification object
             val updatedNotification = notification.copy(notificationId = documentRef.id)
 
 
             val notificationMap = updatedNotification.mapifyForFirestoreTimestamp()
-            /*hashMapOf(
-                "notificationId" to documentRef.id,
-                "notificationTitle" to notification.notificationTitle,
-                "notificationDescription" to notification.notificationDescription,
-                "sentTo" to notification.sentTo,
-                "timestamp" to FieldValue.serverTimestamp() // Setting server-side timestamp, it will populate the field with "time" at that time
-            )*/
 
             // Sending our notification object to backend
             // Firestore supports offline persistence! even if internet is not there and user made below
@@ -132,44 +118,17 @@ class ChatRepository @Inject constructor(
         }
     }
 
-    private val _listNotificationLiveData = MutableLiveData<NetworkResult<List<NotificationMsg>>>()
-    val listNotificationLiveData: LiveData<NetworkResult<List<NotificationMsg>>> get() = _listNotificationLiveData
-
-    suspend fun listNotifications(){
-        _listNotificationLiveData.postValue(NetworkResult.Loading())
-
+    fun updateLastNotificationSeenTime(userId: String) {
         try {
-            val querySnapshot = firestore.collection(Constants.DB.NOTIFICATIONS).get().await()
-            val notificationList = arrayListOf<NotificationMsg>()
-
-            for(document in querySnapshot.documents){
-                val notification = document.toObject(NotificationMsg::class.java)
-                notification?.let {
-                    notificationList.add(notification)
-                }
-            }
-
-            _listNotificationLiveData.postValue(NetworkResult.Success(notificationList))
-        } catch (e : Exception){
-            _listNotificationLiveData.postValue(NetworkResult.Error(null, "Error ${e.message}"))
-        }
-    }
-
-    suspend fun updateLastNotificationSeenTime() {
-        try {
-            val userId = tokenManager.getUser()?.userId
-            if (userId.isNullOrEmpty()) {
+            if (userId.isEmpty()) {
                 Log.d("skt", "User ID is null or empty, cannot update")
                 return
             }
 
-            val userRef = firestore.collection(Constants.DB.USERS).document(userId)
+            val userRef = firestore.collection(DB.USERS).document(userId)
 
             val time = UtilityFunctions.getTime()
             userRef.update("lastNotificationSeenTime", time)
-                .addOnSuccessListener {
-                    CURRENT_USER?.lastNotificationSeenTime = time
-                }
 
         } catch (e: Exception) {
             Log.d("skt", "updateLastNotificationSeenTime() function encountered an error: ${e.message}")
@@ -180,14 +139,14 @@ class ChatRepository @Inject constructor(
     // Note in our "NotificationsPagingSource" or any other PagingSource file, we can't
     // directly apply dependency injection! So we need to send the FirebaseFirestore instance
     // from this file to the "NotificationsPagingSource" so that it can access it :)
-    fun getNotificationPager(): Pager<QuerySnapshot, NotificationMsg> {
+    fun getNotificationPager(userRole: Int?): Pager<QuerySnapshot, NotificationMsg> {
 
         return Pager(
             config = PagingConfig(
                 pageSize = 10,
                 enablePlaceholders = false
             ),
-            pagingSourceFactory = { NotificationsPagingSource(firestore) } // Pass Firestore here
+            pagingSourceFactory = { NotificationsPagingSource(firestore, userRole) } // Pass Firestore here
         )
     }
 
@@ -205,7 +164,7 @@ class ChatRepository @Inject constructor(
         try{
 
             val userId = tokenManager.getUser()?.userId
-            val result = firestore.collection(Constants.DB.USERS).document(userId!!).get().await()
+            val result = firestore.collection(DB.USERS).document(userId!!).get().await()
 
             if (result.exists().not()) {
                 return ConsumableValue(NetworkResult.Error(null, "User not found in database"))
@@ -215,7 +174,7 @@ class ChatRepository @Inject constructor(
 
             if(user?.role != Constants.ROLE.CLIENT){
                 // Now we fetch list of all services and put it in "User" object, thereafter it will be saved in shared Prefs
-                val servicesList = firestore.collection(Constants.DB.SERVICE).orderBy("serviceName").get().await()
+                val servicesList = firestore.collection(DB.SERVICE).orderBy("serviceName").get().await()
                 val listOfServices = arrayListOf<Service>(DEFAULT_SERVICE)      // Filled first service with default service i.e. "All"
                 for(document in servicesList.documents){
                     val service = document.toObject(Service::class.java)
@@ -243,19 +202,19 @@ class ChatRepository @Inject constructor(
         try {
             if(UtilityFunctions.isNetworkAvailable(context).not()){ // To handle the case user is offline
                 Log.d("skt", "User is offline") // This function is updating firebase, so c
-                                        // annot be run when user is offline
+                                        // Cannot be run when user is offline
                 return
             }
 
 
-            val docRef = firestore.collection(CONFIG).document(SERVER_TIME_DOC)
+            val docRef = firestore.collection(DB.CONFIG).document(DB.SERVER_TIME_DOC)
 
             // Update the document with the server timestamp
-            docRef.update(SERVER_TIME_DOC, FieldValue.serverTimestamp()).await()
+            docRef.update(DB.SERVER_TIME_DOC, FieldValue.serverTimestamp()).await()
 
             // Fetch the updated timestamp
             val snapshot = docRef.get().await()
-            snapshot.getTimestamp(SERVER_TIME_DOC)?.let { serverTime ->
+            snapshot.getTimestamp(DB.SERVER_TIME_DOC)?.let { serverTime ->
                 val timeDiff = UtilityFunctions.timestampToLong(serverTime) - System.currentTimeMillis()
                 // Some timeDiff coz of time taken to fetch server-side time, so we ignore upto 1 sec
                 if(timeDiff > 1000L) tokenManager.setServerMinusDeviceTime(timeDiff)
@@ -272,15 +231,10 @@ class ChatRepository @Inject constructor(
     }
     suspend fun isCurrentVersionAcceptable(): Boolean {
         return try {
-            val result = firestore.collection(CONFIG).document(MIN_APP_LEVEL_DOC).get().await()
-            val minAcceptableVersion = result.getLong(MIN_APP_LEVEL_DOC) ?: 1
+            val result = firestore.collection(DB.CONFIG).document(DB.MIN_APP_LEVEL_DOC).get().await()
+            val minAcceptableVersion = result.getLong(DB.MIN_APP_LEVEL_DOC) ?: 1
 
             val currentAppVersion = versionProvider.appVersion // Get current app version
-
-            if (minAcceptableVersion == null) {
-                Log.e("compareAppVersion", "Invalid minAcceptableAppLvl from Firestore")
-                return true // Assume app is valid if Firestore data is incorrect
-            }
 
             // If current app version is lower than min required, return false (force update needed)
             currentAppVersion >= minAcceptableVersion
@@ -304,7 +258,7 @@ class ChatRepository @Inject constructor(
         listOfGroupChatId: List<String>
     ): NetworkResult<Map<String, MutableMap<String, Long?>>> {
         return try {
-            val querySnapshot = firestore.collectionGroup("GroupMembersLastSeenTime").get().await()
+            val querySnapshot = firestore.collectionGroup(DB.GROUP_MEMBERS_LAST_SEEN_TIME).get().await()
             val lastSeenData = mutableMapOf<String, MutableMap<String, Long?>>()
 
             for (doc in querySnapshot.documents) {
@@ -323,6 +277,7 @@ class ChatRepository @Inject constructor(
             LAST_SEEN_TIME_EACH_USER_EACH_GROUP = lastSeenData
             NetworkResult.Success(lastSeenData)
         } catch (e: Exception) {
+            Log.e("skt", "Error: ${e.message}")
             NetworkResult.Error(null, "Error: ${e.message}")
         }
     }
@@ -339,31 +294,36 @@ class ChatRepository @Inject constructor(
         // execute immediately and will not wait for this function to return because we are not
         // using "await()" in the above function, we are using "call-backs" i.e. onSuccessListener
 
-        _listOfGroupChatLiveData.postValue(ConsumableValue(NetworkResult.Loading()))
+        try {
+            _listOfGroupChatLiveData.postValue(ConsumableValue(NetworkResult.Loading()))
 
-        // Firestore listener (Real-time updates)
-        val query = firestore.collection(GROUPS)
-            .whereIn("groupId", listOfGroupChatId)
+            // Firestore listener (Real-time updates)
+            val query = firestore.collection(DB.GROUPS)
+                .whereIn("groupId", listOfGroupChatId)
 
-        query.addSnapshotListener { snapshot, error ->
-            if (error != null) {
-                _listOfGroupChatLiveData.postValue(ConsumableValue(NetworkResult.Error(null, "Error: ${error.message}")))
-                return@addSnapshotListener
-            }
-
-            if (snapshot != null && !snapshot.isEmpty) {
-                val listOfGroups = arrayListOf<GroupChatListingData>()
-
-                for (document in snapshot.documents) {
-                    val group = document.toObject(GroupChatListingData::class.java)
-                    group?.let { listOfGroups.add(it) }
+            query.addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    _listOfGroupChatLiveData.postValue(ConsumableValue(NetworkResult.Error(null, "Error: ${error.message}")))
+                    Log.e("skt", "Error: ${error.message}")
+                    return@addSnapshotListener
                 }
 
-                // Sort by lastSentMsg timestamp in descending order (latest message first)
-                val sortedGroups = listOfGroups.sortedByDescending { it.lastSentMsg?.timestamp ?: 0L }
+                if (snapshot != null && !snapshot.isEmpty) {
+                    val listOfGroups = arrayListOf<GroupChatListingData>()
 
-                _listOfGroupChatLiveData.postValue(ConsumableValue(NetworkResult.Success(sortedGroups)))
+                    for (document in snapshot.documents) {
+                        val group = document.toObject(GroupChatListingData::class.java)
+                        group?.let { listOfGroups.add(it) }
+                    }
+
+                    // Sort by lastSentMsg timestamp in descending order (latest message first)
+                    val sortedGroups = listOfGroups.sortedByDescending { it.lastSentMsg?.timestamp ?: 0L }
+
+                    _listOfGroupChatLiveData.postValue(ConsumableValue(NetworkResult.Success(sortedGroups)))
+                }
             }
+        } catch (e:Exception){
+            Log.d("skt", "Error: ${e.message}")
         }
     }
 
@@ -381,7 +341,7 @@ class ChatRepository @Inject constructor(
 
 
 // ----------------------------------------------------------------------------------------------------------------
-//  MESSAGE RETRIEVAL FROM FIREBASE AND REALTIME LISTENING
+//  MESSAGE RETRIEVAL FROM FIREBASE AND REALTIME LISTENING IN MESSAGING_FRAGMENT
     fun getChatsForGroup(groupId: String): LiveData<List<Message>> {
         return messagesDao.getChatsForThisGroup(groupId, LIMIT_MSGS)
     }
@@ -406,30 +366,18 @@ class ChatRepository @Inject constructor(
         }
     }
 
-    private val _lastSeenTimestampLiveData = MutableLiveData<ConsumableValue<NetworkResult<Long>>>()
-    val lastSeenTimestampLiveData = _lastSeenTimestampLiveData
 
     suspend fun fetchAllNewMessages(groupId: String) {
         val timeStampOfLastMsgInRoom = messagesDao.getLatestMsgTimestampOrZero(groupId) ?: 0L
 
         val timestampDataType = UtilityFunctions.longToTimestamp(timeStampOfLastMsgInRoom)      // To obtain timestamp in "Timestamp" data type
         try {
-
-            // First fetching the last-seen timestamp from firestore to find out where we need to show the read message :)
-            val lastSeenTimestamp = firestore.collection(MESSAGES)
-                .document(groupId).collection("GroupMembers")
-                .document(tokenManager.getUser()?.userId!!).get().await()
-
-            _lastSeenTimestampLiveData.postValue(
-                ConsumableValue(NetworkResult.Success(
-                    UtilityFunctions.timestampToLong(lastSeenTimestamp.getTimestamp("lastSeenTime")))))
-
             // This we are doing coz firestore has a limit, each document can be of atmost 1MB, so
             // we need each "Message" to be a single document so that there's no issue as per backend limits
 
-            val querySnapshot = firestore.collection(MESSAGES)
+            val querySnapshot = firestore.collection(DB.MESSAGES)
                 .document(groupId)
-                .collection(MESSAGES_INSIDE_MESSAGES)                   // Subcollection for messages
+                .collection(DB.MESSAGES_INSIDE_MESSAGES)                   // Subcollection for messages
                 .whereGreaterThan("timestamp", timestampDataType) // Query only new messages
                 .orderBy("timestamp", Query.Direction.ASCENDING)
                 .get()
@@ -471,32 +419,37 @@ class ChatRepository @Inject constructor(
     // snapshot will return 50 msgs ... It is what it is... so we're using "realtimeChatUpdatesListener"
     // so we can recognise "newMessages" from "allMessages"
      fun realtimeChatUpdatesListener(groupId: String, lastTimestamp: Timestamp) {
-        // Remove any existing listener before setting a new one
-        chatListener?.remove()
 
-        chatListener = firestore.collection(MESSAGES)
-            .document(groupId)
-            .collection(MESSAGES_INSIDE_MESSAGES)
-            .whereGreaterThan("timestamp", lastTimestamp)
-            .orderBy("timestamp", Query.Direction.ASCENDING)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    Log.e("Firestore", "Realtime updates error: ${error.message}")
-                    return@addSnapshotListener
-                }
+         try {
+             // Remove any existing listener before setting a new one
+             chatListener?.remove()
 
-                if (snapshot != null && !snapshot.isEmpty) {
-                    val allMessages = snapshot.documents.mapNotNull { it.toMessage() }  // Here "allMessages" means all messages post the "timestamp" in firebase query
-                    val newMessage = allMessages.filter { (it.timestamp ?: 0L) > lastMsgTimeStamp }     // To fetch only the messages post "lastMsgTimeStamp"
+             chatListener = firestore.collection(DB.MESSAGES)
+                 .document(groupId)
+                 .collection(DB.MESSAGES_INSIDE_MESSAGES)
+                 .whereGreaterThan("timestamp", lastTimestamp)
+                 .orderBy("timestamp", Query.Direction.ASCENDING)
+                 .addSnapshotListener { snapshot, error ->
+                     if (error != null) {
+                         Log.e("Firestore", "Realtime updates error: ${error.message}")
+                         return@addSnapshotListener
+                     }
 
-                    lastMsgTimeStamp = newMessage.maxOfOrNull { it.timestamp ?: 0L } ?: lastMsgTimeStamp
-                    if (newMessage.isNotEmpty()) {
-                        CoroutineScope(Dispatchers.IO).launch {
-                            messagesDao.insertMessageList(newMessage) // ✅ Now runs in IO thread safely
-                        }
-                    }
-                }
-            }
+                     if (snapshot != null && !snapshot.isEmpty) {
+                         val allMessages = snapshot.documents.mapNotNull { it.toMessage() }  // Here "allMessages" means all messages post the "timestamp" in firebase query
+                         val newMessage = allMessages.filter { (it.timestamp ?: 0L) > lastMsgTimeStamp }     // To fetch only the messages post "lastMsgTimeStamp"
+
+                         lastMsgTimeStamp = newMessage.maxOfOrNull { it.timestamp ?: 0L } ?: lastMsgTimeStamp
+                         if (newMessage.isNotEmpty()) {
+                             CoroutineScope(Dispatchers.IO).launch {
+                                 messagesDao.insertMessageList(newMessage) // ✅ Now runs in IO thread safely
+                             }
+                         }
+                     }
+                 }
+         } catch (e:Exception){
+             Log.e("skt", "Error : $e")
+         }
     }
 
     fun stopRealtimeListening(){
@@ -509,6 +462,7 @@ class ChatRepository @Inject constructor(
             val msgs = messagesDao.getSpecifiedMessages(groupId, limit, offset)
             return NetworkResult.Success(msgs ?: listOf())
         } catch (e: Exception){
+            Log.e("skt", "Error: ${e.message}")
             NetworkResult.Error(null, "Error ${e.message}")
         }
     }
@@ -517,9 +471,9 @@ class ChatRepository @Inject constructor(
 
     suspend fun sendMessage(msgText: String, groupId: String, user: User, groupName: String,
                             listOfGroupMemberId: List<String>, msgType: Int) {
-        val messagesRef = firestore.collection(MESSAGES)
+        val messagesRef = firestore.collection(DB.MESSAGES)
             .document(groupId)
-            .collection(MESSAGES_INSIDE_MESSAGES)
+            .collection(DB.MESSAGES_INSIDE_MESSAGES)
 
         val msgId = messagesRef.document().id // Generate a unique ID for the message
 
@@ -543,7 +497,7 @@ class ChatRepository @Inject constructor(
                     .addOnSuccessListener {
                         val updatedMessage = it.toMessage()
                         updatedMessage?.let { msg ->
-                            firestore.collection(GROUPS)
+                            firestore.collection(DB.GROUPS)
                                 .document(groupId)
                                 .update("lastSentMsg", msg) // ✅ Save correct message with timestamp
                         }
@@ -589,8 +543,8 @@ class ChatRepository @Inject constructor(
             val data = mapOf(
                 "lastSeenTime" to FieldValue.serverTimestamp()
             )
-            firestore.collection(GROUPS).document(groupId)
-                .collection("GroupMembersLastSeenTime").document(userId).set(data)
+            firestore.collection(DB.GROUPS).document(groupId)
+                .collection(Constants.DB.GROUP_MEMBERS_LAST_SEEN_TIME).document(userId).set(data)
 
         } catch (ex: Exception){
             Log.e("skt", "Error : $ex")
@@ -640,6 +594,7 @@ class ChatRepository @Inject constructor(
                 _imageUploadedLiveData.postValue(ConsumableValue(NetworkResult.Error(null, "Couldn't upload img..")))
             }
         } catch (e: Exception) {
+            Log.e("skt", "Error: ${e.message}")
             _imageUploadedLiveData.postValue(ConsumableValue(NetworkResult.Error(null, e.message ?: "Couldn't upload img..")))
         }
     }
@@ -674,6 +629,10 @@ class ChatRepository @Inject constructor(
     }
 
 
+    // This function will check whether a call is ongoing or not
+    // If a call is not ongoing, it means that this user has started the call,
+    // in that case it'll send msg & notif to all group-members so that they know call is ongoing
+    // else it will add the user to call ie. list of call participants
     suspend fun addUserToCall(groupData: GroupChatListingData, userData: User) {
 
         val groupId = groupData.groupId ?: ""
@@ -737,7 +696,7 @@ class ChatRepository @Inject constructor(
             val participants = callData.get("participants") as? MutableMap<String, Any> ?: mutableMapOf()
 
             if(participants.containsKey(userId)){
-                Log.d("skt", "User already in call, mf trying to join from another phone!")
+                Log.d("skt", "User already in call, he's trying to join from another phone!")
                 return
             }
 
@@ -758,13 +717,10 @@ class ChatRepository @Inject constructor(
         }
     }
 
+    // Below func checks if last call msg in group-chat is "Initiated a Call"
+    // or "Ended the call", based on that they will show different UI
     suspend fun getLastCallMsg(groupId: String): NetworkResult<Boolean> {
         return try {
-//            val lastMsgJob = CoroutineScope(Dispatchers.IO).async {
-//                messagesDao.getLastMsgOfGivenType(groupId, Constants.MSG_TYPE.CALL)
-//            }
-//
-//            val lastMsg = lastMsgJob.await()
               val lastMsg = messagesDao.getLastMsgOfGivenType(groupId, Constants.MSG_TYPE.CALL)
 
             lastMsg?.let { msg ->

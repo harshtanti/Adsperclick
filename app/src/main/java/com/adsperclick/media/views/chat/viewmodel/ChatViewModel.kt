@@ -16,7 +16,6 @@ import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.Constants.ENDED_THE_CALL
 import com.adsperclick.media.utils.Constants.INITIATED_A_CALL
-import com.adsperclick.media.utils.Constants.LIMIT_MSGS
 import com.adsperclick.media.utils.ConsumableValue
 import com.adsperclick.media.views.login.repository.AuthRepository
 import com.adsperclick.media.views.chat.repository.ChatRepository
@@ -82,9 +81,9 @@ class ChatViewModel@Inject constructor(
 
 
 
-    fun updateLastNotificationSeenTime(){
+    fun updateLastNotificationSeenTime(userId: String){
         viewModelScope.launch (Dispatchers.IO){
-            chatRepository.updateLastNotificationSeenTime()
+            chatRepository.updateLastNotificationSeenTime(userId)
         }
     }
 
@@ -117,7 +116,7 @@ class ChatViewModel@Inject constructor(
         _groupId.value = roomId
     }
 
-    val lastSeenTimestampLiveData  = chatRepository.lastSeenTimestampLiveData
+    // val lastSeenTimestampLiveData  = chatRepository.lastSeenTimestampLiveData
     fun fetchAllNewMessages(groupId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             chatRepository.fetchAllNewMessages(groupId)
@@ -165,7 +164,7 @@ class ChatViewModel@Inject constructor(
         }
     }
 
-    val notificationsPager = chatRepository.getNotificationPager().flow.cachedIn(viewModelScope)
+    fun getNotificationsPager(userRole: Int?) = chatRepository.getNotificationPager(userRole).flow.cachedIn(viewModelScope)
 
     private val _usersListLiveData = MutableLiveData<ConsumableValue<NetworkResult<List<User>>>>()
     val usersListLiveData: LiveData<ConsumableValue<NetworkResult<List<User>>>> = _usersListLiveData
@@ -274,7 +273,9 @@ class ChatViewModel@Inject constructor(
                 "userId" to (userData.userId ?: "")
             )
 
+
             launch {
+                // This function will run asynchronously/ separately, to make
                 chatRepository.addUserToCall(groupData, userData)
             }
 

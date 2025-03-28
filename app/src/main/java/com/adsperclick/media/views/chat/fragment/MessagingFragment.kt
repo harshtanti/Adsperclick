@@ -18,6 +18,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.adsperclick.media.R
@@ -33,10 +34,7 @@ import com.adsperclick.media.utils.Constants.BOTTOM_MOST_MSG
 import com.adsperclick.media.utils.Constants.CLICKED_GROUP
 import com.adsperclick.media.utils.Constants.LAST_SEEN_GROUP_TIME
 import com.adsperclick.media.utils.Constants.LIMIT_MSGS
-import com.adsperclick.media.utils.Constants.MSG_TYPE.IMG_URL
-import com.adsperclick.media.utils.Constants.MSG_TYPE.MEDIATOR_ANNOUNCEMENT
-import com.adsperclick.media.utils.Constants.MSG_TYPE.PDF_DOC
-import com.adsperclick.media.utils.Constants.MSG_TYPE.VIDEO
+import com.adsperclick.media.utils.Constants.MSG_TYPE
 import com.adsperclick.media.utils.Constants.TOP_MOST_MSG
 import com.adsperclick.media.utils.DialogUtils
 import com.adsperclick.media.utils.UtilityFunctions
@@ -45,8 +43,9 @@ import com.adsperclick.media.utils.visible
 import com.adsperclick.media.views.chat.adapters.MessagesAdapter
 import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
 import com.adsperclick.media.views.homeActivity.SharedHomeViewModel
-import com.google.firebase.database.ChildEventListener
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import java.io.File
 import javax.inject.Inject
@@ -67,11 +66,9 @@ class MessagingFragment : Fragment(),View.OnClickListener {
 
     private lateinit var adapter : MessagesAdapter
 
-    private var messagesListener: ChildEventListener? = null
-
     private lateinit var currentUser: User
     private var groupChat :GroupChatListingData? = null
-    private lateinit var listofGroupMemberId: List<String>
+    private lateinit var listOfGroupMemberId: List<String>
     private var lastMsgInGroup : Message?= null
     var lastTimeVisitedThisGroupTimestamp :Long?= null
 
@@ -137,10 +134,13 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                 chatViewModel.fetchAllNewMessages(groupId)      // To fetch all the unread messages for this group in one single go!
             }
 
-            chatViewModel.isCallOngoing(groupId)
+            lifecycleScope.launch {
+                delay(1000)  // Delay for 1 second
+                chatViewModel.isCallOngoing(groupId)
+            }
         }
 
-        listofGroupMemberId = groupChat?.listOfUsers?.map { it.userId } ?: emptyList()
+        listOfGroupMemberId = groupChat?.listOfUsers?.map { it.userId } ?: emptyList()
     }
 
 
@@ -196,8 +196,8 @@ class MessagingFragment : Fragment(),View.OnClickListener {
             consumableValue.handle {response ->
 
                 val oldLastMessagePosition = adapter.itemCount - 1
-                lastMsgInGroup = response.lastOrNull()
-                chatViewModel.checkIfLastMsgRelatedToCall(response.lastOrNull())
+                lastMsgInGroup = response.firstOrNull()
+                chatViewModel.checkIfLastMsgRelatedToCall(response.firstOrNull())
 
                 val modifiedResponse = response.toMutableList().apply {
                     if(response.size == LIMIT_MSGS) {add(Constants.READING_MODE_MSG)}
@@ -217,8 +217,8 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                     }
 
                     // Ensure previous last message updates (To update the chat bubble of previous message
-                    if (oldLastMessagePosition >= 0) {
-                        adapter.notifyItemChanged(oldLastMessagePosition)
+                    if (modifiedResponse.size-2 >= 0) {
+                        adapter.notifyItemChanged(modifiedResponse.size-2)
                     }
                 }
             }
@@ -307,7 +307,9 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                             if(showCallDialog && lastMsgInGroup?.senderId != currentUser.userId){
                                 showJoinCallDialog()
                             }
-                        } else handleCallIcon(false)
+                        } else {
+                            handleCallIcon(false)
+                        }
                     }
 
                     is NetworkResult.Error -> {
@@ -532,7 +534,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                     groupChat?.let {gc->
 
                         chatViewModel.sendMessage(text, gc.groupId ?: "",
-                            currentUser, gc.groupName ?: "", listofGroupMemberId
+                            currentUser, gc.groupName ?: "", listOfGroupMemberId
                         )
                     }
                 }
@@ -562,7 +564,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
 //                        for (i in CC until CC + 30) {
 //                            val text = "Message - $i"
 //                            chatViewModel.sendMessage(text, gc.groupId ?: "",
-//                                currentUser, gc.groupName ?: "", listofGroupMemberId
+//                                currentUser, gc.groupName ?: "", listOfGroupMemberId
 //                            )
 //
 //                            delay(300) // Wait for 500ms before sending the next message
@@ -590,12 +592,12 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                 if(imageFile.exists()){
                     val msgType = when(type){
                         UploadImageDocsBottomSheet.UploadMethod.CAMERA,
-                        UploadImageDocsBottomSheet.UploadMethod.GALLERY -> Constants.MSG_TYPE.IMG_URL
+                        UploadImageDocsBottomSheet.UploadMethod.GALLERY -> MSG_TYPE.IMG_URL
 
                         UploadImageDocsBottomSheet.UploadMethod.VIDEO_CAMERA,
-                        UploadImageDocsBottomSheet.UploadMethod.VIDEO_GALLERY-> VIDEO
+                        UploadImageDocsBottomSheet.UploadMethod.VIDEO_GALLERY-> MSG_TYPE.VIDEO
 
-                        UploadImageDocsBottomSheet.UploadMethod.PDF -> Constants.MSG_TYPE.PDF_DOC
+                        UploadImageDocsBottomSheet.UploadMethod.PDF -> MSG_TYPE.PDF_DOC
                         UploadImageDocsBottomSheet.UploadMethod.NOTSELECTED -> null
                     }
 
@@ -605,7 +607,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                             gc.groupName?.let { groupName ->
                                 msgType?.let {msgType->
                                     chatViewModel.uploadFile(groupId,
-                                        groupName, imageFile,  listofGroupMemberId, msgType)
+                                        groupName, imageFile,  listOfGroupMemberId, msgType)
                                 } } }       // This function will upload file in firebase-storage
                                             // and also display it to user in this fragment
                     }
@@ -617,7 +619,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
     private val onMessageClickListener = object : MessagesAdapter.OnMessageClickListener{
         override fun onItemClick(message: Message) {
 
-            if(message.msgType == MEDIATOR_ANNOUNCEMENT) {
+            if(message.msgType == MSG_TYPE.MEDIATOR_ANNOUNCEMENT) {
 
                 sharedViewModel.pageNo?.let {
                     sharedViewModel.pageNo = if(message.msgId == "topMost" ){
@@ -648,13 +650,13 @@ class MessagingFragment : Fragment(),View.OnClickListener {
 
             sharedViewModel.saveScrollPosition(position, offset)
 
-            if(message.msgType == PDF_DOC){     // For PDF-Doc, we're moving to "PdfWebViewActivity"
+            if(message.msgType == MSG_TYPE.PDF_DOC){     // For PDF-Doc, we're moving to "PdfWebViewActivity"
                 openPdfInWebView(message.message)       // For online viewing of all kinds of docs using "google's doc rendering tool"
                 return
             }
 
 
-            val fileName = if(message.msgType == IMG_URL) "Image" else "Video"
+            val fileName = if(message.msgType == MSG_TYPE.IMG_URL) "Image" else "Video"
             // Navigate to preview fragment
             val bundle = Bundle().apply {
                 putString("mediaUrl", message.message) // Your download URL
@@ -670,7 +672,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         }
     }
 
-    fun handleCallIcon(isCallOngoing: Boolean){
+    private fun handleCallIcon(isCallOngoing: Boolean){
         with(binding.includeTopBar){
             if(isCallOngoing){
                 btnCall.gone()
@@ -689,9 +691,9 @@ class MessagingFragment : Fragment(),View.OnClickListener {
     // just retrieving it using net whenever user wants to view it :)
     fun openPdfInWebView(downloadUrl: String?) {
 
-        downloadUrl.let {downloadUrl->
+        downloadUrl.let {url->
             val intent = Intent(requireContext(), PdfWebViewActivity::class.java).apply {
-                putExtra("pdf_url", downloadUrl)
+                putExtra("pdf_url", url)
             }
             startActivity(intent)
         }

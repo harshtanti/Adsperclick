@@ -1,11 +1,8 @@
 package com.adsperclick.media.views.chat.fragment
 
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -28,8 +25,6 @@ import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.Constants.CLICKED_GROUP
 import com.adsperclick.media.utils.Constants.DEFAULT_SERVICE
 import com.adsperclick.media.utils.Constants.EMPTY
-import com.adsperclick.media.utils.Constants.FCM.ID_OF_GROUP_TO_OPEN
-import com.adsperclick.media.utils.Constants.GROUP_ID
 import com.adsperclick.media.utils.Constants.LAST_SEEN_GROUP_TIME
 import com.adsperclick.media.utils.UtilityFunctions
 import com.adsperclick.media.utils.gone
@@ -39,7 +34,6 @@ import com.adsperclick.media.views.chat.adapters.HorizontalServiceListAdapter
 import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
 import com.adsperclick.media.views.homeActivity.HomeActivity
 import com.adsperclick.media.views.homeActivity.SharedHomeViewModel
-import com.adsperclick.media.views.login.MainActivity
 import com.google.firebase.functions.FirebaseFunctions
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.serialization.json.Json
@@ -64,10 +58,9 @@ class ChatFragment : Fragment(),View.OnClickListener {
     private var searchText = EMPTY
 
     var user: User? = null
-    var lastSeenForEachUserEachGroup: Map<String, Map<String, Long?>>? = null        // First string is groupId and second string is userId
 
-    @Inject
-    lateinit var cloudFunc : FirebaseFunctions
+//    @Inject
+//    lateinit var cloudFunc : FirebaseFunctions
 
 
 
@@ -269,8 +262,8 @@ class ChatFragment : Fragment(),View.OnClickListener {
     }
 
     private val onClickingGroupChatItem = object : ChatGroupListAdapter.OnGroupChatClickListener{
-        override fun onItemClick(groupChat : GroupChatListingData) {
-            openGroup(groupChat)
+        override fun onItemClick(chatGroup : GroupChatListingData) {
+            openGroup(chatGroup)
         }
     }
 
@@ -289,6 +282,27 @@ class ChatFragment : Fragment(),View.OnClickListener {
             bundle.putLong(LAST_SEEN_GROUP_TIME, currentUserLastSeen)
         }
         findNavController().navigate(R.id.action_navigation_chat_to_messagingFragment, bundle)
+    }
+
+    override fun onStart() {
+        super.onStart()
+    }
+
+    override fun onPause() {
+        super.onPause()
+    }
+
+    override fun onStop() {
+        super.onStop()
+    }
+
+
+    override fun onDestroy() {
+        super.onDestroy()
+    }
+
+    override fun onDetach() {
+        super.onDetach()
     }
 
 }

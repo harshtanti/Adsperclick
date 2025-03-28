@@ -21,7 +21,6 @@ class TokenManager @Inject constructor(@ApplicationContext context : Context) {
         // Above line is to convert "User" class object into a string, when getting, we'll reconvert
         // the string to the "User" class object, this is serialization and deserialization ;)
 
-        Constants.CURRENT_USER = user
         with(prefs.edit()){
             putString(USER_IDENTITY, jsonString)
             putBoolean(IS_USER_SIGNED_IN, true)
@@ -51,7 +50,6 @@ class TokenManager @Inject constructor(@ApplicationContext context : Context) {
     }
 
     fun signOut(){
-        Constants.CURRENT_USER = null
         with(prefs.edit()){
             putBoolean(IS_USER_SIGNED_IN, false)
             remove(USER_IDENTITY)       // Remove stored user's details

@@ -74,7 +74,6 @@ class LoginFragment : Fragment() {
 
                 is NetworkResult.Success ->{
                     response.data?.let { user->
-                        tokenManager.saveUser(user)
                         binding.progressBar.gone()
 
                         val intent = Intent(requireActivity(), HomeActivity::class.java)
