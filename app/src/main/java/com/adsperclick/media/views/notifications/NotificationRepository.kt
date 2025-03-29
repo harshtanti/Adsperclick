@@ -13,7 +13,7 @@ import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.NotificationMsg
 import com.adsperclick.media.di.VersionProvider
 import com.adsperclick.media.utils.Constants.DB
-import com.adsperclick.media.utils.UtilityFunctions
+import com.adsperclick.media.utils.Utils
 import com.adsperclick.media.views.notifications.pagingsource.NotificationsPagingSource
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
@@ -99,7 +99,7 @@ class NotificationRepository @Inject constructor(
 
             val userRef = firestore.collection(DB.USERS).document(userId)
 
-            val time = UtilityFunctions.getTime()
+            val time = Utils.getTime()
             userRef.update("lastNotificationSeenTime", time)
 
         } catch (e: Exception) {

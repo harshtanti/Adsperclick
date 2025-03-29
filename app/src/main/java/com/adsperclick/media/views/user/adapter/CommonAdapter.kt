@@ -3,12 +3,11 @@ package com.adsperclick.media.views.user.adapter
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.adsperclick.media.data.dataModels.CommonData
 import com.adsperclick.media.databinding.UserListItemBinding
 import com.adsperclick.media.utils.Constants
-import com.adsperclick.media.utils.UtilityFunctions
+import com.adsperclick.media.utils.Utils
 import com.adsperclick.media.utils.gone
 import com.adsperclick.media.utils.visible
 
@@ -34,13 +33,13 @@ class CommonAdapter: PagingDataAdapter<CommonData, CommonAdapter.ViewHolder>(Dif
                         tvTagName.text=it
                     } ?: run { tvTagName.gone() }
                     data.imgUrl?.let { imageUrl ->
-                        UtilityFunctions.loadImageWithGlide(
+                        Utils.loadImageWithGlide(
                             binding.imgProfileDp.context,
                             binding.imgProfileDp,
                             imageUrl
                         )
                     } ?: run {
-                        UtilityFunctions.setInitialsDrawable(
+                        Utils.setInitialsDrawable(
                             binding.imgProfileDp,
                             data.name
                         )

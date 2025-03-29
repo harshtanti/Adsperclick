@@ -6,10 +6,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.adsperclick.media.R
 import com.adsperclick.media.applicationCommonView.TokenManager
@@ -20,9 +18,8 @@ import com.adsperclick.media.databinding.FragmentSettingBinding
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.ConsumableValue
 import com.adsperclick.media.utils.DialogUtils
-import com.adsperclick.media.utils.UtilityFunctions
+import com.adsperclick.media.utils.Utils
 import com.adsperclick.media.utils.disableHeaderButton
-import com.adsperclick.media.utils.disableSubmitButton
 import com.adsperclick.media.utils.enableHeaderButton
 import com.adsperclick.media.utils.gone
 import com.adsperclick.media.utils.visible
@@ -109,13 +106,13 @@ class SettingFragment : Fragment(),View.OnClickListener {
                 binding.tvName.text = "N.A."
             }
             it.userProfileImgUrl?.let { imageUrl ->
-                UtilityFunctions.loadImageWithGlide(
+                Utils.loadImageWithGlide(
                     binding.imgProfileDp.context,
                     binding.imgProfileDp,
                     imageUrl
                 )
             } ?: run {
-                UtilityFunctions.setInitialsDrawable(
+                Utils.setInitialsDrawable(
                     binding.imgProfileDp,
                     user?.userName
                 )
@@ -225,11 +222,11 @@ class SettingFragment : Fragment(),View.OnClickListener {
                 when (it) {
                     is NetworkResult.Loading -> {
                         // Show loading indicator
-                        binding.progressBar.visibility = View.VISIBLE
+                        binding.progressBar.visible()
                     }
                     is NetworkResult.Success -> {
                         // Hide loading indicator
-                        binding.progressBar.visibility = View.GONE
+                        binding.progressBar.gone()
 
                         // Update the UI to reflect changes
                         if (it.data == true) {
@@ -252,7 +249,7 @@ class SettingFragment : Fragment(),View.OnClickListener {
                     }
                     is NetworkResult.Error -> {
                         // Hide loading indicator
-                        binding.progressBar.visibility = View.GONE
+                        binding.progressBar.gone()
 
                         // Show error message
                         Toast.makeText(context, it.message ?: "Update failed",Toast.LENGTH_SHORT).show()

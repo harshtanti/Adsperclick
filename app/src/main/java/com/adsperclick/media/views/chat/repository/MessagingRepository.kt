@@ -5,7 +5,6 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.adsperclick.media.api.ApiService
 import com.adsperclick.media.api.MessagesDao
 import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.data.dataModels.Call
@@ -14,7 +13,6 @@ import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.Message
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.User
-import com.adsperclick.media.di.VersionProvider
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.Constants.DB
 import com.adsperclick.media.utils.Constants.INITIATED_A_CALL
@@ -23,7 +21,7 @@ import com.adsperclick.media.utils.Constants.MSG_TYPE.IMG_URL
 import com.adsperclick.media.utils.Constants.MSG_TYPE.PDF_DOC
 import com.adsperclick.media.utils.Constants.MSG_TYPE.VIDEO
 import com.adsperclick.media.utils.ConsumableValue
-import com.adsperclick.media.utils.UtilityFunctions
+import com.adsperclick.media.utils.Utils
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
@@ -70,7 +68,7 @@ class MessagingRepository  @Inject constructor(
 
     fun DocumentSnapshot.toMessage(): Message? {
         return try {
-            val timestampLong = UtilityFunctions.timestampToLong(this.getTimestamp("timestamp"))     // Convert Firestore Timestamp -> Long
+            val timestampLong = Utils.timestampToLong(this.getTimestamp("timestamp"))     // Convert Firestore Timestamp -> Long
 
             Message(
                 msgId = getString("msgId") ?: "null string",
@@ -92,7 +90,7 @@ class MessagingRepository  @Inject constructor(
     suspend fun fetchAllNewMessages(groupId: String) {
         val timeStampOfLastMsgInRoom = messagesDao.getLatestMsgTimestampOrZero(groupId) ?: 0L
 
-        val timestampDataType = UtilityFunctions.longToTimestamp(timeStampOfLastMsgInRoom)      // To obtain timestamp in "Timestamp" data type
+        val timestampDataType = Utils.longToTimestamp(timeStampOfLastMsgInRoom)      // To obtain timestamp in "Timestamp" data type
         try {
             // This we are doing coz firestore has a limit, each document can be of atmost 1MB, so
             // we need each "Message" to be a single document so that there's no issue as per backend limits
@@ -116,7 +114,7 @@ class MessagingRepository  @Inject constructor(
                 // Get the latest timestamp for real-time listener
                 val latestTimestampForRealtimeListening = newMessages.maxOfOrNull { it.timestamp ?: 0L } ?: timeStampOfLastMsgInRoom
 
-                val lastTimestamp = UtilityFunctions.longToTimestamp(latestTimestampForRealtimeListening)
+                val lastTimestamp = Utils.longToTimestamp(latestTimestampForRealtimeListening)
                 realtimeChatUpdatesListener(groupId, lastTimestamp)
             } else {
                 // If no new messages found, start listening from the last known timestamp
@@ -404,7 +402,7 @@ class MessagingRepository  @Inject constructor(
                 // Creating Call object
                 callDocRef = callLog.document() // Auto-generate document ID
 
-                val newCall = Call(callDocRef.id, groupId, UtilityFunctions.getTime(), null,
+                val newCall = Call(callDocRef.id, groupId, Utils.getTime(), null,
                     userId, userName, Constants.CALL.STATUS.ONGOING, Constants.CALL.TYPE.VOICE, hashMapOf())
 
                 callDocRef.set(newCall).await()
@@ -424,7 +422,7 @@ class MessagingRepository  @Inject constructor(
 
             // Add or update participant
             val newParticipant = CallParticipant(userId, userName,
-                userProfileImgUrl, UtilityFunctions.getTime(), muteOn = false, speakerOn = false,agoraUserId
+                userProfileImgUrl, Utils.getTime(), muteOn = false, speakerOn = false,agoraUserId
             )
 
             participants[userId] = newParticipant

@@ -16,6 +16,9 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.OnApplyWindowInsetsListener
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -37,7 +40,7 @@ import com.adsperclick.media.utils.Constants.LIMIT_MSGS
 import com.adsperclick.media.utils.Constants.MSG_TYPE
 import com.adsperclick.media.utils.Constants.TOP_MOST_MSG
 import com.adsperclick.media.utils.DialogUtils
-import com.adsperclick.media.utils.UtilityFunctions
+import com.adsperclick.media.utils.Utils
 import com.adsperclick.media.utils.gone
 import com.adsperclick.media.utils.visible
 import com.adsperclick.media.views.chat.adapters.MessagesAdapter
@@ -58,7 +61,8 @@ class MessagingFragment : Fragment(),View.OnClickListener {
     private val messagingViewModel: MessagingViewModel by viewModels()
     private val sharedViewModel: SharedHomeViewModel by activityViewModels()
     private var showCallDialog = true       // We only show it once
-
+    var isFragmentJustOpened = true
+    var isKeyboardVisible= false
     var loadingBottomMsgs = false
 
     @Inject
@@ -71,6 +75,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
     private lateinit var listOfGroupMemberId: List<String>
     private var lastMsgInGroup : Message?= null
     var lastTimeVisitedThisGroupTimestamp :Long?= null
+    lateinit var layoutManager: LinearLayoutManager
 
     private val bottomSheetSelectables = arrayListOf(Constants.CLOSE_VISIBLE,Constants.HEADING_VISIBLE,Constants.CAMERA_VISIBLE,
         Constants.GALLERY_VISIBLE, Constants.VIDEO_VISIBLE, Constants.PDF_VISIBLE)
@@ -102,6 +107,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         setupAdapter()
         setUpListener()
         setupObservers()
+        setupKeyboardVisibilityListener()
     }
 
     private fun setUpView(){
@@ -112,13 +118,13 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         binding.includeTopBar.tvGroupName.text = groupChat?.groupName ?: "Group-Name"
 
         groupChat?.groupImgUrl?.let { imageUrl ->
-            UtilityFunctions.loadImageWithGlide(
+            Utils.loadImageWithGlide(
                 binding.includeTopBar.imgProfileDp.context,
                 binding.includeTopBar.imgProfileDp,
                 imageUrl
             )
         } ?: run {
-            UtilityFunctions.setInitialsDrawable(
+            Utils.setInitialsDrawable(
                 binding.includeTopBar.imgProfileDp,
                 groupChat?.groupName
             )
@@ -155,6 +161,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
             /*reverseLayout = true */ // Reverse layout for better pagination
         }
         adapter.updateLastVisitedTimestamp(lastTimeVisitedThisGroupTimestamp)
+       layoutManager = binding.rvChat.layoutManager as LinearLayoutManager
     }
 
 
@@ -207,13 +214,18 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                 val oldLastMessagePosition = modifiedResponse.size-2
                 adapter.submitList(modifiedResponse) {
 
-//                (binding.rvChat.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(position, offset)
+                    val pos = sharedViewModel.lastScrollPosition
+                    val offset = sharedViewModel.lastScrollOffset
 
-                    if(sharedViewModel.lastScrollPosition != -1 && sharedViewModel.lastScrollOffset != -1){
-                        (binding.rvChat.layoutManager as LinearLayoutManager)
-                            .scrollToPositionWithOffset(sharedViewModel.lastScrollPosition, sharedViewModel.lastScrollOffset)
+                    if(pos != -1 && offset != -1){
+                        layoutManager.scrollToPositionWithOffset(pos, offset)
                         sharedViewModel.saveScrollPosition(-1,-1)
-                    }else {
+                    }else if(isFragmentJustOpened){
+                        binding.rvChat.postDelayed({
+                            binding.rvChat.scrollToPosition(adapter.itemCount - 1)
+                        }, 50)
+                        isFragmentJustOpened = false
+                    } else if(isKeyboardVisible || shouldScrollToBottom()){
                         binding.rvChat.scrollToPosition(adapter.itemCount - 1)
                     }
 
@@ -252,7 +264,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                             }
 
                             if(sharedViewModel.lastScrollPosition != -1 && sharedViewModel.lastScrollOffset != -1){
-                                (binding.rvChat.layoutManager as LinearLayoutManager)
+                                (layoutManager)
                                     .scrollToPositionWithOffset(sharedViewModel.lastScrollPosition, sharedViewModel.lastScrollOffset)
                                 sharedViewModel.saveScrollPosition(-1,-1)
                             }
@@ -456,7 +468,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
 
         currentUser.userId?.let { userId->
             sharedViewModel.lastSeenTimeForEachUserEachGroup?.get(
-                groupChat?.groupId.toString())?.set(userId, UtilityFunctions.getTime())
+                groupChat?.groupId.toString())?.set(userId, Utils.getTime())
         }
 
         groupChat?.groupId?.let { groupId->
@@ -470,6 +482,13 @@ class MessagingFragment : Fragment(),View.OnClickListener {
     override fun onDestroyView() {
         super.onDestroyView()
         messagingViewModel.stopRealtimeListening()
+        if (windowInsetsCallback != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(
+                requireActivity().window.decorView.rootView,
+                null
+            )
+            windowInsetsCallback = null
+        }
     }
 
     fun turnOnReadingMode(){
@@ -495,6 +514,26 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         binding.includeTextSender.btnGoToRecentMsgs.gone()
     }
 
+    // For triggering keyboard visibility : When keyboard is visible the bottomNav Menu should be gone
+    // and vice-versa
+    private var windowInsetsCallback: OnApplyWindowInsetsListener? = null
+
+    private fun setupKeyboardVisibilityListener() {
+        val rootView = requireActivity().window.decorView.rootView
+
+        // Create the listener
+        windowInsetsCallback = OnApplyWindowInsetsListener { _, insets ->
+            isKeyboardVisible = insets.isVisible(WindowInsetsCompat.Type.ime())
+
+            if(shouldScrollToBottom()){
+                binding.rvChat.scrollToPosition(adapter.itemCount-1)
+            }
+            insets
+        }
+
+        // Set the listener
+        ViewCompat.setOnApplyWindowInsetsListener(rootView, windowInsetsCallback)
+    }
 
 
     override fun onClick(v: View?) {
@@ -513,6 +552,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
             }
 
             binding.includeTextSender.btnGoToRecentMsgs ->{
+                isFragmentJustOpened = true // So that it scrolls to bottom of that page
                 turnOffReadingMode()
             }
 
@@ -553,6 +593,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
 
             binding.includeTopBar.btnVideoCall->{
                 Toast.makeText(context, "Feature not available yet!", Toast.LENGTH_SHORT).show()
+                /*throw RuntimeException("Test Crash") // Force a crash to test crashlytics*/
 
 //                USED FOR TESTING BY SENDING MESSAGES..
 //                groupChat?.let { gc ->
@@ -639,12 +680,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
 
             // Save current scroll position before navigating to some other fragment :) Shared view model will help us come back
             // exactly at that position :)
-            val layoutManager = binding.rvChat.layoutManager as LinearLayoutManager
-            val position = layoutManager.findFirstVisibleItemPosition()
-            val firstView = layoutManager.findViewByPosition(position)
-            val offset = firstView?.top ?: 0
-
-            sharedViewModel.saveScrollPosition(position, offset)
+            saveCurrentScrollPosition()
 
             if(message.msgType == MSG_TYPE.PDF_DOC){     // For PDF-Doc, we're moving to "PdfWebViewActivity"
                 openPdfInWebView(message.message)       // For online viewing of all kinds of docs using "google's doc rendering tool"
@@ -673,7 +709,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
             if(isCallOngoing){
                 btnCall.gone()
                 btnCallLottie.visible()
-                UtilityFunctions.setupLottieAnimation("calling.json", btnCallLottie)
+                Utils.setupLottieAnimation("calling.json", btnCallLottie)
             } else{
                 btnCall.visible()
                 btnCallLottie.gone()
@@ -738,6 +774,32 @@ class MessagingFragment : Fragment(),View.OnClickListener {
             }
             // If permissions not granted, the checkCallPermissions function will handle showing dialogs
         }
+    }
+
+
+    // Save current scroll position before navigating to some other fragment :) Shared view model will help us come back
+    // exactly at that position :)
+    // We are saving the pageNo in "sharedViewModel" so whenever we come from media fragment we'll know if its chatting mode
+    // (pageNo == null) or when it's reading mode, (pageNo is an Int) , so when it's reading the mode, the corresponding
+    // page would be loaded, so we'll always be at the correct pageNo. , now on that pageNo to know the exact location of
+    // recyclerView, we'll use the following function, (It will save the exact position of RV) so that when we return
+    // on "Messaging" fragment, we'll load at the exact correct point
+    fun saveCurrentScrollPosition(){
+        val position = layoutManager.findFirstVisibleItemPosition()
+        val firstView = layoutManager.findViewByPosition(position)
+        val offset = firstView?.top ?: 0
+
+        sharedViewModel.saveScrollPosition(position, offset)
+    }
+
+    private fun shouldScrollToBottom(): Boolean {
+        val lastVisiblePosition = layoutManager.findLastVisibleItemPosition()
+
+        if (lastVisiblePosition == -1) {
+            return true  // Assume scroll needed when layout is not ready, first time when frag is loaded
+        }
+
+        return lastVisiblePosition > adapter.itemCount - 4
     }
 
 }

@@ -2,9 +2,7 @@ package com.adsperclick.media.api
 
 import android.net.Uri
 import android.util.Log
-import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.data.dataModels.Call
-import com.adsperclick.media.data.dataModels.CallParticipant
 import com.adsperclick.media.data.dataModels.Company
 import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.GroupUser
@@ -14,11 +12,10 @@ import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.Constants.DB.GROUPS
-import com.adsperclick.media.utils.Constants.DB.GROUP_CALL_LOG
 import com.adsperclick.media.utils.Constants.DB.MESSAGES
 import com.adsperclick.media.utils.Constants.DB.MESSAGES_INSIDE_MESSAGES
 import com.adsperclick.media.utils.Constants.DB.USERS
-import com.adsperclick.media.utils.UtilityFunctions
+import com.adsperclick.media.utils.Utils
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
@@ -783,7 +780,7 @@ class ApiServiceImpl @Inject constructor(
 
     fun DocumentSnapshot.toMessage(): Message? {
         return try {
-            val timestampLong = UtilityFunctions.timestampToLong(this.getTimestamp("timestamp"))     // Convert Firestore Timestamp -> Long
+            val timestampLong = Utils.timestampToLong(this.getTimestamp("timestamp"))     // Convert Firestore Timestamp -> Long
 
             Message(
                 msgId = getString("msgId") ?: "null string",

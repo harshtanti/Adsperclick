@@ -2,10 +2,8 @@ package com.adsperclick.media.applicationCommonView.bottomsheet
 
 import android.Manifest
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.health.connect.datatypes.units.Length
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -19,7 +17,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.adsperclick.media.databinding.LayoutUploadImageDocsBottomsheetBinding
 import com.adsperclick.media.utils.Constants
-import com.adsperclick.media.utils.UtilityFunctions
+import com.adsperclick.media.utils.Utils
 import com.adsperclick.media.utils.visible
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -180,7 +178,7 @@ class UploadImageDocsBottomSheet : BottomSheetDialogFragment(), View.OnClickList
     private val videoGalleryLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             result.data?.data?.let { uri ->
-                val file = UtilityFunctions.saveFileFromUri(requireContext(), uri) ?: return@let
+                val file = Utils.saveFileFromUri(requireContext(), uri) ?: return@let
                 listener?.onSelect(file.path, UploadMethod.VIDEO_GALLERY)
                 dismiss()
             }
@@ -191,7 +189,7 @@ class UploadImageDocsBottomSheet : BottomSheetDialogFragment(), View.OnClickList
     private val videoRecordLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             cameraImageUri?.let { uri ->
-                val file = UtilityFunctions.saveFileFromUri(requireContext(), uri) ?: return@let
+                val file = Utils.saveFileFromUri(requireContext(), uri) ?: return@let
                 listener?.onSelect(file.path, UploadMethod.VIDEO_CAMERA)
                 dismiss()
             }
@@ -215,7 +213,7 @@ class UploadImageDocsBottomSheet : BottomSheetDialogFragment(), View.OnClickList
     private val fileLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             result.data?.data?.let { uri ->
-                val file = UtilityFunctions.saveFileFromUri(requireContext(), uri) ?: return@let
+                val file = Utils.saveFileFromUri(requireContext(), uri) ?: return@let
                 listener?.onSelect(file.path, UploadMethod.PDF)
                 dismiss()
             }
@@ -226,7 +224,7 @@ class UploadImageDocsBottomSheet : BottomSheetDialogFragment(), View.OnClickList
     private val galleryLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             result.data?.data?.let { uri ->
-                val file = UtilityFunctions.saveFileFromUri(requireContext(), uri) ?: return@let
+                val file = Utils.saveFileFromUri(requireContext(), uri) ?: return@let
                 listener?.onSelect(file.path, UploadMethod.GALLERY)
                 dismiss()
             }
@@ -237,7 +235,7 @@ class UploadImageDocsBottomSheet : BottomSheetDialogFragment(), View.OnClickList
     private val cameraLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             cameraImageUri?.let { uri ->
-                val file = UtilityFunctions.saveFileFromUri(requireContext(), uri) ?: return@let
+                val file = Utils.saveFileFromUri(requireContext(), uri) ?: return@let
                 listener?.onSelect(file.path, UploadMethod.CAMERA)
                 dismiss()
             }

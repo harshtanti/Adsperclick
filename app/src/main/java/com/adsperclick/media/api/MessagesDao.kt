@@ -12,10 +12,10 @@ import com.adsperclick.media.utils.Constants
 interface MessagesDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    /*suspend */fun insertMessage(message: Message)/* :Int*/
+    /*suspend */fun insertMessage(message: Message)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    /*suspend */fun insertMessageList(messages: List<Message>)/* :Int*/
+    /*suspend */fun insertMessageList(messages: List<Message>)
 
     @Query("SELECT * FROM messages WHERE groupId = :groupId ORDER BY timestamp DESC LIMIT :limit")
     fun getChatsForThisGroup(groupId: String, limit: Int) : LiveData<List<Message>>

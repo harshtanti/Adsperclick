@@ -13,9 +13,8 @@ import com.adsperclick.media.R
 import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.databinding.FragmentNotificationListingBinding
 import com.adsperclick.media.utils.Constants
-import com.adsperclick.media.utils.UtilityFunctions
+import com.adsperclick.media.utils.Utils
 import com.adsperclick.media.utils.gone
-import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
 import com.adsperclick.media.views.homeActivity.SharedHomeViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
@@ -104,7 +103,7 @@ class NotificationListingFragment : Fragment(), View.OnClickListener {
         // which were sent before that moment, the new incoming notifications will not be shown
         // unless user opens this fragment again, that's why we're saving current time while
         // entering the fragment
-        sharedViewModel.userData?.lastNotificationSeenTime = UtilityFunctions.getTime()
+        sharedViewModel.userData?.lastNotificationSeenTime = Utils.getTime()
         sharedViewModel.userData?.userId?.let { notificationsViewModel.updateLastNotificationSeenTime(it) }
     }
 }

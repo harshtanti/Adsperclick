@@ -21,7 +21,7 @@ import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.Constants.CLICKED_GROUP
 import com.adsperclick.media.utils.ConsumableValue
 import com.adsperclick.media.utils.DialogUtils
-import com.adsperclick.media.utils.UtilityFunctions
+import com.adsperclick.media.utils.Utils
 import com.adsperclick.media.utils.disableHeaderButton
 import com.adsperclick.media.utils.enableHeaderButton
 import com.adsperclick.media.utils.gone
@@ -101,13 +101,13 @@ class GroupProfileFragment : Fragment(),View.OnClickListener {
         binding.tvName.text = groupChat?.groupName ?: "Group-Name"
 
         groupChat?.groupImgUrl?.let { imageUrl ->
-            UtilityFunctions.loadImageWithGlide(
+            Utils.loadImageWithGlide(
                 binding.imgProfileDp.context,
                 binding.imgProfileDp,
                 imageUrl
             )
         } ?: run {
-            UtilityFunctions.setInitialsDrawable(
+            Utils.setInitialsDrawable(
                 binding.imgProfileDp,
                 groupChat?.groupName
             )

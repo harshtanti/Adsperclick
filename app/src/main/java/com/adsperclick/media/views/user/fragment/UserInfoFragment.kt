@@ -18,7 +18,7 @@ import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.databinding.FragmentUserInfoBinding
 import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.ConsumableValue
-import com.adsperclick.media.utils.UtilityFunctions
+import com.adsperclick.media.utils.Utils
 import com.adsperclick.media.utils.disableHeaderButton
 import com.adsperclick.media.utils.enableHeaderButton
 import com.adsperclick.media.utils.gone
@@ -145,13 +145,13 @@ class UserInfoFragment : Fragment(), View.OnClickListener {
                     }
                 }
                 user?.userProfileImgUrl?.let { imageUrl ->
-                    UtilityFunctions.loadImageWithGlide(
+                    Utils.loadImageWithGlide(
                         binding.imgProfileDp.context,
                         binding.imgProfileDp,
                         imageUrl
                     )
                 } ?: run {
-                    UtilityFunctions.setInitialsDrawable(
+                    Utils.setInitialsDrawable(
                         binding.imgProfileDp,
                         user?.userName
                     )
@@ -159,7 +159,7 @@ class UserInfoFragment : Fragment(), View.OnClickListener {
             }
             Constants.COMPANIES_SEMI_CAPS->{
                 binding.tvName.text = company?.companyName ?: "N.A."
-                UtilityFunctions.setInitialsDrawable(
+                Utils.setInitialsDrawable(
                     binding.imgProfileDp,
                     company?.companyName ?: "N.A."
                 )

@@ -77,7 +77,7 @@ object DialogUtils {
                 ContextCompat.getDrawable(
                     context,
                     R.drawable.dialog_background_white
-                ), UtilityFunctions.dp2px(context,24)
+                ), Utils.dp2px(context,24)
             )
         )
 
@@ -124,7 +124,7 @@ object DialogUtils {
                 ContextCompat.getDrawable(
                     context,
                     R.drawable.dialog_background_white
-                ), UtilityFunctions.dp2px(context,24)
+                ), Utils.dp2px(context,24)
             )
         )
 
@@ -200,7 +200,7 @@ object DialogUtils {
                 ContextCompat.getDrawable(
                     context,
                     R.drawable.dialog_background_white
-                ), UtilityFunctions.dp2px(context, 24)
+                ), Utils.dp2px(context, 24)
             )
         )
 

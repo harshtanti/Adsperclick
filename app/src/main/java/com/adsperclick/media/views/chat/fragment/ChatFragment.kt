@@ -8,9 +8,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.view.OnApplyWindowInsetsListener
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -26,15 +23,13 @@ import com.adsperclick.media.utils.Constants.CLICKED_GROUP
 import com.adsperclick.media.utils.Constants.DEFAULT_SERVICE
 import com.adsperclick.media.utils.Constants.EMPTY
 import com.adsperclick.media.utils.Constants.LAST_SEEN_GROUP_TIME
-import com.adsperclick.media.utils.UtilityFunctions
+import com.adsperclick.media.utils.Utils
 import com.adsperclick.media.utils.gone
 import com.adsperclick.media.utils.visible
 import com.adsperclick.media.views.chat.adapters.ChatGroupListAdapter
 import com.adsperclick.media.views.chat.adapters.HorizontalServiceListAdapter
 import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
-import com.adsperclick.media.views.homeActivity.HomeActivity
 import com.adsperclick.media.views.homeActivity.SharedHomeViewModel
-import com.google.firebase.functions.FirebaseFunctions
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
@@ -99,7 +94,7 @@ class ChatFragment : Fragment(),View.OnClickListener {
 
 
         val currentTime = if(user?.role == Constants.ROLE.ADMIN){
-            UtilityFunctions.getTime()
+            Utils.getTime()
         } else {-1L}
 
         chatGroupListAdapter = ChatGroupListAdapter(onClickingGroupChatItem,
@@ -199,7 +194,7 @@ class ChatFragment : Fragment(),View.OnClickListener {
         binding.etSearchBar.setText(EMPTY)
         sharedViewModel.pageNo=null
         textWatcher()
-        setupKeyboardVisibilityListener()
+//        setupKeyboardVisibilityListener()
     }
 
     private fun textWatcher(){
@@ -220,7 +215,7 @@ class ChatFragment : Fragment(),View.OnClickListener {
 
     // For triggering keyboard visibility : When keyboard is visible the bottomNav Menu should be gone
     // and vice-versa
-    private var windowInsetsCallback: OnApplyWindowInsetsListener? = null
+/*    private var windowInsetsCallback: OnApplyWindowInsetsListener? = null
 
     private fun setupKeyboardVisibilityListener() {
         val rootView = requireActivity().window.decorView.rootView
@@ -231,7 +226,7 @@ class ChatFragment : Fragment(),View.OnClickListener {
             val bottomNav = (activity as? HomeActivity)?.binding?.bottomNavigation
 
             if (isKeyboardVisible) {
-                bottomNav?.visibility = View.GONE
+                bottomNav?.gone()
             } else {
                 // Only show if we're on a main navigation destination
                 val navController = findNavController()
@@ -247,18 +242,18 @@ class ChatFragment : Fragment(),View.OnClickListener {
 
         // Set the listener
         ViewCompat.setOnApplyWindowInsetsListener(rootView, windowInsetsCallback)
-    }
+    }*/
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Remove the listener when fragment view is destroyed
-        if (windowInsetsCallback != null) {
+        // Remove the keyboard listener when fragment view is destroyed
+/*        if (windowInsetsCallback != null) {
             ViewCompat.setOnApplyWindowInsetsListener(
                 requireActivity().window.decorView.rootView,
                 null
             )
             windowInsetsCallback = null
-        }
+        }*/
     }
 
     private val onClickingGroupChatItem = object : ChatGroupListAdapter.OnGroupChatClickListener{

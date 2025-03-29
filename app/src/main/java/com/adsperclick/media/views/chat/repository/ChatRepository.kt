@@ -17,7 +17,7 @@ import com.adsperclick.media.utils.Constants.DB
 import com.adsperclick.media.utils.Constants.DEFAULT_SERVICE
 import com.adsperclick.media.utils.Constants.LAST_SEEN_TIME_EACH_USER_EACH_GROUP
 import com.adsperclick.media.utils.ConsumableValue
-import com.adsperclick.media.utils.UtilityFunctions
+import com.adsperclick.media.utils.Utils
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
@@ -96,7 +96,7 @@ class ChatRepository @Inject constructor(
 
     suspend fun syncDeviceTime() {
         try {
-            if(UtilityFunctions.isNetworkAvailable(context).not()){ // To handle the case user is offline
+            if(Utils.isNetworkAvailable(context).not()){ // To handle the case user is offline
                 Log.d("skt", "User is offline") // This function is updating firebase, so c
                                         // Cannot be run when user is offline
                 return
@@ -111,7 +111,7 @@ class ChatRepository @Inject constructor(
             // Fetch the updated timestamp
             val snapshot = docRef.get().await()
             snapshot.getTimestamp(DB.SERVER_TIME_DOC)?.let { serverTime ->
-                val timeDiff = UtilityFunctions.timestampToLong(serverTime) - System.currentTimeMillis()
+                val timeDiff = Utils.timestampToLong(serverTime) - System.currentTimeMillis()
                 // Some timeDiff coz of time taken to fetch server-side time, so we ignore upto 1 sec
                 if(timeDiff > 1000L) tokenManager.setServerMinusDeviceTime(timeDiff)
             }
@@ -163,7 +163,7 @@ class ChatRepository @Inject constructor(
                 if (groupId in listOfGroupChatId) {
                     val userId = doc.id
                     val lastSeenTimestamp = doc.getTimestamp("lastSeenTime")
-                    val timestampInLong = UtilityFunctions.timestampToLong(lastSeenTimestamp)
+                    val timestampInLong = Utils.timestampToLong(lastSeenTimestamp)
 
                     groupId?.let {
                         lastSeenData.getOrPut(groupId) { mutableMapOf() }[userId] = timestampInLong

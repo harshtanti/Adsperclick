@@ -19,7 +19,7 @@ import com.adsperclick.media.utils.Constants.ROLE
 import com.adsperclick.media.utils.Constants.SPACE
 import com.adsperclick.media.utils.Constants.Time.ONE_HOUR
 import com.adsperclick.media.utils.Constants.Time.TWO_HOUR
-import com.adsperclick.media.utils.UtilityFunctions
+import com.adsperclick.media.utils.Utils
 import com.adsperclick.media.utils.gone
 import com.adsperclick.media.utils.visible
 
@@ -73,7 +73,7 @@ class ChatGroupListAdapter(val onGroupChatClickListener: OnGroupChatClickListene
             }
 
             val lastMsgTime = chatGroup.lastSentMsg?.timestamp?.let {
-                UtilityFunctions.gcListDateFormat(it)
+                Utils.gcListDateFormat(it)
             } ?: run { EMPTY }
 
             with(binding){
@@ -148,13 +148,13 @@ class ChatGroupListAdapter(val onGroupChatClickListener: OnGroupChatClickListene
 
         private fun setGroupDP(chatGroup: GroupChatListingData){
             chatGroup.groupImgUrl?.let { imageUrl ->
-                UtilityFunctions.loadChatListingImgWithGlide(
+                Utils.loadChatListingImgWithGlide(
                     binding.imgProfileDp.context,
                     binding.imgProfileDp,
                     imageUrl
                 )
             } ?: run {
-                UtilityFunctions.setInitialsDrawable(
+                Utils.setInitialsDrawable(
                     binding.imgProfileDp,
                     chatGroup.groupName
                 )
