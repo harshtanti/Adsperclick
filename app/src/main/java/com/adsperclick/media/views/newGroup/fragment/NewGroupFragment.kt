@@ -23,7 +23,7 @@ import com.adsperclick.media.data.dataModels.GroupUser
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.databinding.FragmentNewGroupBinding
 import com.adsperclick.media.utils.Constants
-import com.adsperclick.media.utils.UtilityFunctions
+import com.adsperclick.media.utils.Utils
 import com.adsperclick.media.utils.disableSubmitButton
 import com.adsperclick.media.utils.enableSubmitButton
 import com.adsperclick.media.utils.gone
@@ -75,7 +75,7 @@ class NewGroupFragment : Fragment(), View.OnClickListener {
         setUpOnChangeListener()
         validateSubmitButton()
         setUpObserver()
-        val drawable = UtilityFunctions.generateInitialsDrawable(
+        val drawable = Utils.generateInitialsDrawable(
             binding.imgProfileDp.context, "A"
         )
         binding.imgProfileDp.setImageDrawable(drawable)

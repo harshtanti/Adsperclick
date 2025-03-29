@@ -85,7 +85,7 @@ class AuthRepository @Inject constructor(private val apiService: ApiService, pri
                 }
             }
 
-            user.listOfGroupsAssigned?.let {
+            user.listOfGroupsAssigned.let {
                 chatRepo.fetchLastSeenTimeForEachUserInEachGroup(it)
             }
 

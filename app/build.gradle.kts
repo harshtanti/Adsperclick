@@ -4,7 +4,8 @@ plugins {
     alias(libs.plugins.dagger.hilt)
     alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.kotlin.kapt)
-    alias(libs.plugins.google.gms.google.services)
+    alias(libs.plugins.google.gms.google.services)      // gms stands for google-mobile-services , dependency for firebase
+    alias(libs.plugins.google.firebase.crashlytics)
 }
 
 android {
@@ -67,7 +68,8 @@ dependencies {
     implementation(libs.transport.api)
     implementation(libs.firebase.functions.ktx) // Required if using Paging in Repository with Flow
     implementation(libs.transport.api)
-    implementation(libs.androidx.lifecycle.process) // Required if using Paging in Repository with Flow
+    implementation(libs.androidx.lifecycle.process)
+    implementation(libs.firebase.crashlytics) // Required if using Paging in Repository with Flow
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

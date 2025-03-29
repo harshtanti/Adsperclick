@@ -1,4 +1,4 @@
-package com.adsperclick.media.views.chat.fragment
+package com.adsperclick.media.views.notifications
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -20,7 +20,7 @@ class NotificationCreationFragment : Fragment() {
 
     private lateinit var binding: FragmentNotificationCreationBinding
 
-    private val chatViewModel : ChatViewModel by viewModels()
+    private val notificationsViewModel : NotificationsViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -66,7 +66,7 @@ class NotificationCreationFragment : Fragment() {
             binding.cbSelectClients.isChecked = false
             binding.cbSelectEmployees.isChecked = false
 
-            chatViewModel.createNotification(notification)
+            notificationsViewModel.createNotification(notification)
         }
 
         binding.btnBack.setOnClickListener{
@@ -76,7 +76,7 @@ class NotificationCreationFragment : Fragment() {
 
     private fun observer(){
 
-        chatViewModel.createNotificationLiveData.observe(viewLifecycleOwner){ response ->
+        notificationsViewModel.createNotificationLiveData.observe(viewLifecycleOwner){ response ->
             when(response){
                 is NetworkResult.Success ->{
                     Toast.makeText(context, "Notification Sent!", Toast.LENGTH_SHORT).show()

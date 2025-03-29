@@ -28,8 +28,8 @@ import com.adsperclick.media.utils.Constants.TXT_MSG_TYPE.MIDDLE_MSG_RIGHT
 import com.adsperclick.media.utils.Constants.TXT_MSG_TYPE.SINGLE_MSG_BY_CURRENT_USER
 import com.adsperclick.media.utils.Constants.TXT_MSG_TYPE.SINGLE_MSG_LEFT
 import com.adsperclick.media.utils.Constants.TXT_MSG_TYPE.SINGLE_MSG_RIGHT
-import com.adsperclick.media.utils.UtilityFunctions
-import com.adsperclick.media.utils.UtilityFunctions.formatMessageTimestamp
+import com.adsperclick.media.utils.Utils
+import com.adsperclick.media.utils.Utils.formatMessageTimestamp
 import com.adsperclick.media.utils.gone
 import com.adsperclick.media.utils.visible
 import com.bumptech.glide.Glide
@@ -217,7 +217,7 @@ class MessagesAdapter(private val currentUserId: String,
                         if(msgRelativePosition == SINGLE_MSG_LEFT || msgRelativePosition == FIRST_MSG_LEFT){
                             tvSenderName.text = message.senderName
                             tvSenderName.visible()
-                            tvSenderName.setTextColor(UtilityFunctions.getSenderColor(message.senderId))
+                            tvSenderName.setTextColor(Utils.getSenderColor(message.senderId))
                         } else {
                             tvSenderName.gone()
                         }
@@ -304,7 +304,7 @@ class MessagesAdapter(private val currentUserId: String,
 
                         if(msgRelativePosition == SINGLE_MSG_RIGHT || msgRelativePosition == FIRST_MSG_RIGHT){
                             tvSenderNameOutgoing.text = message.senderName
-                            tvSenderNameOutgoing.setTextColor(UtilityFunctions.getSenderColor(message.senderId))
+                            tvSenderNameOutgoing.setTextColor(Utils.getSenderColor(message.senderId))
                             tvSenderNameOutgoing.visible()
                         } else {
                             tvSenderNameOutgoing.gone()
@@ -387,7 +387,7 @@ class MessagesAdapter(private val currentUserId: String,
             false
         }
 
-        dateStamp = UtilityFunctions.processDateStamp(message.timestamp , prevMsg?.timestamp)
+        dateStamp = Utils.processDateStamp(message.timestamp , prevMsg?.timestamp)
 
         if(message.senderId != currentUserId){
             lastVisitedTimestamp?.let { lastVisitedTimestamp->
