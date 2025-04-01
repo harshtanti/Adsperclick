@@ -15,7 +15,7 @@ interface ApiService {
     suspend fun registerCompany(data: Company): NetworkResult<Company>
     suspend fun registerService(data: Service): NetworkResult<Service>
     suspend fun registerUser(data: User): NetworkResult<User>
-    suspend fun createGroup(data: GroupChatListingData,file: File): NetworkResult<Boolean>
+    suspend fun createGroup(data: GroupChatListingData,file: File?): NetworkResult<Boolean>
     suspend fun deleteService(serviceId: String): NetworkResult<Boolean>
     suspend fun updateUser(userId:String,phoneNumber:String?, file: File?): NetworkResult<Boolean>
     suspend fun getUserData(userId: String): NetworkResult<User>
@@ -27,11 +27,6 @@ interface ApiService {
     suspend fun removeUserFromGroup(userId: String, groupId: String): NetworkResult<String>
     suspend fun getGroupDetails(groupId: String): NetworkResult<GroupChatListingData>
     suspend fun addGroupMember(groupId: String, userSet: MutableSet<String>): NetworkResult<Boolean>
-//    suspend fun uploadFile(groupId: String, userSet: MutableSet<String>): NetworkResult<Boolean>
-
-
-    //Harsh
-   /* suspend fun updateParticipantStatus(user: User,callId: String, isMuted: Boolean): NetworkResult<Boolean>*/
     suspend fun getUserCallToken(groupId: String):NetworkResult<Pair<String,String>>
     suspend fun listenParticipantChanges(groupId: String): Flow<NetworkResult<Call>>
     suspend fun removeUserFromCall(groupData: GroupChatListingData, userData: User) :NetworkResult<Boolean>

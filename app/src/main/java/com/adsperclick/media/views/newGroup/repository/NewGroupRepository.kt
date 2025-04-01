@@ -29,7 +29,7 @@ class NewGroupRepository @Inject constructor(
 
     suspend fun getServiceList() = apiService.getServiceList()
 
-    suspend fun createGroup(data: GroupChatListingData, file: File) = apiService.createGroup(data,file)
+    suspend fun createGroup(data: GroupChatListingData, file: File?) = apiService.createGroup(data,file)
 
     suspend fun getCompanyNameData(companyId: String) = apiService.getCompanyNameData(companyId)
 
