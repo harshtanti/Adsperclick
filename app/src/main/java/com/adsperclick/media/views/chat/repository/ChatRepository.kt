@@ -143,13 +143,6 @@ class ChatRepository @Inject constructor(
 
     // ---------------------------------------------------------------------------------------------------------------------------------------------------
 
-    private val _lastSeenForEachUserEachGroupLiveData =
-        MutableLiveData<NetworkResult<Map<String, MutableMap<String, Long?>>>>()
-    val lastSeenForEachUserEachGroupLiveData:
-            LiveData<NetworkResult<Map<String, MutableMap<String, Long?>>>>
-        get() = _lastSeenForEachUserEachGroupLiveData
-
-
     suspend fun fetchLastSeenTimeForEachUserInEachGroup(
         listOfGroupChatId: List<String>
     ): NetworkResult<Map<String, MutableMap<String, Long?>>> {
