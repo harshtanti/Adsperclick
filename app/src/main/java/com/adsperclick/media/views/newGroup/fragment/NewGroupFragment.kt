@@ -169,7 +169,7 @@ class NewGroupFragment : Fragment(), View.OnClickListener {
             listOfUsers = userListWithRoles,
             lastSentMsg = null
         )
-        viewModel.selectedImageFile?.let { viewModel.createGroup(groupData, it) }
+        viewModel.createGroup(groupData, viewModel.selectedImageFile)
     }
 
     private fun setUpObserver(){

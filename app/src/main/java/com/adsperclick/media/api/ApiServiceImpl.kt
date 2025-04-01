@@ -140,7 +140,7 @@ class ApiServiceImpl @Inject constructor(
     }
 
 
-    override suspend fun createGroup(data: GroupChatListingData, file: File): NetworkResult<Boolean> {
+    override suspend fun createGroup(data: GroupChatListingData, file: File?): NetworkResult<Boolean> {
         return try {
             val groupCollection = db.collection("groups")
 
@@ -153,29 +153,33 @@ class ApiServiceImpl @Inject constructor(
                 .await()
 
             if (query.isEmpty) {
-                // Step 2: If no such group exists, upload the image first
-                val storageRef = storageRef
-                val imagePath = "images/group_profile_images/${System.currentTimeMillis()}_${file.name}"
-                val imageRef = storageRef.child(imagePath)
-
-                // Upload the file
-                val uploadTask = imageRef.putFile(Uri.fromFile(file))
-                uploadTask.await()
-
-                // Get the download URL
-                val imageUrl = imageRef.downloadUrl.await().toString()
-
-                // Step 3: Create the group document with the image URL
+                // Step 2: Prepare group data, with or without image
                 val groupRef = groupCollection.document()  // Generates a new document ID
                 val groupId = groupRef.id  // Get the auto-generated group ID
 
-                // Step 4: Update the group data with the generated groupId and imageUrl
-                val groupData = data.copy(groupId = groupId, groupImgUrl = imageUrl)
+                var groupData = data.copy(groupId = groupId)
 
-                // Step 5: Save the updated group data in Firestore
+                // Only handle file upload if file is not null
+                if (file != null) {
+                    val storageRef = storageRef
+                    val imagePath = "images/group_profile_images/${System.currentTimeMillis()}_${file.name}"
+                    val imageRef = storageRef.child(imagePath)
+
+                    // Upload the file
+                    val uploadTask = imageRef.putFile(Uri.fromFile(file))
+                    uploadTask.await()
+
+                    // Get the download URL
+                    val imageUrl = imageRef.downloadUrl.await().toString()
+
+                    // Update the group data with the imageUrl
+                    groupData = groupData.copy(groupImgUrl = imageUrl)
+                }
+
+                // Step 3: Save the group data in Firestore
                 groupRef.set(groupData).await()
 
-                // Step 6: Update each user's listOfGroupsAssigned with the new groupId
+                // Step 4: Update each user's listOfGroupsAssigned with the new groupId
                 val userCollection = db.collection("users")
 
                 data.listOfUsers?.forEach { userPair ->
@@ -188,20 +192,20 @@ class ApiServiceImpl @Inject constructor(
                             updatedGroups.add(groupId)
                         }
 
-                        // Step 7: Update user document with new groupId
+                        // Step 5: Update user document with new groupId
                         userRef.update("listOfGroupsAssigned", updatedGroups).await()
                     }
                 }
 
-                // Step 8: Return success if everything went well
+                // Step 6: Return success if everything went well
                 NetworkResult.Success(true)
             } else {
-                // Step 9: Return error if a group with the same name and service already exists
+                // Step 7: Return error if a group with the same name and service already exists
                 NetworkResult.Error(null, "A group with this name and service already exists.")
             }
 
         } catch (e: Exception) {
-            // Step 10: Handle any errors that occur
+            // Step 8: Handle any errors that occur
             NetworkResult.Error(null, e.message ?: "Group Creation failed")
         }
     }

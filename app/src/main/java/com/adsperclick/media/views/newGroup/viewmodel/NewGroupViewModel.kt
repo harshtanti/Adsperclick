@@ -58,7 +58,7 @@ class NewGroupViewModel@Inject constructor(private val newGroupRepository: NewGr
     private val _createGroupLiveData = MutableLiveData<NetworkResult<Boolean>>()
     val createGroupLiveData: LiveData<NetworkResult<Boolean>> get() = _createGroupLiveData
 
-    fun createGroup(groupData: GroupChatListingData,file: File){
+    fun createGroup(groupData: GroupChatListingData,file: File? = null){
         _createGroupLiveData.postValue(NetworkResult.Loading())
 
         try {
