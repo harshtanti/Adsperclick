@@ -281,7 +281,7 @@ class MessagingRepository  @Inject constructor(
             // If file is not null, upload it and get the URL
             if (file != null) {
                 _imageUploadedLiveData.postValue(ConsumableValue(NetworkResult.Loading()))
-                val storageRef = storageRef
+                val storageRef = storageRef     // Is this line needed? idts
 
                 val fileType = when(msgType){
                     IMG_URL -> "images"
@@ -291,12 +291,14 @@ class MessagingRepository  @Inject constructor(
                 }
 
                 val filePath = "SharedInGroup/${groupName}_${groupId}/$fileType/${System.currentTimeMillis()}_${file.name}"
-                val fileRef = storageRef.child(filePath)
-
+                val fileRef = storageRef.child(filePath)        // Create a reference to the file in Firebase Storage
+                                                                // now we can use "fileRef" to refer to that reference
                 // Upload the file
-                val uploadTask = fileRef.putFile(Uri.fromFile(file))
-                uploadTask.await()
+                val uploadTask = fileRef.putFile(Uri.fromFile(file))        // converting file to "Uri" then putting it in
+                uploadTask.await()                                      // desired storage reference using fileRef
 
+
+                // After the upload is completed
                 // Get the download URL
                 val imageUrl = fileRef.downloadUrl.await().toString()
 
