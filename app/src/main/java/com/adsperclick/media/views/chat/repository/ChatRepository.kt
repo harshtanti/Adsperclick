@@ -83,6 +83,9 @@ class ChatRepository @Inject constructor(
 
             user?.let {
                 // Write code for when new "User" object obtained from backend successfully
+
+                // "fetchLastSeenTimeForEachUserInEachGroup" fun provides last seen time for each user
+                // in each group
                 fetchLastSeenTimeForEachUserInEachGroup(it.listOfGroupsAssigned?: listOf())
 
                 tokenManager.saveUser(it) // Update SharedPreferences
@@ -94,6 +97,11 @@ class ChatRepository @Inject constructor(
         }
     }
 
+
+    // This function is used to sync device time with server time, it basically brings the server time
+    // at this instance and compares it with device time, if there's a difference between them, it means
+    // that this person's device's time is incorrect! In that case, we'll save the difference b/w
+    // serverTime - currentDeviceTime
     suspend fun syncDeviceTime() {
         try {
             if(Utils.isNetworkAvailable(context).not()){ // To handle the case user is offline
@@ -125,6 +133,12 @@ class ChatRepository @Inject constructor(
             }
         }
     }
+
+    // Below fun checks if the current version on user's phone is high enough or not!
+    // It compares the current version of app on this device (Which is written in Build.Gradle as
+    // " versionCode = 1 " to the minimum acceptable version on firestore, if the appVersion is
+    // ">=" minAcceptableVersion the app can be used, else ask user to update app because
+    // force update is required
     suspend fun isCurrentVersionAcceptable(): Boolean {
         return try {
             val result = firestore.collection(DB.CONFIG).document(DB.MIN_APP_LEVEL_DOC).get().await()
@@ -141,18 +155,31 @@ class ChatRepository @Inject constructor(
     }
 
 
-    // ---------------------------------------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
 
+
+    // This "fetchLastSeenTimeForEachUserInEachGroup" fun fetches last seen time for each user in each
+    // group
+    // Here we have a collection called "groups", in this collection, documents are named as "groupId"
+    // Inside each "document", there are several fields... and a "subCollection" called "groupMembersLastSeenTime"
+    // Now this "subCollection" is present for all documents and there's no direct way to get all the
+    // subCollections inside each document
+    // So firebase provides us a concept! Called "collectionGroup", when u request a collectionGroup
+    // and ask for a collection name in parameter... it will look across the entire firestore db
+    // and wherever it finds a "collection" or "subCollection" with the name "groupMembersLastSeenTime"
+    // this fun will fetch it! Therefore all collections/subCollections with this name is fetched
+    // so even if these subCollections are in different documents they are fetched.
     suspend fun fetchLastSeenTimeForEachUserInEachGroup(
         listOfGroupChatId: List<String>
     ): NetworkResult<Map<String, MutableMap<String, Long?>>> {
         return try {
             val querySnapshot = firestore.collectionGroup(DB.GROUP_MEMBERS_LAST_SEEN_TIME).get().await()
+            // This above line provides all the subCollections with name "groupMembersLastSeenTime"
             val lastSeenData = mutableMapOf<String, MutableMap<String, Long?>>()
 
             for (doc in querySnapshot.documents) {
                 val groupId = doc.reference.parent.parent?.id // Get the groupId from the parent document
-
+                                                              // See on firestore console for better idea
                 if (groupId in listOfGroupChatId) {
                     val userId = doc.id
                     val lastSeenTimestamp = doc.getTimestamp("lastSeenTime")

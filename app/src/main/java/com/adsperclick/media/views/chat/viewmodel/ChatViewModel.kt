@@ -37,6 +37,7 @@ class ChatViewModel@Inject constructor(
     // come, we post result to UI as per requirements
     fun syncUser(){
         viewModelScope.launch (Dispatchers.IO){
+            // The "Job" functions below are used to run the functions in parallel
             val syncUserJob = async { chatRepository.syncUser()}
             val syncTimeJob = async { chatRepository.syncDeviceTime()}
             val isAcceptableVersionJob = async{ chatRepository.isCurrentVersionAcceptable() }

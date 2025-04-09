@@ -318,7 +318,7 @@ Firestore vs Realtime Database
 // enough to prevent anyone from writing notifications except admin :)
 
 
-        ----------------------------------------- <CODE> ----------------------------------------------
+        - - - - - - - - - - - - - - - - - - - - - -  <CODE> - - - - - - - - - - - - - - - - - - - - - -
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -411,7 +411,7 @@ service cloud.firestore {
 }
 
 
-        ----------------------------------------- </CODE> ----------------------------------------------
+        - - - - - - - - - - - - - - - - - - - - - -  </CODE> - - - - - - - - - - - - - - - - - - - - - -
 
 
 
@@ -495,7 +495,9 @@ service cloud.firestore {
 
     This is the notification sending and receiving service of firebase, used to implement
     notifications. Backend code is written with Firebase cloud functions & android side using
-    Firebase Messaging service. Read them
+    Firebase Messaging service. Read them (To understand how exactly FCM works, there's an old
+    version of FCM called "FCM Legacy"), The one currently used is "FCM HTTP V1" (This is more
+    secure/complicated)
 
     FCM HTTP V1 uses "-Google OAuth 2.0-" under the hood
     FCM Legacy is deprecated (was more straight forward but less secure)
@@ -507,6 +509,120 @@ service cloud.firestore {
     we should add the crashlytics sdk to our firebase project so that from firebase console we can
     see if the app is crashing in any device or not.
     It's very similar to App-Center
+
+
+
+
+    -------------------------ANDROID NOTES (SKT WORK,  DETAILED NOTES)---------------------------
+
+    On opening app, the first screen that appears is "SplashActivity", now on this activity a lottie
+    animation is shown, while user sees this animation "syncUser()" function is called in the
+    background, so while that animation is going on all the syncing process is done for complicated
+    time taking data! This way when app is up running, it is very fast as time taking data retrieval
+    is done.
+
+    Different ways to implement SplashScreen & what I did---
+    I wanted splash screen to be visible as soon as the user opens the app, for that, the best
+    option was using the inbuilt-splash-screen of android, that appears instantly... but that is
+    static... What I wanted was a SplashScreen which when shown, shows an animation & necessary data
+    loads in background...
+
+    So for that I'll have to settle for a fragment or activity on which lottie animation is run &
+    data loading in bg.
+    Now to load the animation faster! I choose a separate activity! Because if I had added a
+    fragment, it would've made the process slower! Why? Because if we create a fragment, it will
+    load the entire navGraph at the time of first fragment creation! Loading a navGraph is time-taking
+    process! We don't want the lottie animation to load after the completion of loading of a navGraph,
+    so to make appearance of SplashScreen as fast as possible I am using an activity
+
+    Knowing this information! I didn't want to create an instance of "MainActivity" every time the app
+    is run! Because MainActivity is basically "LoginActivity" having its own several fragments,
+    so I want that fragment only to be reached when someone is not logged in.
+
+    Therefore on SplashActivity, first we check if user is logged in or not, if not logged in then moved
+    to MainActivity (Which is the login activity, contains the login page).
+
+    ----- If user not logged In -------------
+    Then user is moved to "MainActivity", small navGraph is loaded, user enters email & password
+    Then "FirebaseAuth" comes into play, it calls "signInWithEmailAndPassword()" if user exists,
+    it will return FirebaseUser object, from that u can obtain "userId" of that firebase user...
+
+    That "userId" will be same as the "documentId" of that user object, which means in user
+    collection there'll be a document with that "userId", we then access that document & get all
+    data related to that user (Because we're creating new user account using firebaseAuth, which
+    then returns a firebaseAuthId for that user, then we are saving
+    that user on firestore using that AuthId)
+
+    So while signing in... after obtaining all data, we then move to "HomeActivity"
+
+
+
+
+
+
+    ----- If user is logged In -------------
+
+    If logged in, we run "syncUser()" function. --> (Read this function in "chatViewModel"
+    This function brings the latest "User" object, then checks for "lastSeenTimeForEachUserEachGroup",
+    syncs device time with server time, sets timer to ensure animation is finished, checks if device
+    version is acceptable or not, etc... Read functions for more info
+
+    Now after all data is fetched from backend & animation is completed, we post result in liveData
+    When liveData is triggered, we are navigated from "SplashActivity" to "HomeActivity"
+
+
+    ----- HomeActivity ----
+
+    HomeActivity is very imp, all imp fragments of app are in this activity.
+    It contains all the fragments other than "login" or "forgotPassword"
+    HomeActivity contains navGraph "bottom_navigation.xml"
+
+    Bottom Navigation has 3 tabs: "Chat", " Users (Only visible to admin) ", "Setting (profile)"
+
+    For each tab in the bottom navigation there's navGraph, which makes it extremely simple to
+    manage multiple fragments in a single navGraph! Like BottomNavigation has 3 tabs, each tab has
+    its own navigation setup... which makes it easier to create and manage complex navGraphs having
+    multiple fragments... that is why bottom navigation is used...
+
+    -For navigation everywhere we're using "Jetpack Navigation" & not fragment transaction
+    -For passing data across fragments we're passing bundles .. by serializing the data in bundles
+    -For passing data the better practice is to use "safeArgs" though...
+    -Of-course we're also using sharedViewModel for passing data which is a very good practice
+
+    I created "SharedHomeViewModel" to store/save data which is common across all fragments and
+    needs to be shared across all fragments in "HomeActivity".
+
+    In home activity I called an instance of this viewModel and saved the "User" object & various
+    things from sharedPreferences... calling the shared preference everytime for fetching the user
+    object is not a good idea as it stores user object in serialized form.. so we can store it in
+    sharedViewModel as well! And use it to fetch it everytime... but there's a catch!  Injecting
+    sharedViewModel everytime in a fragment just for obtaining the "User" object maybe is a
+    processor intensive task in itself... Idk much yet below is what I know
+
+        ✅ Best Practice
+        INJECTING SHARED-VIEW-MODEL IN FRAGMENT IN NOT PROCESSOR INTENSIVE AS IT LOADS VIEW-MODEL
+        LAZILY (ONLY WHEN NEEDED)
+        Always treat SharedPreferences (or TokenManager) as your source of persistence, and the
+        ViewModel as your in-memory cache. So what I did was kinda best practice only..
+        when I create HomeActivity I am taking all data from SharedPreferences & storing it in
+        sharedViewModel, this helps in instant access as sharedViewModel is "in-memory-cache" (RAM)
+        where-as sharedPref is kinda like ROM... Now since HomeActivity is the only activity in use
+        once it's created all data is saved in ViewModel and anytime its recreated all data will be
+        re-stored in the ViewModel, so I think we are good (THIS IS BEST PRACTICE As per GPT so its
+        correct imo)
+
+
+
+
+
+
+
+
+
+
+
+
+
 */
 
 
