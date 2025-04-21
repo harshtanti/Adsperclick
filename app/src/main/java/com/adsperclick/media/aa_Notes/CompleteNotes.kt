@@ -318,7 +318,7 @@ Firestore vs Realtime Database
 // enough to prevent anyone from writing notifications except admin :)
 
 
-        ----------------------------------------- <CODE> ----------------------------------------------
+        - - - - - - - - - - - - - - - - - - - - - -  <CODE> - - - - - - - - - - - - - - - - - - - - - -
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -411,7 +411,7 @@ service cloud.firestore {
 }
 
 
-        ----------------------------------------- </CODE> ----------------------------------------------
+        - - - - - - - - - - - - - - - - - - - - - -  </CODE> - - - - - - - - - - - - - - - - - - - - - -
 
 
 
@@ -495,7 +495,9 @@ service cloud.firestore {
 
     This is the notification sending and receiving service of firebase, used to implement
     notifications. Backend code is written with Firebase cloud functions & android side using
-    Firebase Messaging service. Read them
+    Firebase Messaging service. Read them (To understand how exactly FCM works, there's an old
+    version of FCM called "FCM Legacy"), The one currently used is "FCM HTTP V1" (This is more
+    secure/complicated)
 
     FCM HTTP V1 uses "-Google OAuth 2.0-" under the hood
     FCM Legacy is deprecated (was more straight forward but less secure)
@@ -507,6 +509,313 @@ service cloud.firestore {
     we should add the crashlytics sdk to our firebase project so that from firebase console we can
     see if the app is crashing in any device or not.
     It's very similar to App-Center
+
+
+
+
+    -------------------------ANDROID NOTES (SKT WORK,  DETAILED NOTES)---------------------------
+
+    On opening app, the first screen that appears is "SplashActivity", now on this activity a lottie
+    animation is shown, while user sees this animation "syncUser()" function is called in the
+    background, so while that animation is going on all the syncing process is done for complicated
+    time taking data! This way when app is up running, it is very fast as time taking data retrieval
+    is done.
+
+    Different ways to implement SplashScreen & what I did---
+    I wanted splash screen to be visible as soon as the user opens the app, for that, the best
+    option was using the inbuilt-splash-screen of android, that appears instantly... but that is
+    static... What I wanted was a SplashScreen which when shown, shows an animation & necessary data
+    loads in background...
+
+    So for that I'll have to settle for a fragment or activity on which lottie animation is run &
+    data loading in bg.
+    Now to load the animation faster! I choose a separate activity! Because if I had added a
+    fragment, it would've made the process slower! Why? Because if we create a fragment, it will
+    load the entire navGraph at the time of first fragment creation! Loading a navGraph is time-taking
+    process! We don't want the lottie animation to load after the completion of loading of a navGraph,
+    so to make appearance of SplashScreen as fast as possible I am using an activity
+
+    Knowing this information! I didn't want to create an instance of "MainActivity" every time the app
+    is run! Because MainActivity is basically "LoginActivity" having its own several fragments,
+    so I want that fragment only to be reached when someone is not logged in.
+
+    Therefore on SplashActivity, first we check if user is logged in or not, if not logged in then moved
+    to MainActivity (Which is the login activity, contains the login page).
+
+    ----- If user not logged In -------------
+    Then user is moved to "MainActivity", small navGraph is loaded, user enters email & password
+    Then "FirebaseAuth" comes into play, it calls "signInWithEmailAndPassword()" if user exists,
+    it will return FirebaseUser object, from that u can obtain "userId" of that firebase user...
+
+    That "userId" will be same as the "documentId" of that user object, which means in user
+    collection there'll be a document with that "userId", we then access that document & get all
+    data related to that user (Because we're creating new user account using firebaseAuth, which
+    then returns a firebaseAuthId for that user, then we are saving
+    that user on firestore using that AuthId)
+
+    So while signing in... after obtaining all data, we then move to "HomeActivity"
+
+
+
+
+
+
+    ----- If user is logged In -------------
+
+    If logged in, we run "syncUser()" function. --> (Read this function in "chatViewModel"
+    This function brings the latest "User" object, then checks for "lastSeenTimeForEachUserEachGroup",
+    syncs device time with server time, sets timer to ensure animation is finished, checks if device
+    version is acceptable or not, etc... Read functions for more info
+
+    Now after all data is fetched from backend & animation is completed, we post result in liveData
+    When liveData is triggered, we are navigated from "SplashActivity" to "HomeActivity"
+
+
+    ----- HomeActivity ----
+
+    HomeActivity is very imp, all imp fragments of app are in this activity.
+    It contains all the fragments other than "login" or "forgotPassword"
+    HomeActivity contains navGraph "bottom_navigation.xml"
+
+    Bottom Navigation has 3 tabs: "Chat", " Users (Only visible to admin) ", "Setting (profile)"
+
+    For each tab in the bottom navigation there's navGraph, which makes it extremely simple to
+    manage multiple fragments in a single navGraph! Like BottomNavigation has 3 tabs, each tab has
+    its own navigation setup... which makes it easier to create and manage complex navGraphs having
+    multiple fragments... that is why bottom navigation is used...
+
+    -For navigation everywhere we're using "Jetpack Navigation" & not fragment transaction
+    -For passing data across fragments we're passing bundles .. by serializing the data in bundles
+    -For passing data the better practice is to use "safeArgs" though...
+    -Of-course we're also using sharedViewModel for passing data which is a very good practice
+
+    I created "SharedHomeViewModel" to store/save data which is common across all fragments and
+    needs to be shared across all fragments in "HomeActivity".
+
+    In home activity I called an instance of this viewModel and saved the "User" object & various
+    things from sharedPreferences... calling the shared preference everytime for fetching the user
+    object is not a good idea as it stores user object in serialized form.. so we can store it in
+    sharedViewModel as well! And use it to fetch it everytime... but there's a catch!  Injecting
+    sharedViewModel everytime in a fragment just for obtaining the "User" object maybe is a
+    processor intensive task in itself... Idk much yet below is what I know
+
+        ✅ Best Practice
+        INJECTING SHARED-VIEW-MODEL IN FRAGMENT IN NOT PROCESSOR INTENSIVE AS IT LOADS VIEW-MODEL
+        LAZILY (ONLY WHEN NEEDED)
+        Always treat SharedPreferences (or TokenManager) as your source of persistence, and the
+        ViewModel as your in-memory cache. So what I did was kinda best practice only..
+        when I create HomeActivity I am taking all data from SharedPreferences & storing it in
+        sharedViewModel, this helps in instant access as sharedViewModel is "in-memory-cache" (RAM)
+        where-as sharedPref is kinda like ROM... Now since HomeActivity is the only activity in use
+        once it's created all data is saved in ViewModel and anytime its recreated all data will be
+        re-stored in the ViewModel, so I think we are good (THIS IS BEST PRACTICE As per GPT so its
+        correct imo)
+
+
+    ------Chat Fragment --------
+
+    Once user is signed in, he enters "ChatFragment" which is the base fragment of home activity.
+    Now on this fragment user sees list of "group-chats" ... ie. the list of groups he's a part of.
+
+    Now! U remember we had done "Sync User" before entering this fragment right? One imp reason for
+    that was that "user-object" has a "listOfGroupsAssigned field" which tells us the list of groups
+    in which this user is a part of! And only these groups should be displayed to the user on the
+    group listing page...
+
+    So using the list of Groups Assigned we put a listener which listens to changes only in these
+    groups ... In DB we have a collection "groups" inside that there are documents which has groupId
+    Now, each object inside these documents is basically "GroupChatListData" (see this data class)
+
+    In this "GroupChatListData" there's a field called "lastSentMsg" this contains the last sent
+    message in that group (Because in group listing remember we show a preview of the last message)
+    (Just like in whatsapp) And also the "Message" object contains timestamp... so we display
+    groups in descending order of timestamp... In this way, the group in which most recent message is
+    sent comes on top!
+
+    So if a new message is sent in a group, the "lastSentMsg" object of that group is updated and
+    based on timestamp being latest for this "lastSentMsg", this group will appear on top, just like
+    in whatsapp!
+
+    For showing list of group-chats I have used a simple "ListAdapter" list adapters are very very
+    fast.
+
+    In case of employees and admin, I am also showing list of services... This appears just below
+    the search bar, called "HorizontalServiceListAdapter", by default it shows all the services.
+
+    When you select a particular service ... It will show group-chats which are created related to
+    that service only! And after you have selected a service say "Amazon" then if someone sends
+    a message in a group-chat associated with some other service... u won't be able to notice that
+    since that group-chat won't be visible in your listing.. but then when u come back to "All" or
+    that particular service.. you'll be able to see that group-chat in your listing
+
+    On this page, I also have implemented the "Rings", when employee has not replied to a msg in
+    the last one hour, admin will see a "Red ring" around the DP of that group-chat.
+    Similarly if last message is sent by an employee... and client has not replied in last 2 hours
+    a purple ring will appear around that group-chat ... these ring colors are determined using
+    current-time and "lastSentMsg" time in that group-chat
+
+    On this fragment there's also button to enter "NotificationListingFragment" (Discussed later)
+
+    Now, for implementing "search", we are using textWatcher, which will listen if user has entered
+    some text (When searching for a group) (It'll match initials of group-name with the text entered)
+
+    Now, in case user has not seen messages in a group, he'll see a blue dot (Just like in wp, user
+    sees no. of unseen messages) so this way user will know, if in that group he has not seen any
+    messages.
+    Now remember, we had fetched "lastSeenMsgForEachUserEachGroup" now we'll use that info, to note
+    that if the current user has seen last message of that group or not (by comparing it to
+    lastSentMsg of that group)
+
+    Now when we click on a particular groupChat, it will open that groupChat and send a bundle to
+    the MessagingFragment, which contains the "GroupChatListingData"
+
+    ----- MessagingFragment ------
+    In this fragment, we are displaying messages, this includes text messages, images/videos/documents
+    etc... On our app we are saving each and every message in Room-DB for offline support!
+    So user can read each and every older message even when he is offline.... only thing is... in
+    case of img/vdo/doc we are storing the firebase-storage link where these docs are present....
+    so if user is offline he won't be able to see vdo/doc (image he'll more likely be able to see
+    because we're using GLIDE which caches the images) !!!
+
+    Now when a user sends a message : A message object is created in MessagingRepository corresponding
+    to that... in that we're not giving timestamp... because we are using server-side-timestamp for
+    utmost security! (Server-side timestamp uses the firebase data-type "Timestamp" but this data-type
+    is not supported by our "Room-DB" which we're using for offline support) so this was a challenge!
+
+    What I did was, I created a data class "Message" (Read it) in that I created a fun
+    "toMapForFirestore", which converts the Message data-class object to a "hashMap" and in that
+    hashmap I used "Field.serverTimestamp()" what this does is, when this message object is saved
+    on server, thereafter it puts the timestamp for that object, which means the timestamp of a
+    msg would be the server-side-timestamp! (The time at which that message" is saved on server)
+    Using server-side timestamp prevents problems like a user changing his device time and then
+    sending message... to make his message appear older! It was important to overcome this weakness!
+    Now when a message is sent by the user... that message goes to server, and when server is updated,
+    it updates all the mobile phones which are on that fragment (In that particular GC)..
+    Now all those phones are listening and their listeners will update the Room-DB with the new message,
+    now before updating... it will first convert the "Timestamp" data-type to Long and create a
+    "Message" data-class object, that object will then be stored in Room-DB
+
+    NOTE!! In data-class "Message" we've created a field called "groupId" that is created because
+    Room-DB is a SQL based database.. so all messages will be stored together... so when fetching
+    messages from Room-DB we will use this "groupId" to make sure only messages sent in this group
+    are visible :)
+
+    In messaging fragment "Employee & Admin" messages will appear on the same side (Since they both
+    represent APC) ... And all client messages will appear on the other side... If u login as an
+    employee your message will appear on the right side, and so will the messages of your fellow
+    employees (And admin).    The messages sent by client will appear on left side
+
+    If u login as Client, msg sent by u will appear on the right side (Along with all your fellow
+    clients) but all messages sent by (employees/admin) will appear on left side...
+
+
+    In this fragment we have implemented realtime messaging using "ListAdapter", now u must be thinking
+    chats can be a lot and a list adapter won't be able to handle (we should use a Paging-3
+    adapter) but no! We can't handle realtime chats using paging-3, because we can't update it when a
+    new message is coming plus we need it to be super fast for realtime chatting... we can only use
+    list adapter for realtime chatting.... A second thought was ... use a list adapter for realtime
+    chatting and when the user scrolls up by a margin, transition to Pagination adapter, (Like
+    chatting mode having list-adapter) and (Reading mode having pagination adapter)... but I used
+    a different way, I used the ListAdapter only, with sync of RoomDB
+
+    ... to overcome this problem we are not displaying all messages at once on UI, we
+    are loading data from RoomDB in small chunks... We are fetching only the last
+    "100" messages at a time (or "LIMIT_MSGS") number of messages,
+    now when user scrolls up, he'll see a button "tap to load more messages",
+    on tapping that, what happens is the Last-50 messages are removed and above 50
+    messages are loaded, so currently user is at 100th index/message and total no. of msgs loaded
+    on screen is 50th index to 150th index so everytime the user scrolls to the top, last-50 msgs
+    are removed and above 50 are loaded... similar behaviour is there when u scroll downwards,
+    when u r say at 200th index and u load bottom msgs, then index-250 to 300 msgs will be removed
+    and index-150 to 200 msgs will be added. (Since u r scrolling down u want to read newer msgs)
+
+
+    For understanding purpose, I have made 2 modes in MessagingFragment, one is "ReadingModeOn" and
+    other is "ReadingModeOff".
+    "ReadingModeOff" means that realtime chat listener is listening, and new msgs will be immediately
+    displayed, it is on by default, coz user when opens a MessagingFragment, he expects to do chatting.
+
+    But when he starts scrolling upward to load older msgs, he'll see a button "tap to read more messages"
+    When he taps that msg .... "ReadingModeOn" is activated, which means user is looking for older
+    msgs to read! So we turnOff realtime listening and all related things to realtime chatting, when
+    user is scrolling up...
+
+    Now, the first time you click on "tap to read more message" the "ReadingModeOn" is activated,
+    reading mode is a false notion, which I created so that when u click on the load
+    more msgs button for the first time, all the realtime listening stops, so the app is not listening
+    to any messages coming to that fragment.... and now if the user clicks on "GO TO RECENT MESSAGES"
+    then only he'll be redirected to realtime messages, and listener will be reactivated... we call
+    the "turnOffReadingMode()" function so that all the realtime listening setup is configured
+
+
+    REALTIME LISTENING-
+    I am using Room-DB as the "single source of truth" when user sends a new msg, that msg is sent
+    to firestore then realtime-listeners of all other phones are updated that a new message is sent
+    now when listener is triggered, the listener adds that message to RoomDB and there's a liveData
+    attached to that roomDB, when any new message is added to RoomDB, that liveData is triggered,
+    and when Livedata is triggered it provides the updated list of messages (Last-100 messages i mean)
+
+    So whenever someone sends a new msg, on other person's phone when he's also on the
+    MessagingFragment in the same group, then in that case his listener is triggered and that updates
+    RoomDB and roomDb updation triggers liveData which in turn triggers observer which then updates
+    adapter to add new message.
+
+    What happens when you first open a MessagingFragment? (ie when u click on a group from ChatFrag)
+    -Whenever u enter the messaging fragment, what we do is,
+    check the timestamp of last sent message in that group, (If no msg is sent in that group then
+    0 is sent as timestamp) so after retrieving the timestamp of last sent message in that group,
+    we make a one time request to firebase, to provide all messages sent after that timestamp,
+    using "fetchAllNewMessages()" function, now after all new messages are fetched from firestore,
+    we'll add them to RoomDB, when Room DB is changed liveData will be changed therefore observer
+    and therefore adapter will reflect new messages, now after all new messages are fetched... we'll
+    start the realtime-listener, and that listener will listen to new messages incoming..
+    This listener will be told to read new messages sent after the TimeStamp = "timestamp of last
+    sent message", now this timestamp is fixed! So, if user is in "MessagingFragment" and someone
+    sends 1 message, then that message will be fetched by listener... but when that user or someone
+    sends another 1 message... then 2-messages will be fetched by listener... one the recent one and
+    other previous one.. since both messages have the timestamp > timestampAfterWhichListenerWasSetup
+
+    So this realtime is that's why setup after fetching all new messages one time...
+
+    Had we not done that... let's assume a case where 500 new messages are there in the group and
+    listener is setup at last sent message time... then realtime listener will send 500 messages one
+    time and then if 501th message is sent in group, then the listener will send 501 messages!
+    That will result in unnecessary read & write... So the first time we enter a group.. we make a
+    one time call to fetch all un-seen messages and thereafter only we set-up the listener :)
+
+    Now in "MessagingFragment" when we click on an image... we are navigated to "MediaPreviewFragment"
+    where we can view the image in a larger size... also we are using a special kind of "imageView"
+    there...    "com.github.chrisbanes.photoview.PhotoView"   this imgView allows user to zoom-in
+    and zoom-out on images, just like in whatsapp or other apps...
+
+    On tapping videos also, we are navigated to "MediaPreviewFragment", there we've a video player
+    called      "com.google.android.exoplayer2.ui.PlayerView"       for playing videos
+
+    For documents (like pdf/jpg/jpeg/msWord) ... user is navigated to "PdfWebViewActivity" (Read this
+    activity) notes present there only
+
+
+    CONNECTION WITH CALLING FRAGMENT :
+    In case a call is ongoing... we want the "Calling" icon to show a proper animation that a call
+    is ongoing... so to know whether a call is ongoing in a group or not what we do is- when we open
+    "MessagingFragment" for a group, we check the last "MSG_TYPE.CALL" message in that group, if
+    that message is of "Call Initiated" it means that a call was initiated which has not ended yet,
+    which means a call is ongoing therefore the call-ongoing animation will be displayed on the
+    call icon button...  Now if the last message of this type is of "Call Ended" , it means the
+    last call in this group has ended therefore no ongoing calls right now!
+
+    So after this check whenever a new message comes in GroupChat, we check if its of type call or
+    not, if it's of type call then we show a dialog box to join or not join the call and also play
+    the call button animation
+
+
+
+
+
+
+
+
+
 */
 
 

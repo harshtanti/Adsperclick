@@ -1,13 +1,10 @@
 package com.adsperclick.media.services
 
-import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
@@ -16,7 +13,6 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
@@ -24,12 +20,8 @@ import androidx.work.workDataOf
 import com.adsperclick.media.R
 import com.adsperclick.media.applicationCommonView.AdsperclickApplication
 import com.adsperclick.media.data.workManager.FCMTokenUpdateWorker
-import com.adsperclick.media.utils.Constants
-import com.adsperclick.media.utils.Constants.FCM.BASIC_NOTIFICATION
-import com.adsperclick.media.utils.Constants.FCM.CHANNEL_ID
-import com.adsperclick.media.utils.Constants.FCM.ID_OF_GROUP_TO_OPEN
-import com.adsperclick.media.utils.Constants.FCM.ITS_A_BROADCAST_NOTIFICATION
-import com.adsperclick.media.utils.Constants.MSG_TYPE.CALL
+import com.adsperclick.media.utils.Constants.FCM
+import com.adsperclick.media.utils.Constants.MSG_TYPE
 import com.adsperclick.media.views.login.repository.AuthRepository
 import com.adsperclick.media.views.splashActivity.SplashActivity
 import com.bumptech.glide.Glide
@@ -87,7 +79,7 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
     }
 
 
-    // So how we have implemented, if there's one notification in that group then we are displaing
+    // So how we have implemented, if there's one notification in that group then we are displaying
     // using "BigTextStyle" of notification if there's more, we use inbox style, so in case of
     // broadcast notification... i.e. notification sent by Admin to others.... it can contain large text
     // so we always want it to be shown in "bigTextStyle" and all notifications should be separate notifications
@@ -99,28 +91,30 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
         super.onMessageReceived(message)
         val title = message.data["title"] ?: "No Title"
         val body = message.data["body"] ?: "No Description"
-        val msgType = message.data["msgType"]?.toInt() ?: Constants.MSG_TYPE.TEXT
-        val groupId = message.data["groupId"] ?: ITS_A_BROADCAST_NOTIFICATION
+        val msgType = message.data["msgType"]?.toInt() ?: MSG_TYPE.TEXT
+        val groupId = message.data["groupId"] ?: FCM.ITS_A_BROADCAST_NOTIFICATION
         val downloadUrl = message.data["downloadUrl"] ?: ""
 
 
         // Below line prevents notification when user is using the app/ ie app is in foreground
         if (AdsperclickApplication.appLifecycleObserver.isAppInForeground
-            && groupId != ITS_A_BROADCAST_NOTIFICATION
-            && msgType != Constants.MSG_TYPE.CALL
+            && groupId != FCM.ITS_A_BROADCAST_NOTIFICATION
+            && msgType != MSG_TYPE.CALL
         ) {
             return      // Don't show any notification if app is in use,
         }
 
 
         // Special handling for call notifications
-        if (msgType == CALL) {
-//            currentCallGroupId = groupId  // Store current call group ID
+//        if (msgType == CALL) {
+////            currentCallGroupId = groupId  // Store current call group ID
+//
+//            playRingtone()
+//            /*startCallRingtone(title, body, groupId)*/
+////            return  // Prevent standard notification processing
+//        }
 
-            playRingtone()
-            /*startCallRingtone(title, body, groupId)*/
-//            return  // Prevent standard notification processing
-        }
+        playSound(msgType)
 
 
         // Store message for this group
@@ -130,7 +124,7 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
         messagesMap[groupId]?.add(body)
 
         // Limit stored messages to prevent excessive memory usage
-        if (groupId == ITS_A_BROADCAST_NOTIFICATION) {       // To handle case of broadcast notification, we only want one notification at a time
+        if (groupId == FCM.ITS_A_BROADCAST_NOTIFICATION) {       // To handle case of broadcast notification, we only want one notification at a time
             messagesMap[groupId] =
                 messagesMap[groupId]?.takeLast(1)?.toMutableList() ?: mutableListOf()
         } else if ((messagesMap[groupId]?.size
@@ -140,14 +134,12 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
                 messagesMap[groupId]?.takeLast(5)?.toMutableList() ?: mutableListOf()
         }
 
-        sendNotification(BASIC_NOTIFICATION, title, body, groupId, msgType, downloadUrl)
+        sendNotification(title, groupId, msgType, downloadUrl)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun sendNotification(
-        notificationType: Int,
         title: String,
-        body: String,
         groupId: String,
         msgType: Int,
         imgUrl: String
@@ -156,15 +148,15 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
 
         // Create Notification Channel
         val channel = NotificationChannel(
-            CHANNEL_ID,
+            FCM.CHANNEL_ID,
             "Delivery Notifications",
             NotificationManager.IMPORTANCE_HIGH
         )
         nm.createNotificationChannel(channel)
 
         // Default small icon
-        val drawable = ResourcesCompat.getDrawable(resources, R.drawable.ecomm_chat_app_icon, null)
-        val defaultBitmap = (drawable as? BitmapDrawable)?.bitmap
+//        val drawable = ResourcesCompat.getDrawable(resources, R.drawable.ecomm_chat_app_icon, null)
+//        val defaultBitmap = (drawable as? BitmapDrawable)?.bitmap
 
         val largeIcon = (ResourcesCompat.getDrawable(
             resources,
@@ -175,12 +167,12 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
 
         // Group key for this specific chat group
         val groupKey = when (groupId) {
-            ITS_A_BROADCAST_NOTIFICATION -> "${System.currentTimeMillis()}"     // Because for Broadcast notifications I want to show a summary notification, and each time a new notificaiton should be generated hence the unique key i.e. timestamp
+            FCM.ITS_A_BROADCAST_NOTIFICATION -> "${System.currentTimeMillis()}"     // Because for Broadcast notifications I want to show a summary notification, and each time a new notificaiton should be generated hence the unique key i.e. timestamp
             else -> "GROUP_CHAT_$groupId"
         }
 
         val intent = Intent(this, SplashActivity::class.java).apply {
-            putExtra(ID_OF_GROUP_TO_OPEN, groupId)
+            putExtra(FCM.ID_OF_GROUP_TO_OPEN, groupId)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
 
@@ -196,7 +188,7 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
         val messageCount = groupMessages.size
 
         // Build the notification
-        val summaryNotificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
+        val summaryNotificationBuilder = NotificationCompat.Builder(this, FCM.CHANNEL_ID)
             .setSmallIcon(R.drawable.ecomm_chat_app_icon)
             .setLargeIcon(largeIcon)
             .setGroup(groupKey)
@@ -206,7 +198,7 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
             .setContentIntent(pendingIntent)
 
         // **If Message Type is IMG_URL, Load the Image and Show Notification**
-        if (msgType == Constants.MSG_TYPE.IMG_URL && imgUrl.isNotEmpty()) {
+        if (msgType == MSG_TYPE.IMG_URL && imgUrl.isNotEmpty()) {
             Glide.with(appContext)
                 .asBitmap()
                 .load(imgUrl)
@@ -304,7 +296,7 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
         }
 
         // **For Non-Image Notifications, Show Immediately** // for images it is asynchronous glide process it's handled above
-        if (msgType != Constants.MSG_TYPE.IMG_URL /*&& msgType != CALL*/) {
+        if (msgType != MSG_TYPE.IMG_URL /*&& msgType != CALL*/) {
             nm.notify(groupKey.hashCode(), summaryNotificationBuilder.build())
         }
     }
@@ -336,8 +328,13 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
 //    }
 
 
-    private fun playRingtone() {
+    private fun playSound(msgType: Int) {
         try {
+            val media = when(msgType){
+                MSG_TYPE.CALL -> R.raw.two_time_ringtone
+                else -> R.raw.beep_for_notif
+            }
+
             // Stop any existing media player
             mediaPlayer?.apply {
                 if (isPlaying) {
@@ -347,7 +344,7 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
             }
 
             // Create a new MediaPlayer instance
-            mediaPlayer = MediaPlayer.create(this, R.raw.two_time_ringtone).apply {
+            mediaPlayer = MediaPlayer.create(this, media).apply {
                 isLooping = false
                 setVolume(1.0f, 1.0f)
                 start()
@@ -449,7 +446,7 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
 //
 //        // Group key for this specific chat group
 //        val groupKey = when(groupId){
-//            ITS_A_BROADCAST_NOTIFICATION -> "${System.currentTimeMillis()}"     // Because for Broadcast notifications I want to show a summary notification, and each time a new notificaiton should be generated hence the unique key i.e. timestamp
+//            ITS_A_BROADCAST_NOTIFICATION -> "${System.currentTimeMillis()}"     // Because for Broadcast notifications I want to show a summary notification, and each time a new notification should be generated hence the unique key i.e. timestamp
 //            else -> "GROUP_CHAT_$groupId"
 //        }
 //
@@ -558,9 +555,9 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
 //
 //        // Send notification to user using notification manager
 //        // Now this "NOTIFICATION_ID" is basically "id" for a notification, if ID is same for two notifications,
-//        // then they will be displayed as a single notification, but if ID if differenet, they'll be separate notifications
-//        // E.g. in whatsapp, when multiple msgs come from a single person they are all consolidated in a single notification,
-//        // but if different people are msging, then they are shown as separate notifications (As they have different IDS :)
+//        // then they will be displayed as a single notification, but if ID if different, they'll be separate notifications
+//        // E.g. in whatsapp, when multiple messages come from a single person they are all consolidated in a single notification,
+//        // but if different people are messaging, then they are shown as separate notifications (As they have different IDS :)
 //        // we're using "groupId.hashCode()" as NOTIFICATION_ID
 //        nm.notify(groupId.hashCode(), notification)
 //    }
@@ -648,7 +645,7 @@ class FCM_Service @Inject constructor(): FirebaseMessagingService() {
                     /*.bigPicture(bitmap)  */                   // This is the actual "big picture which will be displayed as a large picture"
 //                    .bigLargeIcon(notification_icon)                    // This is basically "setLargeIcon" for bigPicture mode, it will replace the "setLargeIcon" when we enter the big picture mode
                     .setBigContentTitle("Image sent by Raman")                      // When u expand the img to see the "big picture"
-                    .setSummaryText("This msg will be visible on expanding img")    // these two text msgs will be visible instead of
+                    .setSummaryText("This msg will be visible on expanding img")    // these two text messages will be visible instead of
                 // "setContentTitle" and "setContentText"
 
                 Notification.Builder(appContext, CHANNEL_ID)
