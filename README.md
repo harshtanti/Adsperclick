@@ -1,4 +1,4 @@
-# 📞 Customer Support Chat Application
+# 📞 Customer Management Application
 
 > A scalable, full-featured business communication app developed for **AdsPerClick** — a startup empowering small businesses to boost their online presence through design and marketing solutions.
 
