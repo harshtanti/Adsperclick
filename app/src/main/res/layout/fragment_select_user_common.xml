@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".views.chat.fragment.SelectUserCommonFragment">
+    tools:context=".views.newGroup.fragment.SelectUserCommonFragment">
 
     <com.google.android.material.textfield.TextInputEditText
         android:id="@+id/etSearchBar"

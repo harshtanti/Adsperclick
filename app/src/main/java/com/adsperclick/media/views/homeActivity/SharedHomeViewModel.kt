@@ -10,6 +10,7 @@ import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.utils.Constants.LIMIT_MSGS
 import com.adsperclick.media.utils.ConsumableValue
 import com.adsperclick.media.views.chat.repository.ChatRepository
+import com.adsperclick.media.views.chat.repository.MessagingRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -27,7 +28,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SharedHomeViewModel @Inject constructor(
-    private val chatRepository: ChatRepository
+    private val messagingRepository: MessagingRepository
 ): ViewModel()  {
 
     var userData : User?= null
@@ -45,7 +46,7 @@ class SharedHomeViewModel @Inject constructor(
 
     fun getSpecifiedMessages(groupId: String){
         viewModelScope.launch(Dispatchers.IO) {
-            val result = chatRepository.getSpecifiedMessages(groupId, LIMIT_MSGS, getOffset(pageNo ?: 1))
+            val result = messagingRepository.getSpecifiedMessages(groupId, LIMIT_MSGS, getOffset(pageNo ?: 1))
             _msgsLiveData.postValue(ConsumableValue(result))
         }
     }

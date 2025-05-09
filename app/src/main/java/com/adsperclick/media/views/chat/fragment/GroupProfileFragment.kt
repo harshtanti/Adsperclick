@@ -13,7 +13,6 @@ import com.adsperclick.media.R
 import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.applicationCommonView.bottomsheet.UploadImageDocsBottomSheet
 import com.adsperclick.media.data.dataModels.CommonData
-import com.adsperclick.media.data.dataModels.Company
 import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.User
@@ -22,17 +21,15 @@ import com.adsperclick.media.utils.Constants
 import com.adsperclick.media.utils.Constants.CLICKED_GROUP
 import com.adsperclick.media.utils.ConsumableValue
 import com.adsperclick.media.utils.DialogUtils
-import com.adsperclick.media.utils.UtilityFunctions
+import com.adsperclick.media.utils.Utils
 import com.adsperclick.media.utils.disableHeaderButton
 import com.adsperclick.media.utils.enableHeaderButton
 import com.adsperclick.media.utils.gone
 import com.adsperclick.media.utils.visible
 import com.adsperclick.media.views.chat.adapters.GroupMemberAdapter
-import com.adsperclick.media.views.chat.adapters.SelectUserCommonAdapter
 import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
 import com.bumptech.glide.Glide
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.serialization.json.Json
 import java.io.File
 import javax.inject.Inject
 
@@ -104,13 +101,13 @@ class GroupProfileFragment : Fragment(),View.OnClickListener {
         binding.tvName.text = groupChat?.groupName ?: "Group-Name"
 
         groupChat?.groupImgUrl?.let { imageUrl ->
-            UtilityFunctions.loadImageWithGlide(
+            Utils.loadImageWithGlide(
                 binding.imgProfileDp.context,
                 binding.imgProfileDp,
                 imageUrl
             )
         } ?: run {
-            UtilityFunctions.setInitialsDrawable(
+            Utils.setInitialsDrawable(
                 binding.imgProfileDp,
                 groupChat?.groupName
             )

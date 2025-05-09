@@ -20,6 +20,7 @@ import com.adsperclick.media.R
 import com.adsperclick.media.utils.Constants.FCM.ID_OF_GROUP_TO_OPEN
 import com.adsperclick.media.views.splashActivity.SplashActivity
 
+/*
 
 class CallRingtoneService : Service() {
     private var mediaPlayer: MediaPlayer? = null
@@ -76,7 +77,9 @@ class CallRingtoneService : Service() {
 
             // Start ringing
             startRingtone()
-            /*startVibration()*/
+            */
+/*startVibration()*//*
+
 
             return START_STICKY
         } catch (e: Exception) {
@@ -118,10 +121,10 @@ class CallRingtoneService : Service() {
     }
 
     private fun startRingtone() {
-        mediaPlayer = MediaPlayer.create(this, R.raw.the_call_yt_library).apply {
-            isLooping = true
-            start()
-        }
+//        mediaPlayer = MediaPlayer.create(this, R.raw.the_call_yt_library).apply {
+//            isLooping = true
+//            start()
+//        }
     }
 
     private fun stopRingtone() {
@@ -195,6 +198,7 @@ class CallRingtoneService : Service() {
 
 
 
+*/
 
 
 

@@ -48,4 +48,10 @@ class AuthViewModel @Inject constructor(private val authRepository: AuthReposito
             authRepository.signoutUser()
         }
     }
+
+    fun deleteAccount(){
+        viewModelScope.launch(Dispatchers.IO) {
+            authRepository.deleteAccount()
+        }
+    }
 }

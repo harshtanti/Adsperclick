@@ -11,11 +11,15 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.OnApplyWindowInsetsListener
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -37,11 +41,11 @@ import com.adsperclick.media.utils.Constants.LIMIT_MSGS
 import com.adsperclick.media.utils.Constants.MSG_TYPE
 import com.adsperclick.media.utils.Constants.TOP_MOST_MSG
 import com.adsperclick.media.utils.DialogUtils
-import com.adsperclick.media.utils.UtilityFunctions
+import com.adsperclick.media.utils.Utils
 import com.adsperclick.media.utils.gone
 import com.adsperclick.media.utils.visible
 import com.adsperclick.media.views.chat.adapters.MessagesAdapter
-import com.adsperclick.media.views.chat.viewmodel.ChatViewModel
+import com.adsperclick.media.views.chat.viewmodel.MessagingViewModel
 import com.adsperclick.media.views.homeActivity.SharedHomeViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
@@ -55,10 +59,11 @@ import javax.inject.Inject
 class MessagingFragment : Fragment(),View.OnClickListener {
 
     lateinit var binding: FragmentMessagingBinding
-    private val chatViewModel: ChatViewModel by viewModels()
+    private val messagingViewModel: MessagingViewModel by viewModels()
     private val sharedViewModel: SharedHomeViewModel by activityViewModels()
     private var showCallDialog = true       // We only show it once
-
+    var isFragmentJustOpened = true
+    var isKeyboardVisible= false
     var loadingBottomMsgs = false
 
     @Inject
@@ -71,6 +76,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
     private lateinit var listOfGroupMemberId: List<String>
     private var lastMsgInGroup : Message?= null
     var lastTimeVisitedThisGroupTimestamp :Long?= null
+    lateinit var layoutManager: LinearLayoutManager
 
     private val bottomSheetSelectables = arrayListOf(Constants.CLOSE_VISIBLE,Constants.HEADING_VISIBLE,Constants.CAMERA_VISIBLE,
         Constants.GALLERY_VISIBLE, Constants.VIDEO_VISIBLE, Constants.PDF_VISIBLE)
@@ -78,6 +84,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        activity?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
         val groupChatObjAsString = arguments?.getString(CLICKED_GROUP)
         groupChat = groupChatObjAsString?.let {
                 Json.decodeFromString(GroupChatListingData.serializer(), it)
@@ -102,6 +109,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         setupAdapter()
         setUpListener()
         setupObservers()
+        setupKeyboardVisibilityListener()
     }
 
     private fun setUpView(){
@@ -112,13 +120,13 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         binding.includeTopBar.tvGroupName.text = groupChat?.groupName ?: "Group-Name"
 
         groupChat?.groupImgUrl?.let { imageUrl ->
-            UtilityFunctions.loadImageWithGlide(
+            Utils.loadImageWithGlide(
                 binding.includeTopBar.imgProfileDp.context,
                 binding.includeTopBar.imgProfileDp,
                 imageUrl
             )
         } ?: run {
-            UtilityFunctions.setInitialsDrawable(
+            Utils.setInitialsDrawable(
                 binding.includeTopBar.imgProfileDp,
                 groupChat?.groupName
             )
@@ -129,14 +137,14 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                 turnOnReadingMode()
 
             } ?: run{
-                chatViewModel.setGroupId(groupId)   // Group Id is set, "messages" live-data gets active,
+                messagingViewModel.setGroupId(groupId)   // Group Id is set, "messages" live-data gets active,
                 // and it starts listening for realtime updates in room-db, realtime room-db updates are sent to adapter via observer here
-                chatViewModel.fetchAllNewMessages(groupId)      // To fetch all the unread messages for this group in one single go!
+                messagingViewModel.fetchAllNewMessages(groupId)      // To fetch all the unread messages for this group in one single go!
             }
 
             lifecycleScope.launch {
                 delay(1000)  // Delay for 1 second
-                chatViewModel.isCallOngoing(groupId)
+                messagingViewModel.isCallOngoing(groupId)
             }
         }
 
@@ -155,6 +163,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
             /*reverseLayout = true */ // Reverse layout for better pagination
         }
         adapter.updateLastVisitedTimestamp(lastTimeVisitedThisGroupTimestamp)
+       layoutManager = binding.rvChat.layoutManager as LinearLayoutManager
     }
 
 
@@ -174,7 +183,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
 
     private fun setupObservers(){
 
-        chatViewModel.imageUploadedLiveData.observe(viewLifecycleOwner){ consumableValue ->
+        messagingViewModel.imageUploadedLiveData.observe(viewLifecycleOwner){ consumableValue ->
             consumableValue.handle { response->
                 // Response is a string "image download url", we're not using it here
                 when(response){
@@ -191,34 +200,40 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         }
 
         // To update adapter with new messages, whenever Room-DB is updated
-        chatViewModel.messages.observe(viewLifecycleOwner) { consumableValue->
+        messagingViewModel.messages.observe(viewLifecycleOwner) { consumableValue->
 
             consumableValue.handle {response ->
 
-                val oldLastMessagePosition = adapter.itemCount - 1
                 lastMsgInGroup = response.firstOrNull()
-                chatViewModel.checkIfLastMsgRelatedToCall(response.firstOrNull())
+                messagingViewModel.checkIfLastMsgRelatedToCall(response.firstOrNull())
 
                 val modifiedResponse = response.toMutableList().apply {
                     if(response.size == LIMIT_MSGS) {add(Constants.READING_MODE_MSG)}
                     reverse()
                 }.toList() // Convert back to List<T>
 
+
+                val oldLastMessagePosition = modifiedResponse.size-2
                 adapter.submitList(modifiedResponse) {
 
-//                (binding.rvChat.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(position, offset)
+                    val pos = sharedViewModel.lastScrollPosition
+                    val offset = sharedViewModel.lastScrollOffset
 
-                    if(sharedViewModel.lastScrollPosition != -1 && sharedViewModel.lastScrollOffset != -1){
-                        (binding.rvChat.layoutManager as LinearLayoutManager)
-                            .scrollToPositionWithOffset(sharedViewModel.lastScrollPosition, sharedViewModel.lastScrollOffset)
+                    if(pos != -1 && offset != -1){
+                        layoutManager.scrollToPositionWithOffset(pos, offset)
                         sharedViewModel.saveScrollPosition(-1,-1)
-                    }else {
+                    }else if(isFragmentJustOpened){
+                        binding.rvChat.postDelayed({
+                            binding.rvChat.scrollToPosition(adapter.itemCount - 1)
+                        }, 50)
+                        isFragmentJustOpened = false
+                    } else if(isKeyboardVisible || shouldScrollToBottom()){
                         binding.rvChat.scrollToPosition(adapter.itemCount - 1)
                     }
 
                     // Ensure previous last message updates (To update the chat bubble of previous message
-                    if (modifiedResponse.size-2 >= 0) {
-                        adapter.notifyItemChanged(modifiedResponse.size-2)
+                    if (oldLastMessagePosition >= 0) {
+                        adapter.notifyItemChanged(oldLastMessagePosition)
                     }
                 }
             }
@@ -251,7 +266,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                             }
 
                             if(sharedViewModel.lastScrollPosition != -1 && sharedViewModel.lastScrollOffset != -1){
-                                (binding.rvChat.layoutManager as LinearLayoutManager)
+                                (layoutManager)
                                     .scrollToPositionWithOffset(sharedViewModel.lastScrollPosition, sharedViewModel.lastScrollOffset)
                                 sharedViewModel.saveScrollPosition(-1,-1)
                             }
@@ -261,7 +276,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
             }
         }
 
-        chatViewModel.getAgoraTokenLiveData.observe(viewLifecycleOwner) { consumableValue ->
+        messagingViewModel.getAgoraTokenLiveData.observe(viewLifecycleOwner) { consumableValue ->
             consumableValue.handle { response->
 
                 when(response){
@@ -286,19 +301,19 @@ class MessagingFragment : Fragment(),View.OnClickListener {
             }
         }
 
-        chatViewModel.userLeftCallLiveData.observe(viewLifecycleOwner) { consumableValue ->
-            consumableValue.handle { response->
-                when(response){
-                    is NetworkResult.Success ->{}
-                    is NetworkResult.Error -> {
-                        Toast.makeText(context, "Error : ${response.message}", Toast.LENGTH_SHORT).show()
-                    }
-                    is NetworkResult.Loading -> {}
-                }
-            }
-        }
+//        messagingViewModel.userLeftCallLiveData.observe(viewLifecycleOwner) { consumableValue ->
+//            consumableValue.handle { response->
+//                when(response){
+//                    is NetworkResult.Success ->{}
+//                    is NetworkResult.Error -> {
+//                        Toast.makeText(context, "Error : ${response.message}", Toast.LENGTH_SHORT).show()
+//                    }
+//                    is NetworkResult.Loading -> {}
+//                }
+//            }
+//        }
 
-        chatViewModel.isCallOngoingLiveData.observe(viewLifecycleOwner) { consumableValue ->
+        messagingViewModel.isCallOngoingLiveData.observe(viewLifecycleOwner) { consumableValue ->
             consumableValue.handle { response->
                 when(response){
                     is NetworkResult.Success ->{
@@ -454,33 +469,36 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         super.onPause()
 
         currentUser.userId?.let { userId->
-            sharedViewModel.lastSeenTimeForEachUserEachGroup?.get(groupChat?.groupId.toString())?.set(userId,
-                UtilityFunctions.getTime()
-            )
+            sharedViewModel.lastSeenTimeForEachUserEachGroup?.get(
+                groupChat?.groupId.toString())?.set(userId, Utils.getTime())
         }
 
-        groupChat?.let { gc->
-            gc.listOfUsers?.let {listOfGroupMembers->
-                lastMsgInGroup?.msgId?.let{ idOfLastMsg ->
-                    gc.groupId?.let { groupId ->
-                        currentUser.userId?.let {userId->
-                            chatViewModel.updateLastReadMsg(groupId, idOfLastMsg, userId, listOfGroupMembers)
-                        }
-                    }
-                }
+        groupChat?.groupId?.let { groupId->
+            currentUser.userId?.let { userId ->
+                messagingViewModel.updateLastReadMsg(groupId, userId)
+
             }
         }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        chatViewModel.stopRealtimeListening()
+        messagingViewModel.stopRealtimeListening()
+        if (windowInsetsCallback != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(
+                requireActivity().window.decorView.rootView,
+                null
+            )
+            windowInsetsCallback = null
+        }
     }
 
     fun turnOnReadingMode(){
-        chatViewModel.stopRealtimeListening()
-        binding.includeTextSender.groupMsgSendingTemplate.gone()
-        binding.includeTextSender.btnGoToRecentMsgs.visible()
+        messagingViewModel.stopRealtimeListening()
+        with(binding.includeTextSender){
+            groupMsgSendingTemplate.gone()
+            btnGoToRecentMsgs.visible()
+        }
 
         groupChat?.groupId?.let {
             sharedViewModel.getSpecifiedMessages(it)
@@ -489,8 +507,8 @@ class MessagingFragment : Fragment(),View.OnClickListener {
 
     fun turnOffReadingMode(){
         groupChat?.groupId?.let {groupId->
-            chatViewModel.setGroupId(groupId)
-            chatViewModel.fetchAllNewMessages(groupId)
+            messagingViewModel.setGroupId(groupId)
+            messagingViewModel.fetchAllNewMessages(groupId)
         }
         loadingBottomMsgs = false
         sharedViewModel.pageNo=null
@@ -498,8 +516,26 @@ class MessagingFragment : Fragment(),View.OnClickListener {
         binding.includeTextSender.btnGoToRecentMsgs.gone()
     }
 
+    // For triggering keyboard visibility : When keyboard is visible the bottomNav Menu should be gone
+    // and vice-versa
+    private var windowInsetsCallback: OnApplyWindowInsetsListener? = null
 
+    private fun setupKeyboardVisibilityListener() {
+        val rootView = requireActivity().window.decorView.rootView
 
+        // Create the listener
+        windowInsetsCallback = OnApplyWindowInsetsListener { _, insets ->
+            isKeyboardVisible = insets.isVisible(WindowInsetsCompat.Type.ime())
+
+            if(shouldScrollToBottom()){
+                binding.rvChat.scrollToPosition(adapter.itemCount-1)
+            }
+            insets
+        }
+
+        // Set the listener
+        ViewCompat.setOnApplyWindowInsetsListener(rootView, windowInsetsCallback)
+    }
 
 
     override fun onClick(v: View?) {
@@ -518,6 +554,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
             }
 
             binding.includeTextSender.btnGoToRecentMsgs ->{
+                isFragmentJustOpened = true // So that it scrolls to bottom of that page
                 turnOffReadingMode()
             }
 
@@ -533,7 +570,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                     binding.includeTextSender.etTypeMessage.text.clear()
                     groupChat?.let {gc->
 
-                        chatViewModel.sendMessage(text, gc.groupId ?: "",
+                        messagingViewModel.sendMessage(text, gc.groupId ?: "",
                             currentUser, gc.groupName ?: "", listOfGroupMemberId
                         )
                     }
@@ -558,7 +595,9 @@ class MessagingFragment : Fragment(),View.OnClickListener {
 
             binding.includeTopBar.btnVideoCall->{
                 Toast.makeText(context, "Feature not available yet!", Toast.LENGTH_SHORT).show()
+                /*throw RuntimeException("Test Crash") // Force a crash to test crashlytics*/
 
+//                USED FOR TESTING BY SENDING MESSAGES..
 //                groupChat?.let { gc ->
 //                    lifecycleScope.launch {
 //                        for (i in CC until CC + 30) {
@@ -606,7 +645,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                         gc.groupId?.let {groupId->
                             gc.groupName?.let { groupName ->
                                 msgType?.let {msgType->
-                                    chatViewModel.uploadFile(groupId,
+                                    messagingViewModel.uploadFile(groupId,
                                         groupName, imageFile,  listOfGroupMemberId, msgType)
                                 } } }       // This function will upload file in firebase-storage
                                             // and also display it to user in this fragment
@@ -643,12 +682,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
 
             // Save current scroll position before navigating to some other fragment :) Shared view model will help us come back
             // exactly at that position :)
-            val layoutManager = binding.rvChat.layoutManager as LinearLayoutManager
-            val position = layoutManager.findFirstVisibleItemPosition()
-            val firstView = layoutManager.findViewByPosition(position)
-            val offset = firstView?.top ?: 0
-
-            sharedViewModel.saveScrollPosition(position, offset)
+            saveCurrentScrollPosition()
 
             if(message.msgType == MSG_TYPE.PDF_DOC){     // For PDF-Doc, we're moving to "PdfWebViewActivity"
                 openPdfInWebView(message.message)       // For online viewing of all kinds of docs using "google's doc rendering tool"
@@ -677,7 +711,7 @@ class MessagingFragment : Fragment(),View.OnClickListener {
             if(isCallOngoing){
                 btnCall.gone()
                 btnCallLottie.visible()
-                UtilityFunctions.setupLottieAnimation("calling.json", btnCallLottie)
+                Utils.setupLottieAnimation("calling.json", btnCallLottie)
             } else{
                 btnCall.visible()
                 btnCallLottie.gone()
@@ -736,12 +770,38 @@ class MessagingFragment : Fragment(),View.OnClickListener {
                 // Permissions are granted, proceed with call
                 groupChat?.let { groupData ->
                     currentUser.let { userData ->
-                        chatViewModel.getAgoraCallToken(groupData, userData)
+                        messagingViewModel.getAgoraCallToken(groupData, userData)
                     }
                 }
             }
             // If permissions not granted, the checkCallPermissions function will handle showing dialogs
         }
+    }
+
+
+    // Save current scroll position before navigating to some other fragment :) Shared view model will help us come back
+    // exactly at that position :)
+    // We are saving the pageNo in "sharedViewModel" so whenever we come from media fragment we'll know if its chatting mode
+    // (pageNo == null) or when it's reading mode, (pageNo is an Int) , so when it's reading the mode, the corresponding
+    // page would be loaded, so we'll always be at the correct pageNo. , now on that pageNo to know the exact location of
+    // recyclerView, we'll use the following function, (It will save the exact position of RV) so that when we return
+    // on "Messaging" fragment, we'll load at the exact correct point
+    fun saveCurrentScrollPosition(){
+        val position = layoutManager.findFirstVisibleItemPosition()
+        val firstView = layoutManager.findViewByPosition(position)
+        val offset = firstView?.top ?: 0
+
+        sharedViewModel.saveScrollPosition(position, offset)
+    }
+
+    private fun shouldScrollToBottom(): Boolean {
+        val lastVisiblePosition = layoutManager.findLastVisibleItemPosition()
+
+        if (lastVisiblePosition == -1) {
+            return true  // Assume scroll needed when layout is not ready, first time when frag is loaded
+        }
+
+        return lastVisiblePosition > adapter.itemCount - 4
     }
 
 }

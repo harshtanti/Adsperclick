@@ -3,8 +3,6 @@ package com.adsperclick.media.views.call.adapters
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -12,7 +10,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.adsperclick.media.R
 import com.adsperclick.media.data.dataModels.CallParticipant
 import com.adsperclick.media.databinding.ItemCallParticipantBinding
-import com.adsperclick.media.utils.UtilityFunctions
+import com.adsperclick.media.utils.Utils
+import com.adsperclick.media.utils.visible
 
 class ParticipantAdapter : ListAdapter<CallParticipant, ParticipantAdapter.ParticipantViewHolder>(ParticipantDiffCallback()) {
 
@@ -33,13 +32,13 @@ class ParticipantAdapter : ListAdapter<CallParticipant, ParticipantAdapter.Parti
 
                 // Display user avatar
                 if (participant.userProfileImgUrl.isNullOrEmpty().not()){
-                    UtilityFunctions.loadImageWithGlide(
+                    Utils.loadImageWithGlide(
                         imgUserAvatar.context,
                         imgUserAvatar,
                         participant.userProfileImgUrl
                     )
                 }else{
-                    UtilityFunctions.setInitialsDrawable(
+                    Utils.setInitialsDrawable(
                         imgUserAvatar,
                         participant.userName
                     )
@@ -60,7 +59,7 @@ class ParticipantAdapter : ListAdapter<CallParticipant, ParticipantAdapter.Parti
                     )
 
                     // Show audio wave indicator
-                    audioWaveIndicator.visibility = View.VISIBLE
+                    audioWaveIndicator.visible()
                 } else {
                     // Apply regular background (no border)
                     participantLayout.background = ContextCompat.getDrawable(

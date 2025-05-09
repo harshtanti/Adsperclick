@@ -28,6 +28,8 @@ transportApi = "3.0.0"
 firebaseFunctionsKtx = "21.1.1"
 voiceSdk = "4.1.1"
 lifecycleProcess = "2.8.7"
+firebaseCrashlytics = "19.4.2"
+googleFirebaseCrashlytics = "3.0.3"
 
 
 [libraries]
@@ -59,7 +61,8 @@ room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 firebase-storage-ktx = { group = "com.google.firebase", name = "firebase-storage-ktx"}
 firebase-storage = { group = "com.google.firebase", name = "firebase-storage"}
 firebase-functions = { group = "com.google.firebase", name = "firebase-functions" }
-firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging", version.ref = "firebaseMessaging" }
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging"}
+firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics"}
 androidx-hilt-common = { group = "androidx.hilt", name = "hilt-common", version.ref = "hiltCommon" }
 androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workRuntimeKtx" }
 transport-api = { group = "com.google.android.datatransport", name = "transport-api", version.ref = "transportApi" }
@@ -74,4 +77,5 @@ dagger-hilt = { id = "com.google.dagger.hilt.android", version.ref = "hiltVersio
 kotlin-kapt = { id = "org.jetbrains.kotlin.kapt"}
 kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 google-gms-google-services = { id = "com.google.gms.google-services", version.ref = "googleGmsGoogleServices" }
+google-firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "googleFirebaseCrashlytics" }
 

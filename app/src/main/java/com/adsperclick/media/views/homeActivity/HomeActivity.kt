@@ -11,6 +11,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -49,6 +50,7 @@ class HomeActivity : AppCompatActivity() {
     lateinit var tokenManager: TokenManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         super.onCreate(savedInstanceState)
         binding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -59,17 +61,23 @@ class HomeActivity : AppCompatActivity() {
             insets
         }
 
+        // Fetching data From Shared-Preferences which is a data persistence source (ROM) and then
+        // storing it in "SharedViewModel" which is "in-memory-cache" (RAM) For faster access each
+        // time when we want any of this data!
         sharedViewModel.idOfGroupToOpen = intent?.getStringExtra(ID_OF_GROUP_TO_OPEN)
         sharedViewModel.userData = tokenManager.getUser()
         sharedViewModel.lastSeenTimeForEachUserEachGroup = LAST_SEEN_TIME_EACH_USER_EACH_GROUP
 
+
         isAdmin = sharedViewModel.userData?.role == Constants.ROLE.ADMIN
         if (!isAdmin) {
-            binding.bottomNavigation.menu.removeItem(R.id.navigation_user) // Hides "User"
+            binding.bottomNavigation.menu.removeItem(R.id.navigation_user)  // Hides "User" tab of bottom navigation
         }
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_activity_home) as NavHostFragment
         navController = navHostFragment.navController
         binding.bottomNavigation.setupWithNavController(navController)
+
+        // Below code decides whether to show bottom-nav or not
         navController.addOnDestinationChangedListener { _, destination, _ ->
             if (destination.id == R.id.navigation_chat ||
                 destination.id == R.id.navigation_user ||

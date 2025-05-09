@@ -14,7 +14,16 @@ object Constants {
     var SERVER_MINUS_DEVICE_TIME_LONG : Long = 0L
     var LAST_SEEN_TIME_EACH_USER_EACH_GROUP : Map<String, MutableMap<String, Long?>> ? = null
 
-    const val LIMIT_MSGS = 50
+    const val LIMIT_MSGS = 100          // This controls the number of messages to be fetched at a time
+                        // Messaging Fragment adapter is pretty interesting, it loads LIMIT_MSGS no. of
+    // of messages once, and when u scroll to top of it, it will load the next 50 msgs and erase the
+    // last 50 msgs, making sure only "100 or whatever is LIMIT_MSGS" msgs are there in the
+    // adapter at a time :)  so when u open the most recent msg is considered index-100, when u scroll
+    // up to top, u reach index-0 and then when u load more, index-0 to 50 msgs r removed &
+    // index-100 to 150 messages are loaded into memory so exact messages are index 50 to 150 & u are
+    // currently at index 100, so, each time u try to load more pages, u end up becoming the middle
+    // of the page :)
+
 
     const val TOKEN_FOR_PREFS = "token_prefs"
     const val USER_IDENTITY = "user_identity"
@@ -208,10 +217,10 @@ object Constants {
     const val ROLE_T = "role"
 
     // Agora constants
-    const val AGORA_APP_ID = "9a5d155555ca420193c5fdfbb4f1184d" // Replace with your Agora App ID
+    const val AGORA_APP_ID = "ec84a43da1a74e54aed99ae31dc93b4a" // Replace with your Agora App ID
 
     // Temporary token (for development only!) - Replace with your token from Agora console
-    const val TEMP_AGORA_TOKEN = "006your-token-from-agora-console"
+    const val TEMP_AGORA_TOKEN = "your-token-from-agora-console"
 
 
     object CALL{

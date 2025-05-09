@@ -2,9 +2,7 @@ package com.adsperclick.media.api
 
 import android.net.Uri
 import android.util.Log
-import com.adsperclick.media.applicationCommonView.TokenManager
 import com.adsperclick.media.data.dataModels.Call
-import com.adsperclick.media.data.dataModels.CallParticipant
 import com.adsperclick.media.data.dataModels.Company
 import com.adsperclick.media.data.dataModels.GroupChatListingData
 import com.adsperclick.media.data.dataModels.GroupUser
@@ -13,12 +11,8 @@ import com.adsperclick.media.data.dataModels.NetworkResult
 import com.adsperclick.media.data.dataModels.Service
 import com.adsperclick.media.data.dataModels.User
 import com.adsperclick.media.utils.Constants
-import com.adsperclick.media.utils.Constants.DB.GROUPS
-import com.adsperclick.media.utils.Constants.DB.GROUP_CALL_LOG
-import com.adsperclick.media.utils.Constants.DB.MESSAGES
-import com.adsperclick.media.utils.Constants.DB.MESSAGES_INSIDE_MESSAGES
-import com.adsperclick.media.utils.Constants.DB.USERS
-import com.adsperclick.media.utils.UtilityFunctions
+import com.adsperclick.media.utils.Constants.DB
+import com.adsperclick.media.utils.Utils
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
@@ -49,7 +43,7 @@ class ApiServiceImpl @Inject constructor(
 
     override suspend fun getServiceList(): NetworkResult<ArrayList<Service>> {
         return try {
-            val querySnapshot = db.collection(Constants.DB.SERVICE).get().await()
+            val querySnapshot = db.collection(DB.SERVICE).get().await()
             val serviceList = arrayListOf<Service>()
             serviceList.addAll(querySnapshot.toObjects(Service::class.java))
             NetworkResult.Success(serviceList)
@@ -62,9 +56,9 @@ class ApiServiceImpl @Inject constructor(
         return try {
             val companyId: String?
             val companyNameInDataBase: String?
-            val newCompanyRef = db.collection(Constants.DB.COMPANY).document()
+            val newCompanyRef = db.collection(DB.COMPANY).document()
 
-            val companyQuery = db.collection(Constants.DB.COMPANY)
+            val companyQuery = db.collection(DB.COMPANY)
                 .whereEqualTo("gstNumber", data.gstNumber)
                 .get()
                 .await()
@@ -96,7 +90,7 @@ class ApiServiceImpl @Inject constructor(
     override suspend fun registerService(data: Service): NetworkResult<Service> {
         return try {
 
-            val existingServices = db.collection(Constants.DB.SERVICE)
+            val existingServices = db.collection(DB.SERVICE)
                 .whereEqualTo("serviceName", data.serviceName)
                 .get()
                 .await()
@@ -105,7 +99,7 @@ class ApiServiceImpl @Inject constructor(
                 return NetworkResult.Error(null, "Service with this name already exists.")
             }
 
-            val newServiceRef = db.collection(Constants.DB.SERVICE).document()
+            val newServiceRef = db.collection(DB.SERVICE).document()
             val serviceId = newServiceRef.id
 
             val service = Service(
@@ -136,7 +130,7 @@ class ApiServiceImpl @Inject constructor(
             val user = data.copy(userId = firebaseUser.uid)
 
             // 4️⃣ Save User in Firestore
-            db.collection(Constants.DB.USERS).document(firebaseUser.uid).set(user).await()
+            db.collection(DB.USERS).document(firebaseUser.uid).set(user).await()
 
             NetworkResult.Success(user)
 
@@ -146,7 +140,7 @@ class ApiServiceImpl @Inject constructor(
     }
 
 
-    override suspend fun createGroup(data: GroupChatListingData, file: File): NetworkResult<Boolean> {
+    override suspend fun createGroup(data: GroupChatListingData, file: File?): NetworkResult<Boolean> {
         return try {
             val groupCollection = db.collection("groups")
 
@@ -159,29 +153,33 @@ class ApiServiceImpl @Inject constructor(
                 .await()
 
             if (query.isEmpty) {
-                // Step 2: If no such group exists, upload the image first
-                val storageRef = storageRef
-                val imagePath = "images/group_profile_images/${System.currentTimeMillis()}_${file.name}"
-                val imageRef = storageRef.child(imagePath)
-
-                // Upload the file
-                val uploadTask = imageRef.putFile(Uri.fromFile(file))
-                uploadTask.await()
-
-                // Get the download URL
-                val imageUrl = imageRef.downloadUrl.await().toString()
-
-                // Step 3: Create the group document with the image URL
+                // Step 2: Prepare group data, with or without image
                 val groupRef = groupCollection.document()  // Generates a new document ID
                 val groupId = groupRef.id  // Get the auto-generated group ID
 
-                // Step 4: Update the group data with the generated groupId and imageUrl
-                val groupData = data.copy(groupId = groupId, groupImgUrl = imageUrl)
+                var groupData = data.copy(groupId = groupId)
 
-                // Step 5: Save the updated group data in Firestore
+                // Only handle file upload if file is not null
+                if (file != null) {
+                    val storageRef = storageRef
+                    val imagePath = "images/group_profile_images/${System.currentTimeMillis()}_${file.name}"
+                    val imageRef = storageRef.child(imagePath)
+
+                    // Upload the file
+                    val uploadTask = imageRef.putFile(Uri.fromFile(file))
+                    uploadTask.await()
+
+                    // Get the download URL
+                    val imageUrl = imageRef.downloadUrl.await().toString()
+
+                    // Update the group data with the imageUrl
+                    groupData = groupData.copy(groupImgUrl = imageUrl)
+                }
+
+                // Step 3: Save the group data in Firestore
                 groupRef.set(groupData).await()
 
-                // Step 6: Update each user's listOfGroupsAssigned with the new groupId
+                // Step 4: Update each user's listOfGroupsAssigned with the new groupId
                 val userCollection = db.collection("users")
 
                 data.listOfUsers?.forEach { userPair ->
@@ -194,27 +192,27 @@ class ApiServiceImpl @Inject constructor(
                             updatedGroups.add(groupId)
                         }
 
-                        // Step 7: Update user document with new groupId
+                        // Step 5: Update user document with new groupId
                         userRef.update("listOfGroupsAssigned", updatedGroups).await()
                     }
                 }
 
-                // Step 8: Return success if everything went well
+                // Step 6: Return success if everything went well
                 NetworkResult.Success(true)
             } else {
-                // Step 9: Return error if a group with the same name and service already exists
+                // Step 7: Return error if a group with the same name and service already exists
                 NetworkResult.Error(null, "A group with this name and service already exists.")
             }
 
         } catch (e: Exception) {
-            // Step 10: Handle any errors that occur
+            // Step 8: Handle any errors that occur
             NetworkResult.Error(null, e.message ?: "Group Creation failed")
         }
     }
 
     override suspend fun getCompanyList(): NetworkResult<ArrayList<Company>> {
         return try {
-            val querySnapshot = db.collection(Constants.DB.COMPANY).get().await()
+            val querySnapshot = db.collection(DB.COMPANY).get().await()
             val companyList = arrayListOf<Company>()
             companyList.addAll(querySnapshot.toObjects(Company::class.java))
             NetworkResult.Success(companyList)
@@ -227,7 +225,7 @@ class ApiServiceImpl @Inject constructor(
         return try {
             // First check if the service is used by any groups
             val groupsWithService = db
-                .collection(GROUPS)
+                .collection(DB.GROUPS)
                 .whereEqualTo("associatedServiceId", serviceId)
                 .get()
                 .await()
@@ -254,7 +252,7 @@ class ApiServiceImpl @Inject constructor(
         file: File?
     ): NetworkResult<Boolean> {
         return try {
-            val userCollection = db.collection(USERS)
+            val userCollection = db.collection(DB.USERS)
             val userRef = userCollection.document(userId)
 
             // Create a map to hold the fields to update
@@ -296,7 +294,7 @@ class ApiServiceImpl @Inject constructor(
 
     override suspend fun getUserData(userId: String): NetworkResult<User> {
         return try {
-            val userDoc = db.collection(Constants.DB.USERS).document(userId).get(Source.SERVER).await()
+            val userDoc = db.collection(DB.USERS).document(userId).get(Source.SERVER).await()
             Log.d("Firestore Debug", "Fetched user data: ${userDoc.data}")
             val user = userDoc.toObject(User::class.java)
                 ?: return NetworkResult.Error(null, "User not found")
@@ -312,7 +310,7 @@ class ApiServiceImpl @Inject constructor(
 
     override suspend fun getCompanyData(companyId: String): NetworkResult<Company> {
         return try {
-            val companyDoc = db.collection(Constants.DB.COMPANY).document(companyId).get().await()
+            val companyDoc = db.collection(DB.COMPANY).document(companyId).get().await()
             val company = companyDoc.toObject(Company::class.java)
                 ?: return NetworkResult.Error(null, "Company not found")
 
@@ -325,7 +323,7 @@ class ApiServiceImpl @Inject constructor(
     override suspend fun getCompanyNameData(companyName: String): NetworkResult<Company> {
         return try {
             // Query companies collection where companyName equals the provided name
-            val querySnapshot = db.collection(Constants.DB.COMPANY)
+            val querySnapshot = db.collection(DB.COMPANY)
                 .whereEqualTo("companyName", companyName)
                 .get()
                 .await()
@@ -355,7 +353,7 @@ class ApiServiceImpl @Inject constructor(
 
             // Fetch users in batches to avoid potential limits
             for (userId in userIds) {
-                val userDoc = db.collection(Constants.DB.USERS).document(userId).get().await()
+                val userDoc = db.collection(DB.USERS).document(userId).get().await()
                 val user = userDoc.toObject(User::class.java)
                 user?.let { usersList.add(it) }
             }
@@ -376,7 +374,7 @@ class ApiServiceImpl @Inject constructor(
         file: File?
     ): NetworkResult<Boolean> {
         return try {
-            val userCollection = FirebaseFirestore.getInstance().collection("groups")
+            val userCollection = db.collection(DB.GROUPS)
             val userRef = userCollection.document(groupId)
 
             // Create a map to hold the fields to update
@@ -474,7 +472,7 @@ class ApiServiceImpl @Inject constructor(
 
     override suspend fun getGroupDetails(groupId: String): NetworkResult<GroupChatListingData> {
         return try {
-            val groupData = db.collection(Constants.DB.GROUPS).document(groupId).get().await()
+            val groupData = db.collection(DB.GROUPS).document(groupId).get().await()
             val group = groupData.toObject(GroupChatListingData::class.java)
                 ?: return NetworkResult.Error(null, "Group not found")
 
@@ -546,7 +544,7 @@ class ApiServiceImpl @Inject constructor(
         services: List<Service>
     ): NetworkResult<Boolean> {
         return try {
-            val companyRef = db.collection(Constants.DB.COMPANY).document(companyId)
+            val companyRef = db.collection(DB.COMPANY).document(companyId)
 
             // Update the company document with the new services list
             companyRef.update("listOfServices", services).await()
@@ -588,8 +586,8 @@ class ApiServiceImpl @Inject constructor(
 
     override suspend fun listenParticipantChanges(groupId: String): Flow<NetworkResult<Call>> = callbackFlow {
         try {
-            val groupDoc = db.collection(Constants.DB.GROUPS).document(groupId)
-            val callLog = groupDoc.collection(Constants.DB.GROUP_CALL_LOG)
+            val groupDoc = db.collection(DB.GROUPS).document(groupId)
+            val callLog = groupDoc.collection(DB.GROUP_CALL_LOG)
 
             // Query for the ongoing call
             val querySnapshot = callLog
@@ -600,9 +598,9 @@ class ApiServiceImpl @Inject constructor(
 
             if (reqdDoc != null) {
                 // Set up the listener for the specific call document
-                val listenerRegistration = db.collection(Constants.DB.GROUPS)
+                val listenerRegistration = db.collection(DB.GROUPS)
                     .document(groupId)
-                    .collection(Constants.DB.GROUP_CALL_LOG)
+                    .collection(DB.GROUP_CALL_LOG)
                     .document(reqdDoc.id)
                     .addSnapshotListener { snapshot, error ->
                         if (error != null) {
@@ -641,11 +639,9 @@ class ApiServiceImpl @Inject constructor(
         val groupId = groupData.groupId ?: ""
         val groupName = groupData.groupName ?: ""
         val userId = userData.userId ?: ""
-        val userName = userData.userName
-        val userProfileImgUrl = userData.userProfileImgUrl
 
-        val groupDoc = db.collection(Constants.DB.GROUPS).document(groupId)
-        val callLog = groupDoc.collection(Constants.DB.GROUP_CALL_LOG)
+        val groupDoc = db.collection(DB.GROUPS).document(groupId)
+        val callLog = groupDoc.collection(DB.GROUP_CALL_LOG)
 
         try {
             // Fetch latest ONGOING CALL
@@ -715,11 +711,11 @@ class ApiServiceImpl @Inject constructor(
         }
     }
 
-    suspend fun sendMessage(msgText: String, groupId: String, user: User, groupName: String,
+    fun sendMessage(msgText: String, groupId: String, user: User, groupName: String,
                             listOfGroupMemberId: List<String>, msgType: Int) {
-        val messagesRef = db.collection(MESSAGES)
+        val messagesRef = db.collection(DB.MESSAGES)
             .document(groupId)
-            .collection(MESSAGES_INSIDE_MESSAGES)
+            .collection(DB.MESSAGES_INSIDE_MESSAGES)
 
         val msgId = messagesRef.document().id // Generate a unique ID for the message
 
@@ -743,7 +739,7 @@ class ApiServiceImpl @Inject constructor(
                     .addOnSuccessListener {
                         val updatedMessage = it.toMessage()
                         updatedMessage?.let { msg ->
-                            db.collection(GROUPS)
+                            db.collection(DB.GROUPS)
                                 .document(groupId)
                                 .update("lastSentMsg", msg) // ✅ Save correct message with timestamp
                         }
@@ -783,7 +779,7 @@ class ApiServiceImpl @Inject constructor(
 
     fun DocumentSnapshot.toMessage(): Message? {
         return try {
-            val timestampLong = UtilityFunctions.timestampToLong(this.getTimestamp("timestamp"))     // Convert Firestore Timestamp -> Long
+            val timestampLong = Utils.timestampToLong(this.getTimestamp("timestamp"))     // Convert Firestore Timestamp -> Long
 
             Message(
                 msgId = getString("msgId") ?: "null string",
@@ -812,8 +808,8 @@ class ApiServiceImpl @Inject constructor(
     override suspend fun updateUserCallStatus(groupId: String, userId: String, isMuted: Boolean?, isSpeaking: Boolean?): NetworkResult<Boolean> {
         return try {
             // Get reference to the ongoing call
-            val groupDoc = db.collection(Constants.DB.GROUPS).document(groupId)
-            val callLog = groupDoc.collection(Constants.DB.GROUP_CALL_LOG)
+            val groupDoc = db.collection(DB.GROUPS).document(groupId)
+            val callLog = groupDoc.collection(DB.GROUP_CALL_LOG)
 
             // Find the ongoing call
             val querySnapshot = callLog
