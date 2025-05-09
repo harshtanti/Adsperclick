@@ -129,6 +129,29 @@ class AuthRepository @Inject constructor(private val apiService: ApiService, pri
         }
     }
 
+    suspend fun deleteAccount() = withContext(Dispatchers.IO) {
+
+        try {
+            messagesDao.clearAllMessages()
+            tokenManager.getUser()?.userId?.let { userId ->
+                firebaseDb.collection(Constants.DB.USERS)
+                    .document(userId)
+                    .update("accountDeleted", true)
+                    .await()
+            }
+
+            clearDeviceFromFcmTokenList()
+            clearFirestoreCache()
+            tokenManager.signOut()
+
+            firebaseAuth.currentUser?.delete()?.await()
+
+            _signoutLiveData.postValue(ConsumableValue(NetworkResult.Success(true)))
+        } catch (ex: Exception){
+            _signoutLiveData.postValue(ConsumableValue(NetworkResult.Error(null, "Error ${ex.message}")))
+        }
+    }
+
     private suspend fun clearDeviceFromFcmTokenList(){
         val user = tokenManager.getUser()
 

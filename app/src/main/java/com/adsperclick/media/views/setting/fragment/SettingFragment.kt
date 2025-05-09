@@ -141,6 +141,7 @@ class SettingFragment : Fragment(),View.OnClickListener {
         binding.cvPhone.setOnClickListener(this)
         binding.header.btnSave.setOnClickListener(this)
         binding.header.btnBack.setOnClickListener(this)
+        binding.btnDeleteAccount.setOnClickListener(this)
     }
 
     private val uploadOnSelectListener = object : UploadImageDocsBottomSheet.OnSelectListener{
@@ -173,10 +174,6 @@ class SettingFragment : Fragment(),View.OnClickListener {
     // Helper method to load the image into the ShapeableImageView
     private fun loadImageIntoView(imageFile: File) {
         try {
-            // Option 1: Using Bitmap (simple but may cause OutOfMemoryError for large images)
-            /*val bitmap = BitmapFactory.decodeFile(imageFile.absolutePath)
-            binding.imgProfileDp.setImageBitmap(bitmap)*/
-
             // Option 2: Using Glide (recommended for better memory management)
             // Uncomment the below code if you're using Glide
             Glide.with(requireContext())
@@ -185,21 +182,6 @@ class SettingFragment : Fragment(),View.OnClickListener {
                 .placeholder(R.drawable.baseline_person_24) // Replace with your placeholder
                 .error(R.drawable.baseline_person_24) // Replace with your error image
                 .into(binding.imgProfileDp)
-            /*context?.let { UtilityFunctions.setImageOnImageViewWithGlide(it,imageFile,binding.imgProfileDp) }*/
-
-            // Option 3: Using Picasso
-            /*
-            Picasso.get()
-                .load(imageFile)
-                .centerCrop()
-                .fit()
-                .placeholder(R.drawable.default_profile) // Replace with your placeholder
-                .error(R.drawable.default_profile) // Replace with your error image
-                .into(binding.imgProfileDp)
-            */
-
-            // Save the image path to your data model or preferences if needed
-            // For example: viewModel.setProfileImagePath(imageFile.absolutePath)
         } catch (e: Exception) {
             e.printStackTrace()
             // Handle the error case
@@ -343,6 +325,12 @@ class SettingFragment : Fragment(),View.OnClickListener {
                 binding.progressBar.visible()
                 authViewModel.signOut()
             }
+
+            binding.btnDeleteAccount ->{
+                binding.progressBar.visible()
+                authViewModel.deleteAccount()
+            }
+
             binding.header.btnBack -> {
                 findNavController().popBackStack()
             }

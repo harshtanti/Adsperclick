@@ -23,8 +23,13 @@ data class User(
     var fcmTokenListOfDevices : List<String> ? = null,
     var lastNotificationSeenTime : Long ?= null,
     val userPhoneNumber : String ?= null,
-    val agoraUserId : Int ?= null
+    val agoraUserId : Int ?= null,
+    var accountDeleted :Boolean ?= null
 ){
-    constructor() : this(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,null,null,null)
+    constructor() : this(null, null, null, null,
+        null, null, null, null, null,
+        null, null, null, null,
+        null, null,null,null,
+        null, null, null)
 }
 
