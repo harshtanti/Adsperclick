@@ -355,7 +355,11 @@ class ApiServiceImpl @Inject constructor(
             for (userId in userIds) {
                 val userDoc = db.collection(DB.USERS).document(userId).get().await()
                 val user = userDoc.toObject(User::class.java)
-                user?.let { usersList.add(it) }
+
+                user?.let {
+                    if (user.accountDeleted == null) {
+                        usersList.add(it) }
+                }
             }
 
             if (usersList.isEmpty()) {
