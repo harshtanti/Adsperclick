@@ -113,8 +113,6 @@ class GroupProfileFragment : Fragment(),View.OnClickListener {
             )
         }
 
-        binding.tvCount.text = binding.tvCount.context.getString(R.string.members,groupChat?.listOfUsers?.size)
-
 
     }
 
@@ -250,6 +248,7 @@ class GroupProfileFragment : Fragment(),View.OnClickListener {
                             .firstOrNull { it.tagName != Constants.EMPLOYEE_SINGULAR }
                             ?.tagName
                         adapter.submitList(userList)
+                        binding.tvCount.text = binding.tvCount.context.getString(R.string.members,userList.size)
                     }
                 }
                 is NetworkResult.Error -> {
