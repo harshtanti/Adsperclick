@@ -27,7 +27,7 @@
         android:layout_width="@dimen/DP150"
         android:layout_height="@dimen/DP150"
         android:layout_centerInParent="true"
-        android:layout_marginTop="@dimen/DP50"
+        android:layout_marginTop="10dp"
         android:contentDescription="@null"
         app:layout_constraintTop_toBottomOf="@id/header"
         app:layout_constraintStart_toStartOf="parent"
@@ -60,11 +60,10 @@
         android:text="Welcome to Setting Fragment!!!" />
 
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/nestScrollView"
         android:layout_width="match_parent"
         android:layout_height="@dimen/DP0"
         android:layout_marginHorizontal="@dimen/DP10"
-        android:layout_marginTop="@dimen/DP10"
-        app:layout_constraintBottom_toTopOf="@id/btnLogout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvName">
 
@@ -72,8 +71,9 @@
             android:id="@+id/profileLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/DP12"
-            android:padding="@dimen/DP12">
+            android:paddingTop="@dimen/DP12"
+            android:paddingHorizontal="@dimen/DP10"
+            >
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/cvAssociationDate"
@@ -354,35 +354,72 @@
 
     </androidx.core.widget.NestedScrollView>
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnLogout"
+    <LinearLayout
+        android:id="@+id/llButtons"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/DP30"
-        android:text="@string/logout"
-        app:icon="@drawable/logout_red"
-        app:iconTint="@color/red_email"
-        app:iconGravity="textEnd"
-        android:textColor="@color/red_email"
-        android:backgroundTint="@color/transparent"
+        android:orientation="vertical"
+        android:paddingBottom="24dp"
+        android:paddingTop="10dp"
+        android:paddingHorizontal="@dimen/DP10"
+        android:gravity="center_horizontal"
+        app:layout_constraintTop_toBottomOf="@+id/nestScrollView"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        android:background="@android:color/white">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnDeleteAccount"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/DP10"
-        android:text="@string/delete_account"
-        app:icon="@drawable/delete_red"
-        app:iconTint="@color/red_email"
-        app:iconGravity="textEnd"
-        android:textColor="@color/red_email"
-        android:backgroundTint="@color/transparent"
-        app:layout_constraintBottom_toTopOf="@+id/btnLogout"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        <!-- Delete Account Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDeleteAccount"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/delete_account"
+            android:textColor="@color/red_email"
+            android:icon="@drawable/delete_red"
+            android:iconTint="@color/red_email"
+            app:iconGravity="textStart"
+            android:backgroundTint="@android:color/transparent"
+            app:strokeColor="@color/red_email"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Logout Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLogout"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/logout"
+            android:textColor="@color/red_email"
+            android:icon="@drawable/logout_red"
+            android:iconTint="@color/red_email"
+            app:iconGravity="textStart"
+            android:backgroundTint="@android:color/transparent"
+            app:strokeColor="@color/red_email"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Privacy Policy TextView -->
+        <TextView
+            android:id="@+id/btnReadPrivacyPolicy"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📄 Privacy Policy"
+            android:textColor="@android:color/holo_blue_dark"
+            android:textSize="16sp"
+            android:textAlignment="center"
+            android:paddingVertical="8dp" />
+
+        <!-- How to Delete Account TextView -->
+        <TextView
+            android:id="@+id/btnReadAccDeleteUrl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🗑️ How to Delete Account?"
+            android:textColor="@android:color/holo_blue_dark"
+            android:textSize="16sp"
+            android:textAlignment="center"
+            android:paddingVertical="8dp" />
+
+    </LinearLayout>
 
     <ProgressBar
         android:id="@+id/progressBar"

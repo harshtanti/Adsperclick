@@ -1,6 +1,7 @@
 package com.adsperclick.media.views.setting.fragment
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -142,6 +143,8 @@ class SettingFragment : Fragment(),View.OnClickListener {
         binding.header.btnSave.setOnClickListener(this)
         binding.header.btnBack.setOnClickListener(this)
         binding.btnDeleteAccount.setOnClickListener(this)
+        binding.btnReadPrivacyPolicy.setOnClickListener(this)
+        binding.btnReadAccDeleteUrl.setOnClickListener(this)
     }
 
     private val uploadOnSelectListener = object : UploadImageDocsBottomSheet.OnSelectListener{
@@ -322,13 +325,65 @@ class SettingFragment : Fragment(),View.OnClickListener {
                 bottomSheet.show(childFragmentManager, bottomSheet.tag)
             }
             binding.btnLogout -> {
-                binding.progressBar.visible()
-                authViewModel.signOut()
+
+
+                val dialogListener = object : DialogUtils.DialogButtonClickListener {
+                    override fun onPositiveButtonClickedData(data: String) {
+                        binding.progressBar.visible()
+                        authViewModel.signOut()
+                    }
+
+                    override fun onPositiveButtonClicked() {
+                        binding.progressBar.visible()
+                        authViewModel.signOut()
+                    }
+
+                    override fun onNegativeButtonClicked() {
+                        // Do nothing on cancel
+                    }
+
+                    override fun onCloseButtonClicked() {
+                        TODO("Not yet implemented")
+                    }
+                }
+
+                DialogUtils.showDeleteDetailsDialog(requireContext(),
+                    dialogListener,
+                    "Are you sure you want to logout?",
+                    "Yes",
+                    "No"
+                    )
             }
 
             binding.btnDeleteAccount ->{
-                binding.progressBar.visible()
-                authViewModel.deleteAccount()
+
+                val dialogListener = object : DialogUtils.DialogButtonClickListener {
+                    override fun onPositiveButtonClickedData(data: String) {
+                        binding.progressBar.visible()
+                        authViewModel.deleteAccount()
+                    }
+
+                    override fun onPositiveButtonClicked() {
+                        binding.progressBar.visible()
+                        authViewModel.deleteAccount()
+                    }
+
+                    override fun onNegativeButtonClicked() {
+                        // Do nothing on cancel
+                    }
+
+                    override fun onCloseButtonClicked() {
+                        TODO("Not yet implemented")
+                    }
+                }
+
+                DialogUtils.showDeleteDetailsDialog(
+                    requireContext(),
+                    dialogListener,
+                    "Are you sure you want to permanently delete your account? Your personal information will be removed, and you will no longer be able to access the app. Messages and files shared with others will remain for their reference.",
+                    "Delete Account",
+                    "Cancel"
+                )
             }
 
             binding.header.btnBack -> {
@@ -336,7 +391,18 @@ class SettingFragment : Fragment(),View.OnClickListener {
             }
             binding.cvPhone->{
                 showPhoneNumberDialog()
+            }
 
+            binding.btnReadPrivacyPolicy ->{
+                val intent = Intent(Intent.ACTION_VIEW)
+                intent.data = Uri.parse("https://skthakur0401.github.io/EcommChat_PrivacyPolicy/")
+                startActivity(intent)
+            }
+
+            binding.btnReadAccDeleteUrl ->{
+                val intent = Intent(Intent.ACTION_VIEW)
+                intent.data = Uri.parse("https://skthakur0401.github.io/EcommChat_DeleteAccoutURL/")
+                startActivity(intent)
             }
         }
     }
