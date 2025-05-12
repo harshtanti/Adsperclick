@@ -41,7 +41,9 @@ class UserCommunityPagingSource @Inject constructor(
                 query.startAfter(lastDocument).get().await()
             }
 
-            val userList = currentPage.documents.map { document ->
+            val userList = currentPage.documents
+                .filter { it.get("accountDeleted") == null }
+                .map { document ->
                 if (userRole==1){
                     CommonData(
                         id = document.getString("userId"),
