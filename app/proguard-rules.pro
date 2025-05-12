@@ -21,3 +21,11 @@
 #-renamesourcefileattribute SourceFile
 -keep class io.agora.** { *; }
 -dontwarn io.agora.**
+-keep class com.adsperclick.media.applicationCommonView.** { *; }
+-keep class com.adsperclick.media.api.** { *; }
+-keep class com.adsperclick.media.data.** { *; }
+-keep class com.adsperclick.media.di.** { *; }
+-keep class com.adsperclick.media.services.** { *; }
+-keep class com.adsperclick.media.utils.** { *; }
+-keep class com.adsperclick.media.views.** { *; }
+-keep class com.adsperclick.media.** { *; }
