@@ -1,5 +1,6 @@
 package com.adsperclick.media.views.chat.fragment
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -108,6 +109,10 @@ class ChatFragment : Fragment(),View.OnClickListener {
         isAdmin = user?.role == Constants.ROLE.ADMIN
         if (!isAdmin) {
             binding.addDetails.gone()
+        }
+
+        sharedViewModel.userData?.userName?.let {name->
+            binding.tvChats.text = binding.tvChats.context.getString(R.string.hello, name.split(" ").firstOrNull() ?: "")
         }
 
         val isClient = user?.role == Constants.ROLE.CLIENT

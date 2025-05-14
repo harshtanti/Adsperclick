@@ -32,10 +32,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@color/white"
-        android:fontFamily="@font/inter_900"
-        android:text="Chats"
-        android:textColor="@color/black"
-        android:textSize="36sp"
+        android:fontFamily="@font/montserrat_700"
+        tools:text="Chats"
+        android:textColor="#131d2a"
+        android:textSize="24sp"
         app:layout_constraintStart_toStartOf="@+id/etSearchBar"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -76,7 +76,7 @@
         android:id="@+id/etSearchBar"
         style="@style/et_search_bar"
         android:hint="Search"
-        android:textColorHint="#3c3c43"
+        android:textColorHint="@color/textColor"
         android:drawableStart="@drawable/search_24px"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
