@@ -41,12 +41,12 @@ class ChatViewModel@Inject constructor(
             val syncUserJob = async { chatRepository.syncUser()}
             val syncTimeJob = async { chatRepository.syncDeviceTime()}
             val isAcceptableVersionJob = async{ chatRepository.isCurrentVersionAcceptable() }
-            val animationPlayTimer = async{ delay(2100) }
+//            val animationPlayTimer = async{ delay(2100) }
 
             val userObjectFromBackend = syncUserJob.await()
             val isAcceptableVersion = isAcceptableVersionJob.await()
             syncTimeJob.await()
-            animationPlayTimer.await()      // To make sure animation is also completed before we post result
+//            animationPlayTimer.await()      // To make sure animation is also completed before we post result
 
             if(isAcceptableVersion.not()){
                 _userLiveData.postValue(ConsumableValue

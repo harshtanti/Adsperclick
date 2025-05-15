@@ -4,9 +4,9 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main"
-    android:background="@android:color/white">
+    android:background="@color/white">
 
-    <com.airbnb.lottie.LottieAnimationView
+<!--    <com.airbnb.lottie.LottieAnimationView
         android:id="@+id/lottieSplashScreen"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -17,9 +17,9 @@
         app:layout_constraintTop_toTopOf="parent"
         app:lottie_autoPlay="true"
         app:lottie_fileName="splashScreen.json"
-        app:lottie_loop="false" />
+        app:lottie_loop="false" />-->
 
-    <ImageView
+<!--    <ImageView
         android:id="@+id/imageView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -28,5 +28,106 @@
         android:src="@drawable/splash_screen_ecomm"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent" />-->
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:background="@drawable/splash_screen_bg"
+        >
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tvHavingBusinessDoubts"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/montserrat_600"
+            android:text="@string/having_business_n_doubts"
+            android:textAlignment="center"
+            android:textColor="@color/textColor"
+            android:textSize="31sp"
+            app:layout_constraintVertical_bias="0.35"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/ll" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tvChatWithProfessional"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/DP40"
+            android:text="@string/chat_with_Professional"
+            android:textAlignment="center"
+            android:fontFamily="@font/montserrat_400"
+            android:textColor="@color/textColor"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvHavingBusinessDoubts" />
+
+        <LinearLayout
+            android:id="@+id/ll_BottomEcommChats"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginBottom="@dimen/DP10"
+            >
+
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/tvEcommChats"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/DP40"
+                android:text="Ecomm Chats"
+                android:textAlignment="center"
+                android:fontFamily="@font/montserrat_400"
+                android:textColor="@color/textColor"
+                android:textSize="14sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tvHavingBusinessDoubts" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/tvGrowBusiness"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/DP40"
+                android:text="@string/grow_business_anytime"
+                android:textAlignment="center"
+                android:fontFamily="@font/montserrat_400"
+                android:textColor="@color/textColor_semiTransparent"
+                android:textSize="@dimen/SP13"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tvHavingBusinessDoubts" />
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:id="@+id/ll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/splash_screen_bg_icon"
+            android:orientation="vertical"
+            android:gravity="center"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/splash_screen_3d_anim"
+                android:layout_gravity="center"/>
+        </LinearLayout>
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- White base -->
+    <item>
+        <color android:color="#F9F9FF"/> <!-- very light purple/white -->
+    </item>
+
+    <!-- First purple radial gradient patch -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="@dimen/splash_screen_gradient"
+                android:centerX="0%"
+                android:centerY="20%"
+                android:startColor="@color/gradient_color"
+                android:endColor="@color/gradient_color_end"
+                android:useLevel="false"/>
+        </shape>
+    </item>
+
+
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="@dimen/splash_screen_gradient"
+                android:centerX="0%"
+                android:centerY="40%"
+                android:startColor="@color/gradient_color"
+                android:endColor="@color/gradient_color_end"
+                android:useLevel="false"/>
+        </shape>
+    </item>
+
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="@dimen/splash_screen_gradient"
+                android:centerX="0%"
+                android:centerY="60%"
+                android:startColor="@color/gradient_color"
+                android:endColor="@color/gradient_color_end"
+                android:useLevel="false"/>
+        </shape>
+    </item>
+
+    <!-- Second purple patch -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="@dimen/splash_screen_gradient"
+                android:centerX="0%"
+                android:centerY="80%"
+                android:startColor="@color/gradient_color"
+                android:endColor="@color/gradient_color_end"
+                android:useLevel="false"/>
+        </shape>
+    </item>
+
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="@dimen/splash_screen_gradient"
+                android:centerX="0%"
+                android:centerY="100%"
+                android:startColor="@color/gradient_color"
+                android:endColor="@color/gradient_color_end"
+                android:useLevel="false"/>
+        </shape>
+    </item>
+
+</layer-list>

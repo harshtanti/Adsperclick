@@ -188,6 +188,13 @@
 
 
     <color name="textColor">#131d2a</color>
+    <color name="textColor_semiTransparent">#84131d2a</color>
+    <color name="gradient_color">#42413ffb</color>
+    <color name="gradient_color_end">#03413ffb</color>
+    <color name="gradient_color_cool">#bc9ddb</color>
+
+    <color name="gradient_color_login_screen">#28413ffb</color>
+
 
 
 

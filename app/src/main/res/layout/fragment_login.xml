@@ -4,15 +4,28 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".views.login.fragments.LoginFragment">
+    tools:context=".views.login.fragments.LoginFragment"
+    android:background="@drawable/login_background">
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/tvLogin"
-        style="@style/tv_title_login_reg"
-        android:text="Ecomm Chat"
-        app:layout_constraintBottom_toTopOf="@+id/tilEmail"
+    <FrameLayout
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_marginTop="32dp"
+        android:background="@drawable/ring_gradient_border"
+        android:layout_gravity="center"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/tilEmail">
+
+        <ImageView
+            android:id="@+id/tvLogin"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerInside"
+            android:padding="12dp"
+            android:src="@drawable/login_screen_human" />
+    </FrameLayout>
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/tilEmail"
@@ -22,16 +35,18 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintVertical_bias="0.36"
         android:layout_marginHorizontal="@dimen/DP20"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        app:boxBackgroundMode="none"
         android:hint="@string/email"
-        app:startIconDrawable="@drawable/drawable_start_email"
         app:endIconMode="clear_text"
         android:layout_marginTop="@dimen/DP15"
+        android:background="@drawable/bg_login_et"
         app:layout_constraintStart_toStartOf="parent">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etEmail"
             android:singleLine="true"
+            android:textSize="@dimen/SP18"
+            android:fontFamily="@font/montserrat_400"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
     </com.google.android.material.textfield.TextInputLayout>
@@ -42,10 +57,10 @@
         android:layout_height="wrap_content"
         app:layout_constraintTop_toBottomOf="@+id/tilEmail"
         android:layout_marginHorizontal="@dimen/DP20"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        app:boxBackgroundMode="none"
         android:hint="@string/password"
-        app:startIconDrawable="@drawable/drawable_start_password"
         app:endIconMode="password_toggle"
+        android:background="@drawable/bg_login_et"
         android:layout_marginTop="@dimen/DP15"
         app:layout_constraintStart_toStartOf="parent">
 
@@ -53,6 +68,7 @@
             android:id="@+id/etPassword"
             android:inputType="textPassword"
             android:singleLine="true"
+            android:textSize="@dimen/SP18"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
     </com.google.android.material.textfield.TextInputLayout>

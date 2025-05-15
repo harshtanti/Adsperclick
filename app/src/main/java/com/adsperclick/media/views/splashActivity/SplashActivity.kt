@@ -45,7 +45,7 @@ class SplashActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        binding.lottieSplashScreen.speed =2.7f
+//        binding.lottieSplashScreen.speed =2.7f
 
         checkUserSession()
         setupObserver()
