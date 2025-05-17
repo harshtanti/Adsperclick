@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- White base -->
+    <item>
+        <color android:color="#F9F9FF"/> <!-- very light purple/white -->
+    </item>
+
+    <!-- First purple radial gradient patch -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="200dp"
+                android:centerX="100%"
+                android:centerY="10%"
+                android:startColor="@color/gradient_color"
+                android:endColor="#00FFFFFF"
+                android:useLevel="false"/>
+        </shape>
+    </item>
+
+
+    <!-- Second purple patch -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="290dp"
+                android:centerX="10%"
+                android:centerY="50%"
+                android:startColor="@color/gradient_color_login_screen"
+                android:endColor="#00FFFFFF"
+                android:useLevel="false"/>
+        </shape>
+    </item>
+
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="290dp"
+                android:centerX="10%"
+                android:centerY="75%"
+                android:startColor="@color/gradient_color_login_screen"
+                android:endColor="#00FFFFFF"
+                android:useLevel="false"/>
+        </shape>
+    </item>
+
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="290dp"
+                android:centerX="10%"
+                android:centerY="100%"
+                android:startColor="@color/gradient_color_login_screen"
+                android:endColor="#00FFFFFF"
+                android:useLevel="false"/>
+        </shape>
+    </item>
+
+</layer-list>

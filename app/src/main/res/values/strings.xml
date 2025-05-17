@@ -82,4 +82,7 @@
 
     <string name="delete_account">Delete Account</string>
     <string name="hello">Hello %s!</string>
+    <string name="having_business_n_doubts">Having business \n doubts?</string>
+    <string name="chat_with_Professional">Chat with our professionals and solve all your doubts</string>
+    <string name="grow_business_anytime">Grow business anytime</string>
 </resources>
